@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+.DS_Store
+.LansingModel.xcodeproj/
+LansingModel/LansingModel.xcodeproj/project.pbxproj
+LansingModel/LansingModel.xcodeproj/project.xcworkspace/contents.xcworkspacedata
