@@ -25,7 +25,7 @@ struct Population{
 void Population::makePopulation(const Parameters& p,
                                 Randomizer &rng){
     /**This function initialises the population and initialises males and females. **/
-    for (int i = 0; i < p.populationSize; ++i){
+    for (int i = 0u; i < p.populationSize; ++i){
 	    males.emplace_back(p, rng, false);
         females.emplace_back(p, rng, true);
     }
@@ -65,16 +65,12 @@ void Population::mortalityRound(const Parameters& p,
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
             ageAtDeath.push_back(females[female].age);
-            females[female].gametesOfIndividual = females.back().gametesOfIndividual; //
             females[female] = females.back(); // here!
             females.pop_back();
         } else { // else, continue loop
             ++female;
         }
     }
-       
-    //std::cout << "Counter deaths = " << counterDeaths << std::endl;
-    //std::cout << "Counter lives = " << counterLives << std::endl;
 }
 
 void Population::addOffspring(const Parameters& p,

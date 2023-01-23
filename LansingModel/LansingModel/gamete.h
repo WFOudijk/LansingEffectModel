@@ -9,9 +9,11 @@
 #include <array>
 
 const int numOfGenes = 20; // the number of genes every individual contains
+using arrayOfGenes = std::array<bool, numOfGenes>; // binary
 
 struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // an array with its genes
+    // true (1) represents damage
     Gamete(){} // default constructor
     Gamete(const Parameters& p,
            Randomizer& rng){

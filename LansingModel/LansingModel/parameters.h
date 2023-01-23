@@ -13,20 +13,24 @@ struct Parameters {
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
                    mutationProb(0.01), // 0.01, 0.15, steps: 0.02. > parameter exploration
-                   extrinsicMortRisk(0.05),
+                   extrinsicMortRisk(0.01),
                    outputTime(5),
-                   tEnd(10000), // 10.000
-                   maximumAge(40){}
+                   tEnd(1000), // 10.000
+                   strengthOfSelection(-0.05),
+                   maximumAge(40){
+                       numOfGametes = maximumAge * numOfOffspringPerFemale;
+                   }
     
-    int populationSize; // total population size
-    double halfPopulation; // to determine number of males and females
-    double initDamageProportion;
+    double populationSize; // total population size
+    double initDamageProportion; // the proportion of initial damage in the genome
     int numOfOffspringPerFemale; // number of offspring a female should produce
     double mutationProb; // probability a mutation will occur
     double extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
     int outputTime; // when to output info
     int tEnd; // end of simulation
-    int maximumAge; 
+    double strengthOfSelection; // this coefficient determines the strength of the effect of damage
+    unsigned int maximumAge; // maximum age an individual can get to
+    int numOfGametes; // the derived number of gametes a female should have
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
@@ -61,7 +65,9 @@ void Parameters::readParameters(const std::string& parameterFile){
         ifs >> parID; // get row in file
         if(ifs.good()) { // setting of the parameters
             checkParam(parID, "mutationProb", mutationProb, ifs);
-            //checkParam(parID, "extrinsicMortRisk", extrinsicMortRisk, ifs);
+            checkParam(parID, "extrinsicMortRisk", extrinsicMortRisk, ifs);
+            checkParam(parID, "strengthOfSelection", strengthOfSelection, ifs);
+            checkParam(parID, "populationSize", populationSize, ifs);
         }
         else break;
     }
