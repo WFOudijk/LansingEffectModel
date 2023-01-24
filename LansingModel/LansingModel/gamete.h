@@ -29,10 +29,11 @@ struct Gamete{
 
 void Gamete::mutate(const Parameters &p,
                     Randomizer &rng){
-    for (int i = 0u; i < genesOfGamete.size(); ++i){
+    int count = 0;
+    for (auto i = 0; i < genesOfGamete.size(); ++i){
         if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
+            count += 1;
             genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
         }
     }
-   
 }

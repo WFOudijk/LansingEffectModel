@@ -104,6 +104,7 @@ bool Individual::dies(Randomizer& rng,
         age += 1; // increment age if individual survives the mortality round
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
+        //std::cout << " + " << age << " ";
         dies = true; // Individual will die
     }
     return dies;
@@ -111,7 +112,7 @@ bool Individual::dies(Randomizer& rng,
 
 void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
-    for (int i = 0; i < gametesOfIndividual.size(); ++i){
+    for (auto i = 0; i < gametesOfIndividual.size(); ++i){
         gametesOfIndividual[i].mutate(p, rng);
     }
 }

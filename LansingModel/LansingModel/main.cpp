@@ -49,14 +49,14 @@ int main(int argc, const char * argv[]) {
         pop.addOffspring(p, rng); // adding offspring to the adults
         pop.mutationRound(p, rng);
         // output
-        //double counter = 0.0;
-        //double avgAge = 0.0;
+        double counter = 0.0;
+        double avgAge = 0.0;
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << std::endl;
-//            for (auto i : pop.males) {
-//                counter += i.survivalProb;
-//                avgAge += i.age;
-//            }
+            for (auto i : pop.males) {
+                counter += i.survivalProb;
+                avgAge += i.age;
+            }
             //std::cout << counter / pop.males.size() << std::endl;
             //std::cout << avgAge / pop.males.size() << std::endl;
 

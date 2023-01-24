@@ -49,7 +49,7 @@ void Population::mortalityRound(const Parameters& p,
                                 Randomizer& rng,                                
                                 std::vector<int>& ageAtDeath){
     /**This function kills off adults.**/
-    for (int male = 0u; male < males.size();){
+    for (auto male = 0; male < males.size();){
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
             ageAtDeath.push_back(males[male].age);
@@ -61,7 +61,7 @@ void Population::mortalityRound(const Parameters& p,
     }
    
     // same for the females
-    for (int female = 0u; female < females.size();){
+    for (auto female = 0; female < females.size();){
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
             ageAtDeath.push_back(females[female].age);
@@ -95,7 +95,7 @@ void Population::addOffspring(const Parameters& p,
 
 void Population::mutationRound(const Parameters& p,
                                Randomizer &rng){
-    for (int i = 0; i < females.size(); ++i){
+    for (auto i = 0; i < females.size(); ++i){
         //std::cout << "Before: " << " ";
         //for (auto j : females[i].gametesOfIndividual[1].genesOfGamete) std::cout << j << " ";
         //std::cout << std::endl;
