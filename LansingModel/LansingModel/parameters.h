@@ -12,7 +12,7 @@ struct Parameters {
     Parameters() : populationSize(1000), // 500, 1500, 2000 > parameter exploration
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.015), // 0.01, 0.15, steps: 0.02. > parameter exploration
+                   mutationProb(0.0045), // based on parameter simulations
                    extrinsicMortRisk(0.01),
                    outputTime(10),
                    tEnd(10000), // 10.000

@@ -114,5 +114,7 @@ void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
     for (auto i = 0; i < gametesOfIndividual.size(); ++i){
         gametesOfIndividual[i].mutate(p, rng);
+        //std::cout << "count = " << gametesOfIndividual[i].numOfMuts << std::endl;
     }
+    
 }

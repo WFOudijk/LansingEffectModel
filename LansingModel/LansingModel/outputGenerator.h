@@ -126,6 +126,8 @@ void createOutputAgeDeath(const int t,
     ofs << t << " "
     << p.mutationProb << " "
     << p.extrinsicMortRisk << " "
+    << p.strengthOfSelection << " "
+    << p.populationSize << " "
      << std::accumulate(ageAtDeath.begin(), ageAtDeath.end(), 0.0) /
         ageAtDeath.size() << std::endl; // look at average age of death over time
     ofs.close();

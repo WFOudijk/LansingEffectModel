@@ -51,16 +51,24 @@ int main(int argc, const char * argv[]) {
         // output
         double counter = 0.0;
         double avgAge = 0.0;
+        double count = 0.0;
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << std::endl;
-            for (auto i : pop.males) {
+            for (auto i : pop.females) {
+                double countMuts = 0.0;
+
                 counter += i.survivalProb;
                 avgAge += i.age;
+                for (auto j : i.gametesOfIndividual){
+                    countMuts += j.numOfMuts;
+                }
+                count += (countMuts / i.gametesOfIndividual.size());
             }
             //std::cout << counter / pop.males.size() << std::endl;
             //std::cout << avgAge / pop.males.size() << std::endl;
+//            std::cout << countMuts / pop.females << std::endl;
 
-
+            std::cout << count / pop.females.size() << std::endl;
             //createOutput(pop.males);
             //createOutput(pop.females); 
             createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
@@ -69,7 +77,12 @@ int main(int argc, const char * argv[]) {
 
     }
     //createOutputLifeExpectancy(pop.males, pop.females, p); // generate data for LE plot
-
+    for (auto fem : pop.females) {
+        std::cout << "new female" << " ";
+        for (auto i = 0; i < fem.gametesOfIndividual.size(); ++i){
+            std::cout << fem.gametesOfIndividual[i].numOfMuts << std::endl;
+        }
+    }
 //    createOutput(pop.offspring);
 
     // to print the duration of the program to the terminal

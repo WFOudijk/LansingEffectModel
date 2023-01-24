@@ -13,6 +13,7 @@ using arrayOfGenes = std::array<bool, numOfGenes>; // binary
 
 struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // an array with its genes
+    int numOfMuts = 0;
     // true (1) represents damage
     Gamete(){} // default constructor
     Gamete(const Parameters& p,
@@ -29,10 +30,10 @@ struct Gamete{
 
 void Gamete::mutate(const Parameters &p,
                     Randomizer &rng){
-    int count = 0;
+    //int count = 0;
     for (auto i = 0; i < genesOfGamete.size(); ++i){
         if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
-            count += 1;
+            numOfMuts += 1;
             genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
         }
     }

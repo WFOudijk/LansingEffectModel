@@ -99,6 +99,7 @@ void Population::mutationRound(const Parameters& p,
         //std::cout << "Before: " << " ";
         //for (auto j : females[i].gametesOfIndividual[1].genesOfGamete) std::cout << j << " ";
         //std::cout << std::endl;
+        //std::cout << "new female: " << std::endl;
         females[i].mutateGametes(p, rng);
         //std::cout << "After: " << " ";
         //for (auto j : females[i].gametesOfIndividual[1].genesOfGamete) std::cout << j << " ";
