@@ -23,7 +23,9 @@ struct Individual {
     
     Individual(const Parameters& p,
                Randomizer& rng,
-               bool isFemale) : age(0){
+               bool isFemale) : age(0),
+                                ageOfMother(0),
+                                ageOfFather(0){
         // Initialising constructor. Initialise gene arrays represented by gametes.
         // upon initialisation, the gametes obtain their initial damage.
         Gamete gameteMaternal(p, rng);

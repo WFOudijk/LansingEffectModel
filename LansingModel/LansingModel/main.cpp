@@ -43,7 +43,7 @@ int main(int argc, const char * argv[]) {
     
     auto t_start = std::chrono::system_clock::now();
     for (int t = 0; t < p.tEnd; ++t){
-        std::vector<int> ageAtDeath;
+        std::vector<Individual> ageAtDeath;
         pop.reproduce(p, rng); // reproduce to make offspring
         pop.mortalityRound(p, rng, ageAtDeath); // mortality round of the adults
         pop.addOffspring(p, rng); // adding offspring to the adults
@@ -71,7 +71,8 @@ int main(int argc, const char * argv[]) {
             //std::cout << count / pop.females.size() << std::endl;
             //createOutput(pop.males);
             //createOutput(pop.females); 
-            createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
+            //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
+            createOutputDeclineInGameteQuality(t, ageAtDeath);
             //createOuputForGGPlot(pop.males, pop.females, t, p); // generate data for ggplot
         }
 
