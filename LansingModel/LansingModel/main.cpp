@@ -42,8 +42,8 @@ int main(int argc, const char * argv[]) {
     //createOutput(pop.males);
     
     auto t_start = std::chrono::system_clock::now();
-    std::vector<int> ageAtDeath;
     for (int t = 0; t < p.tEnd; ++t){
+        std::vector<int> ageAtDeath;
         pop.reproduce(p, rng); // reproduce to make offspring
         pop.mortalityRound(p, rng, ageAtDeath); // mortality round of the adults
         pop.addOffspring(p, rng); // adding offspring to the adults
