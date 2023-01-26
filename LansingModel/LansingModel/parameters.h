@@ -17,7 +17,8 @@ struct Parameters {
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
-                   maximumAge(40){
+                   maximumAge(40),
+                   numOfStemCells(40){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                    }
     
@@ -31,6 +32,7 @@ struct Parameters {
     double strengthOfSelection; // this coefficient determines the strength of the effect of damage
     unsigned int maximumAge; // maximum age an individual can get to
     int numOfGametes; // the derived number of gametes a female should have
+    int numOfStemCells; // number of stem cells a male should create 
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,

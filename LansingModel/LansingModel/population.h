@@ -96,14 +96,9 @@ void Population::addOffspring(const Parameters& p,
 void Population::mutationRound(const Parameters& p,
                                Randomizer &rng){
     for (auto i = 0; i < females.size(); ++i){
-        //std::cout << "Before: " << " ";
-        //for (auto j : females[i].gametesOfIndividual[1].genesOfGamete) std::cout << j << " ";
-        //std::cout << std::endl;
-        //std::cout << "new female: " << std::endl;
         females[i].mutateGametes(p, rng);
-        //std::cout << "After: " << " ";
-        //for (auto j : females[i].gametesOfIndividual[1].genesOfGamete) std::cout << j << " ";
-        //std::cout << std::endl;
+        males[i].mutateStemCells(p, rng); // females and males need to remain same size
+     
 
     }
 }

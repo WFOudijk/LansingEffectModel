@@ -20,6 +20,7 @@ struct Individual {
     unsigned int ageOfFather;
     double survivalProb;
     std::vector<Gamete> gametesOfIndividual;
+    std::vector<std::array<Gamete, 2> > stemCells;
     
     Individual(const Parameters& p,
                Randomizer& rng,
@@ -37,6 +38,7 @@ struct Individual {
         calcSurvivalProb(p);
 
         if (isFemale) makeSeveralGametes(p, rng); // to make a vector of gametes for the females
+        if (!isFemale) makeStemcells(p, rng);
     }
 
     Individual(Individual& mother,
@@ -64,6 +66,8 @@ struct Individual {
     Gamete makeGamete(Randomizer& rng);
     void makeSeveralGametes(const Parameters &p, Randomizer& rng);
     void mutateGametes(const Parameters& p, Randomizer& rng);
+    void makeStemcells(const Parameters& p, Randomizer& rng);
+    void mutateStemCells(const Parameters& p, Randomizer& rng);
 };
 
 void Individual::calcSurvivalProb(const Parameters& p){
@@ -119,4 +123,21 @@ void Individual::mutateGametes(const Parameters &p,
         //std::cout << "count = " << gametesOfIndividual[i].numOfMuts << std::endl;
     }
     
+}
+void Individual::makeStemcells(const Parameters& p,
+                               Randomizer& rng){
+    for (int i = 0; i < p.numOfStemCells; ++i){
+        Gamete gamete = makeGamete(rng);
+        Gamete gamete2 = makeGamete(rng);
+        std::array<Gamete, 2> geneticsOfStemCell = {gamete, gamete2};
+        stemCells.push_back(geneticsOfStemCell);
+    }
+}
+
+void Individual::mutateStemCells(const Parameters& p,
+                                 Randomizer& rng){
+    for (auto i = 0; i < stemCells.size(); ++i){
+        stemCells[i][0].mutate(p, rng);
+        stemCells[i][1].mutate(p, rng);
+    }
 }
