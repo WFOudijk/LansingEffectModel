@@ -17,9 +17,9 @@ struct Parameters {
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
-                   maximumAge(40),
-                   numOfStemCells(20){
+                   maximumAge(40) {
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
+                       numOfStemCells = numOfGametes * 1.5;
                    }
     
     double populationSize; // total population size

@@ -15,7 +15,7 @@ struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // an array with its genes
     int numOfMuts = 0;
     // true (1) represents damage
-    Gamete(){} // default constructor
+    Gamete() : numOfMuts(0){} // default constructor
     Gamete(const Parameters& p,
            Randomizer& rng){
         /** Constructor to initialise the gamete genetics.
@@ -30,7 +30,6 @@ struct Gamete{
 
 void Gamete::mutate(const Parameters &p,
                     Randomizer &rng){
-    //int count = 0;
     for (auto i = 0; i < genesOfGamete.size(); ++i){
         if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
             numOfMuts += 1;
