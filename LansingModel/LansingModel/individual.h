@@ -51,7 +51,8 @@ struct Individual {
         // remove this gamete from the mothers gamete list
         mother.gametesOfIndividual.pop_back();
         // have the father generate a gamete
-        Gamete gameteFather = father.makeGamete(rng);
+        //Gamete gameteFather = father.makeGamete(rng);
+        Gamete gameteFather = father.makeGameteFromStemCell(rng);
         // make a new individual of these gametes
         genetics[0] = gameteMother;
         genetics[1] = gameteFather;
@@ -68,6 +69,7 @@ struct Individual {
     void mutateGametes(const Parameters& p, Randomizer& rng);
     void makeStemcells(const Parameters& p, Randomizer& rng);
     void mutateStemCells(const Parameters& p, Randomizer& rng);
+    Gamete makeGameteFromStemCell(Randomizer& rng);
 };
 
 void Individual::calcSurvivalProb(const Parameters& p){
@@ -83,9 +85,9 @@ Gamete Individual::makeGamete(Randomizer& rng){
     /**Function to make a single gamete. Based on stochasticity to determine which genes the gamete receives. **/
     Gamete gamete; // initialise gamete
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        double pick = rng.uniform(); // first, pick a random value // TODO: make bernoulli 
+        double pick = rng.bernoulli(); // first, pick a random value
         // based on this value, determine whether the gene of the gamete is the gene from the mother or from the father
-        gamete.genesOfGamete[i] = (pick < 0.5) ? genetics[0].genesOfGamete[i] : genetics[1].genesOfGamete[i];
+        gamete.genesOfGamete[i] = (pick) ? genetics[0].genesOfGamete[i] : genetics[1].genesOfGamete[i];
     }
     return gamete;
 }
@@ -140,4 +142,19 @@ void Individual::mutateStemCells(const Parameters& p,
         stemCells[i][0].mutate(p, rng);
         stemCells[i][1].mutate(p, rng);
     }
+}
+
+Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
+    // first, get a stem cell
+    std::array<Gamete, 2> stemCell = stemCells.back(); 
+    // remove this stem cell from the list
+    stemCells.pop_back();
+    // initialise gamete
+    Gamete gamete;
+    for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
+        double pick = rng.bernoulli(); // first, pick a random value
+        // based on this value, determine whether the gene of the gamete is the gene from the mother or from the father
+        gamete.genesOfGamete[i] = (pick) ? stemCell[0].genesOfGamete[i] : stemCell[1].genesOfGamete[i];
+    }
+    return gamete;
 }

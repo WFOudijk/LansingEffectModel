@@ -77,7 +77,8 @@ void Population::addOffspring(const Parameters& p,
                               Randomizer& rng){
     /**This function adds (random) offspring to the adult vectors untill the vectors are at their maximum size again. **/
     while (males.size() < (p.populationSize)){
-        int randIndex = rng.drawRandomNumber(offspring.size()); 
+        int randIndex = rng.drawRandomNumber(offspring.size());
+        offspring[randIndex].makeStemcells(p, rng);
         males.push_back(offspring[randIndex]); // add a random offspring to the males vector
         offspring[randIndex] = offspring.back();
         offspring.pop_back(); // make sure to remove the offspring to prevent repetition
