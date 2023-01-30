@@ -24,7 +24,10 @@ struct Gamete{
         for (int i = 0; i < numOfGenes; ++i){ // to set some initial damage
             genesOfGamete[i] = rng.bernoulli(p.initDamageProportion);
         }
-    }    
+    }
+//    // move constructor
+//    Gamete(Gamete&& other) : genesOfGamete(std::move(other.genesOfGamete)),
+//                             numOfMuts(std::move(other.numOfMuts)) {}
     void mutate(const Parameters& p, Randomizer& rng);
 };
 

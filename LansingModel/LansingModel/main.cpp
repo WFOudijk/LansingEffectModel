@@ -37,9 +37,6 @@ int main(int argc, const char * argv[]) {
 
     Population pop;
     pop.makePopulation(p, rng); // initialise population
-    //createOutput(pop.females);
-    //std::cout << "The males:" << std::endl;
-    //createOutput(pop.males);
     
     auto t_start = std::chrono::system_clock::now();
     for (int t = 0; t < p.tEnd; ++t){
@@ -49,37 +46,13 @@ int main(int argc, const char * argv[]) {
         pop.addOffspring(p, rng); // adding offspring to the adults
         pop.mutationRound(p, rng);
         // output
-        double counter = 0.0;
-        double avgAge = 0.0;
-        double count = 0.0;
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << std::endl;
-            for (auto i : pop.females) {
-                double countMuts = 0.0;
-
-                counter += i.survivalProb;
-                avgAge += i.age;
-                for (auto j : i.gametesOfIndividual){
-                    countMuts += j.numOfMuts;
-                }
-                count += (countMuts / i.gametesOfIndividual.size());
-            }
-            //std::cout << counter / pop.males.size() << std::endl;
-            //std::cout << avgAge / pop.males.size() << std::endl;
-//            std::cout << countMuts / pop.females << std::endl;
-
-            //std::cout << count / pop.females.size() << std::endl;
-            //createOutput(pop.males);
-            //createOutput(pop.females); 
             //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
             createOutputDeclineInGameteQuality(t, ageAtDeath);
-            //createOuputForGGPlot(pop.males, pop.females, t, p); // generate data for ggplot
         }
 
     }
-    //createOutputLifeExpectancy(pop.males, pop.females, p); // generate data for LE plot
-//    createOutput(pop.offspring);
-
     // to print the duration of the program to the terminal
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;

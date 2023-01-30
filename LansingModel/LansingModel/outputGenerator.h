@@ -9,7 +9,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
-#include "calculateAverage.h"
 
 using indVec = std::vector<Individual>;
 
@@ -68,7 +67,8 @@ void createOutputDeclineInGameteQuality(const int t,
     std::ofstream ofs;
     ofs.open("outputDeclineGameteQuality.csv", std::ios::app); // output file for age of death
     for (auto i : ageAtDeath){
-        ofs << i.age << " "
+        ofs << t << " "
+        << i.age << " "
         << i.ageOfMother << " "
         << i.ageOfFather << std::endl; 
     }

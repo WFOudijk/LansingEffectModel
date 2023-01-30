@@ -37,8 +37,8 @@ struct Individual {
 
         calcSurvivalProb(p);
 
-        if (isFemale) makeSeveralGametes(p, rng); // to make a vector of gametes for the females
-        if (!isFemale) makeStemcells(p, rng);
+        // if the individual is female she should make gametes, otherwise the male should make stem cells.
+        (isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p, rng);
     }
 
     Individual(Individual& mother,
@@ -47,9 +47,10 @@ struct Individual {
                const Parameters& p) : age(0){
         /**Constructor to reproduce and create offspring . **/
         // first, get a gamete from the mothers gamete list
-        Gamete gameteMother = mother.gametesOfIndividual.back();
+        //Gamete gameteMother = mother.gametesOfIndividual.back();
+        Gamete gameteMother = std::move(mother.gametesOfIndividual.back());
         // remove this gamete from the mothers gamete list
-        mother.gametesOfIndividual.pop_back();
+        mother.gametesOfIndividual.pop_back(); // TODO: check if this is correct 
         // have the father generate a gamete
         //Gamete gameteFather = father.makeGamete(rng);
         Gamete gameteFather = father.makeGameteFromStemCell(rng);
@@ -85,9 +86,9 @@ Gamete Individual::makeGamete(Randomizer& rng){
     /**Function to make a single gamete. Based on stochasticity to determine which genes the gamete receives. **/
     Gamete gamete; // initialise gamete
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        double pick = rng.bernoulli(); // first, pick a random value
+        bool pick = rng.bernoulli(); // first, pick a random value
         // based on this value, determine whether the gene of the gamete is the gene from the mother or from the father
-        gamete.genesOfGamete[i] = (pick) ? genetics[0].genesOfGamete[i] : genetics[1].genesOfGamete[i];
+        gamete.genesOfGamete[i] = genetics[pick].genesOfGamete[i];
     }
     return gamete;
 }
@@ -112,7 +113,6 @@ bool Individual::dies(Randomizer& rng,
         age += 1; // increment age if individual survives the mortality round
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
-        //std::cout << " + " << age << " ";
         dies = true; // Individual will die
     }
     return dies;
@@ -122,17 +122,13 @@ void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
     for (auto i = 0; i < gametesOfIndividual.size(); ++i){
         gametesOfIndividual[i].mutate(p, rng);
-        //std::cout << "count = " << gametesOfIndividual[i].numOfMuts << std::endl;
     }
     
 }
 void Individual::makeStemcells(const Parameters& p,
                                Randomizer& rng){
     for (int i = 0; i < p.numOfStemCells; ++i){
-        Gamete gamete = makeGamete(rng);
-        Gamete gamete2 = makeGamete(rng);
-        std::array<Gamete, 2> geneticsOfStemCell = {gamete, gamete2};
-        stemCells.push_back(geneticsOfStemCell);
+        stemCells.push_back(genetics);
     }
 }
 
@@ -146,15 +142,15 @@ void Individual::mutateStemCells(const Parameters& p,
 
 Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
     // first, get a stem cell
-    std::array<Gamete, 2> stemCell = stemCells.back(); 
+    std::array<Gamete, 2> stemCell = std::move(stemCells.back());
     // remove this stem cell from the list
     stemCells.pop_back();
     // initialise gamete
     Gamete gamete;
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        double pick = rng.bernoulli(); // first, pick a random value
+        bool pick = rng.bernoulli(); // first, pick a random value
         // based on this value, determine whether the gene of the gamete is the gene from the mother or from the father
-        gamete.genesOfGamete[i] = (pick) ? stemCell[0].genesOfGamete[i] : stemCell[1].genesOfGamete[i];
+        gamete.genesOfGamete[i] = stemCell[pick].genesOfGamete[i];
     }
     return gamete;
 }

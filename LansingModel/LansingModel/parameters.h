@@ -22,17 +22,17 @@ struct Parameters {
                        numOfStemCells = numOfGametes * 1.5;
                    }
     
-    double populationSize; // total population size
+    unsigned int populationSize; // total population size
     double initDamageProportion; // the proportion of initial damage in the genome
-    int numOfOffspringPerFemale; // number of offspring a female should produce
+    unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
     double mutationProb; // probability a mutation will occur
     double extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
     int outputTime; // when to output info
     int tEnd; // end of simulation
     double strengthOfSelection; // this coefficient determines the strength of the effect of damage
     unsigned int maximumAge; // maximum age an individual can get to
-    int numOfGametes; // the derived number of gametes a female should have
-    int numOfStemCells; // number of stem cells a male should create 
+    unsigned int numOfGametes; // the derived number of gametes a female should have
+    unsigned int numOfStemCells; // number of stem cells a male should create
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
@@ -69,7 +69,6 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "mutationProb", mutationProb, ifs);
             checkParam(parID, "extrinsicMortRisk", extrinsicMortRisk, ifs);
             checkParam(parID, "strengthOfSelection", strengthOfSelection, ifs);
-            checkParam(parID, "populationSize", populationSize, ifs);
         }
         else break;
     }

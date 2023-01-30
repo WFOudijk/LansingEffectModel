@@ -53,7 +53,7 @@ void Population::mortalityRound(const Parameters& p,
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
             ageAtDeath.push_back(males[male]);
-            males[male] = males.back();
+            males[male] = std::move(males.back());
             males.pop_back();
         } else { // else, continue loop
             ++male;
@@ -65,7 +65,7 @@ void Population::mortalityRound(const Parameters& p,
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
             ageAtDeath.push_back(females[female]);
-            females[female] = females.back(); // here!
+            females[female] = std::move(females.back()); // here!
             females.pop_back();
         } else { // else, continue loop
             ++female;
@@ -80,7 +80,7 @@ void Population::addOffspring(const Parameters& p,
         int randIndex = rng.drawRandomNumber(offspring.size());
         offspring[randIndex].makeStemcells(p, rng);
         males.push_back(offspring[randIndex]); // add a random offspring to the males vector
-        offspring[randIndex] = offspring.back();
+        offspring[randIndex] = std::move(offspring.back());
         offspring.pop_back(); // make sure to remove the offspring to prevent repetition
     }
     
@@ -89,7 +89,7 @@ void Population::addOffspring(const Parameters& p,
         int randIndex = rng.drawRandomNumber(offspring.size());
         offspring[randIndex].makeSeveralGametes(p, rng);
         females.push_back(offspring[randIndex]); // add a random offspring to the females vector
-        offspring[randIndex] = offspring.back();
+        offspring[randIndex] = std::move(offspring.back());
         offspring.pop_back(); // make sure to remove the offspring to prevent repetition
     }
 }
