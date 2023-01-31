@@ -54,7 +54,7 @@ void createOutputAgeDeath(const int t,
 }
 
 void createOutputDeclineInGameteQuality(const int t,
-                                        const std::vector<Individual>& ageAtDeath){
+                                        const std::vector<Individual>& deadIndividualsVec){
     if (t == 0) { // if time is at zero. Empty file before addition
         std::ofstream ofs;
         ofs.open("outputDeclineGameteQuality.csv"); // output file
@@ -66,11 +66,12 @@ void createOutputDeclineInGameteQuality(const int t,
     }
     std::ofstream ofs;
     ofs.open("outputDeclineGameteQuality.csv", std::ios::app); // output file for age of death
-    for (auto i : ageAtDeath){
+    for (auto i : deadIndividualsVec){
         ofs << t << " "
         << i.age << " "
         << i.ageOfMother << " "
-        << i.ageOfFather << std::endl; 
+        << i.ageOfFather << " "
+        << i.survivalProb << std::endl;
     }
     ofs.close();
 }

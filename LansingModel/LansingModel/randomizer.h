@@ -29,8 +29,7 @@ struct Randomizer {
     }
         
     bool bernoulli(double p = 0.5) {
-        return std::bernoulli_distribution(p)(rng);
-        
+        return std::bernoulli_distribution(p)(rng);        
     }
     
     std::uniform_real_distribution<double> unif;

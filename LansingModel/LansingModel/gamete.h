@@ -28,15 +28,24 @@ struct Gamete{
 //    // move constructor
 //    Gamete(Gamete&& other) : genesOfGamete(std::move(other.genesOfGamete)),
 //                             numOfMuts(std::move(other.numOfMuts)) {}
-    void mutate(const Parameters& p, Randomizer& rng);
+    void mutate(const Parameters& p, Randomizer& rng, const bool isStemcell);
 };
 
 void Gamete::mutate(const Parameters &p,
-                    Randomizer &rng){
-    for (auto i = 0; i < genesOfGamete.size(); ++i){
-        if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
-            numOfMuts += 1;
-            genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
+                    Randomizer &rng,
+                    const bool isStemcell){
+    if (isStemcell) { // if the stemcell will mutate
+        for (auto i = 0; i < genesOfGamete.size(); ++i){
+            if (rng.bernoulli(p.mutationProbStemcell)){ // if mutation occurs:
+                genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
+            }
+        }
+    } else { // else a gamete will mutate
+        for (auto i = 0; i < genesOfGamete.size(); ++i){
+            if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
+                numOfMuts += 1;
+                genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
+            }
         }
     }
 }

@@ -17,7 +17,8 @@ struct Parameters {
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
-                   maximumAge(40) {
+                   maximumAge(40),
+                   mutationProbStemcell(0.0005){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 1.5;
                    }
@@ -33,6 +34,7 @@ struct Parameters {
     unsigned int maximumAge; // maximum age an individual can get to
     unsigned int numOfGametes; // the derived number of gametes a female should have
     unsigned int numOfStemCells; // number of stem cells a male should create
+    double mutationProbStemcell; // mutation probability of stemcell to mutate 
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
@@ -69,6 +71,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "mutationProb", mutationProb, ifs);
             checkParam(parID, "extrinsicMortRisk", extrinsicMortRisk, ifs);
             checkParam(parID, "strengthOfSelection", strengthOfSelection, ifs);
+            checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);            
         }
         else break;
     }

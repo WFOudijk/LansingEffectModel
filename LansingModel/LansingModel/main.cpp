@@ -40,23 +40,23 @@ int main(int argc, const char * argv[]) {
     
     auto t_start = std::chrono::system_clock::now();
     for (int t = 0; t < p.tEnd; ++t){
-        std::vector<Individual> ageAtDeath;
+        std::vector<Individual> deadIndividualsVec;
         pop.reproduce(p, rng); // reproduce to make offspring
-        pop.mortalityRound(p, rng, ageAtDeath); // mortality round of the adults
+        pop.mortalityRound(p, rng, deadIndividualsVec); // mortality round of the adults
         pop.addOffspring(p, rng); // adding offspring to the adults
         pop.mutationRound(p, rng);
         // output
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << std::endl;
             //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
-            createOutputDeclineInGameteQuality(t, ageAtDeath);
+            createOutputDeclineInGameteQuality(t, deadIndividualsVec);
         }
 
     }
     // to print the duration of the program to the terminal
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;
-    std::cout << "Finished. The program took: " << diff_t.count() << " seconds" << std::endl;
+    std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;
     t_start = t_now;
     return 0;
 }

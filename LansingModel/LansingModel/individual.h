@@ -50,7 +50,7 @@ struct Individual {
         //Gamete gameteMother = mother.gametesOfIndividual.back();
         Gamete gameteMother = std::move(mother.gametesOfIndividual.back());
         // remove this gamete from the mothers gamete list
-        mother.gametesOfIndividual.pop_back(); // TODO: check if this is correct 
+        mother.gametesOfIndividual.pop_back(); 
         // have the father generate a gamete
         //Gamete gameteFather = father.makeGamete(rng);
         Gamete gameteFather = father.makeGameteFromStemCell(rng);
@@ -121,7 +121,7 @@ bool Individual::dies(Randomizer& rng,
 void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
     for (auto i = 0; i < gametesOfIndividual.size(); ++i){
-        gametesOfIndividual[i].mutate(p, rng);
+        gametesOfIndividual[i].mutate(p, rng, false);
     }
     
 }
@@ -135,8 +135,8 @@ void Individual::makeStemcells(const Parameters& p,
 void Individual::mutateStemCells(const Parameters& p,
                                  Randomizer& rng){
     for (auto i = 0; i < stemCells.size(); ++i){
-        stemCells[i][0].mutate(p, rng);
-        stemCells[i][1].mutate(p, rng);
+        stemCells[i][0].mutate(p, rng, true);
+        stemCells[i][1].mutate(p, rng, true);
     }
 }
 
@@ -148,9 +148,8 @@ Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
     // initialise gamete
     Gamete gamete;
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        bool pick = rng.bernoulli(); // first, pick a random value
-        // based on this value, determine whether the gene of the gamete is the gene from the mother or from the father
-        gamete.genesOfGamete[i] = stemCell[pick].genesOfGamete[i];
+        // determine based on a bernoulli distribution which gene will be inherited
+        gamete.genesOfGamete[i] = stemCell[rng.bernoulli()].genesOfGamete[i];
     }
     return gamete;
 }

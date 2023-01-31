@@ -25,6 +25,9 @@ struct Population{
 void Population::makePopulation(const Parameters& p,
                                 Randomizer &rng){
     /**This function initialises the population and initialises males and females. **/
+    females.reserve(p.populationSize);
+    males.reserve(p.populationSize);
+    offspring.reserve(p.populationSize * p.numOfOffspringPerFemale);
     for (int i = 0u; i < p.populationSize; ++i){
 	    males.emplace_back(p, rng, false);
         females.emplace_back(p, rng, true);
@@ -37,7 +40,7 @@ void Population::reproduce(const Parameters& p,
      number of offspring with random males. **/
     offspring.clear(); // to make sure the vector is empty
     // to optimize code, reserve the specific space for the offspring vector
-    offspring.reserve(females.size() * p.numOfOffspringPerFemale);
+    //offspring.reserve(females.size() * p.numOfOffspringPerFemale);
     for (auto j = 0u; j < females.size(); ++j){ // loop through every female
         for (int i = 0; i < p.numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
             offspring.emplace_back(females[j], males[rng.drawRandomNumber(males.size())], rng, p); // reproduce
@@ -47,12 +50,12 @@ void Population::reproduce(const Parameters& p,
 
 void Population::mortalityRound(const Parameters& p,
                                 Randomizer& rng,                                
-                                std::vector<Individual>& ageAtDeath){
+                                std::vector<Individual>& deadIndividualsVec){
     /**This function kills off adults.**/
     for (auto male = 0; male < males.size();){
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
-            ageAtDeath.push_back(males[male]);
+            deadIndividualsVec.push_back(males[male]);
             males[male] = std::move(males.back());
             males.pop_back();
         } else { // else, continue loop
@@ -64,7 +67,7 @@ void Population::mortalityRound(const Parameters& p,
     for (auto female = 0; female < females.size();){
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
-            ageAtDeath.push_back(females[female]);
+            deadIndividualsVec.push_back(females[female]);
             females[female] = std::move(females.back()); // here!
             females.pop_back();
         } else { // else, continue loop
