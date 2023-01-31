@@ -18,9 +18,9 @@ struct Parameters {
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.0005){
+                   mutationProbStemcell(0.0001){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
-                       numOfStemCells = numOfGametes * 1.5;
+                       numOfStemCells = numOfGametes * 2;
                    }
     
     unsigned int populationSize; // total population size
