@@ -54,6 +54,7 @@ void createOutputAgeDeath(const int t,
 }
 
 void createOutputDeclineInGameteQuality(const int t,
+                                        const Parameters& p,
                                         const std::vector<Individual>& deadIndividualsVec){
     if (t == 0) { // if time is at zero. Empty file before addition
         std::ofstream ofs;
@@ -71,7 +72,8 @@ void createOutputDeclineInGameteQuality(const int t,
         << i.age << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
-        << i.survivalProb << std::endl;
+        << i.survivalProb << " "
+        << p.mutationProbStemcell << std::endl;
     }
     ofs.close();
 }
