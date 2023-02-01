@@ -77,3 +77,33 @@ void createOutputDeclineInGameteQuality(const int t,
     }
     ofs.close();
 }
+
+void createOutputLifeExpectancy(const Parameters& p,
+                                const indVec& males,
+                                const indVec& females){
+    std::ofstream ofs;
+    ofs.open("outputLifeExpectancy.txt"); // the output file
+    if (!ofs.is_open()){
+        std::cerr << "Error. Unable to open output file.\n";
+        exit(EXIT_FAILURE);
+    }
+    for (Individual male : males){
+        double s = male.survivalProb * (1 - p.extrinsicMortRisk);
+        double expectedAgeAtDeath = male.age + (s / (1 - s));
+        ofs << male.age << " "
+        << expectedAgeAtDeath << " "
+        << male.ageOfMother << " "
+        << male.ageOfFather << " "
+        << male.survivalProb << std::endl;
+    }
+    
+    for (Individual female : females){
+        double s = female.survivalProb * (1 - p.extrinsicMortRisk);
+        double expectedAgeAtDeath = female.age + (s / (1 - s));
+        ofs << female.age << " "
+        << expectedAgeAtDeath << " "
+        << female.ageOfMother << " "
+        << female.ageOfFather << " "
+        << female.survivalProb << std::endl;
+    }
+}

@@ -53,6 +53,8 @@ int main(int argc, const char * argv[]) {
         }
 
     }
+    // only create output of life expectancy for the remaining individuals
+    createOutputLifeExpectancy(p, pop.males, pop.females);
     // to print the duration of the program to the terminal
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;
