@@ -73,7 +73,8 @@ void createOutputDeclineInGameteQuality(const int t,
         << i.ageOfMother << " "
         << i.ageOfFather << " "
         << i.survivalProb << " "
-        << p.mutationProbStemcell << std::endl;
+        << p.mutationProbStemcell << " "
+        << p.mutationProb << std::endl;
     }
     ofs.close();
 }
@@ -94,7 +95,9 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfMother << " "
         << male.ageOfFather << " "
-        << male.survivalProb << std::endl;
+        << male.survivalProb << " "
+        << p.mutationProbStemcell << " "
+        << p.mutationProb << std::endl;
     }
     
     for (Individual female : females){
@@ -104,6 +107,8 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfMother << " "
         << female.ageOfFather << " "
-        << female.survivalProb << std::endl;
+        << female.survivalProb << " "
+        << p.mutationProbStemcell << " "
+        << p.mutationProb << std::endl;
     }
 }
