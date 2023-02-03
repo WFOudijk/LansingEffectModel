@@ -72,7 +72,6 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "extrinsicMortRisk", extrinsicMortRisk, ifs);
             checkParam(parID, "strengthOfSelection", strengthOfSelection, ifs);
             checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);
-            checkParam(parID, "mutationProb", mutationProb, ifs);
 
         }
         else break;
