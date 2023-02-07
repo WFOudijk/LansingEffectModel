@@ -28,7 +28,7 @@ void Population::makePopulation(const Parameters& p,
     females.reserve(p.populationSize);
     males.reserve(p.populationSize);
     offspring.reserve(p.populationSize * p.numOfOffspringPerFemale);
-    for (int i = 0u; i < p.populationSize; ++i){
+    for (size_t i = 0; i < p.populationSize; ++i){
 	    males.emplace_back(p, rng, false);
         females.emplace_back(p, rng, true);
     }
@@ -39,10 +39,9 @@ void Population::reproduce(const Parameters& p,
     /**This function is the reproducing step of the population.  Every female reproduces a numOfOffspringPerFemale
      number of offspring with random males. **/
     offspring.clear(); // to make sure the vector is empty
-    // to optimize code, reserve the specific space for the offspring vector
-    //offspring.reserve(females.size() * p.numOfOffspringPerFemale);
+    
     for (auto j = 0u; j < females.size(); ++j){ // loop through every female
-        for (int i = 0; i < p.numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
+        for (unsigned i = 0; i < p.numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
             offspring.emplace_back(females[j], males[rng.drawRandomNumber(males.size())], rng, p); // reproduce
         }
     }
@@ -52,7 +51,7 @@ void Population::mortalityRound(const Parameters& p,
                                 Randomizer& rng,                                
                                 std::vector<Individual>& deadIndividualsVec){
     /**This function kills off adults.**/
-    for (auto male = 0; male < males.size();){
+    for (size_t male = 0; male < males.size();){
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
             deadIndividualsVec.push_back(males[male]);
@@ -64,7 +63,7 @@ void Population::mortalityRound(const Parameters& p,
     }
    
     // same for the females
-    for (auto female = 0; female < females.size();){
+    for (size_t female = 0; female < females.size();){
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
             deadIndividualsVec.push_back(females[female]);
@@ -99,7 +98,7 @@ void Population::addOffspring(const Parameters& p,
 
 void Population::mutationRound(const Parameters& p,
                                Randomizer &rng){
-    for (auto i = 0; i < females.size(); ++i){
+    for (size_t i = 0; i < females.size(); ++i){
         females[i].mutateGametes(p, rng);
         males[i].mutateStemCells(p, rng); // females and males need to remain same size
      

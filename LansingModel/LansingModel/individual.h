@@ -96,7 +96,7 @@ Gamete Individual::makeGamete(Randomizer& rng){
 void Individual::makeSeveralGametes(const Parameters &p,
                              Randomizer& rng){
     /** Function to generate multiple gametes for a female.**/
-    for (int i = 0; i < p.numOfGametes; ++i){
+    for (unsigned i = 0; i < p.numOfGametes; ++i){
         Gamete gamete = makeGamete(rng);
         gametesOfIndividual.push_back(gamete);
     }
@@ -120,21 +120,21 @@ bool Individual::dies(Randomizer& rng,
 
 void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
-    for (auto i = 0; i < gametesOfIndividual.size(); ++i){
+    for (size_t i = 0; i < gametesOfIndividual.size(); ++i){
         gametesOfIndividual[i].mutate(p, rng, false);
     }
     
 }
 void Individual::makeStemcells(const Parameters& p,
                                Randomizer& rng){
-    for (int i = 0; i < p.numOfStemCells; ++i){
+    for (unsigned i = 0; i < p.numOfStemCells; ++i){
         stemCells.push_back(genetics);
     }
 }
 
 void Individual::mutateStemCells(const Parameters& p,
                                  Randomizer& rng){
-    for (auto i = 0; i < stemCells.size(); ++i){
+    for (size_t i = 0; i < stemCells.size(); ++i){
         stemCells[i][0].mutate(p, rng, true);
         stemCells[i][1].mutate(p, rng, true);
     }

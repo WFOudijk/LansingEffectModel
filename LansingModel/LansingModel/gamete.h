@@ -12,10 +12,14 @@ const int numOfGenes = 20; // the number of genes every individual contains
 using arrayOfGenes = std::array<bool, numOfGenes>; // binary
 
 struct Gamete{
+    
     std::array<bool, numOfGenes> genesOfGamete; // an array with its genes
+    
     int numOfMuts = 0;
     // true (1) represents damage
+    
     Gamete() : numOfMuts(0){} // default constructor
+    
     Gamete(const Parameters& p,
            Randomizer& rng){
         /** Constructor to initialise the gamete genetics.
@@ -35,13 +39,13 @@ void Gamete::mutate(const Parameters &p,
                     Randomizer &rng,
                     const bool isStemcell){
     if (isStemcell) { // if the stemcell will mutate
-        for (auto i = 0; i < genesOfGamete.size(); ++i){
+        for (size_t i = 0; i < genesOfGamete.size(); ++i){
             if (rng.bernoulli(p.mutationProbStemcell)){ // if mutation occurs:
                 genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
             }
         }
     } else { // else a gamete will mutate
-        for (auto i = 0; i < genesOfGamete.size(); ++i){
+        for (size_t i = 0; i < genesOfGamete.size(); ++i){
             if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
                 numOfMuts += 1;
                 genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.

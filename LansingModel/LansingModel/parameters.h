@@ -12,13 +12,13 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.0045), // based on parameter simulations
+                   mutationProb(0.006), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.0045){ // based on parameter simulations
+                   mutationProbStemcell(0.006){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }
