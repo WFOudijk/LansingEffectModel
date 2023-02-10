@@ -6,6 +6,7 @@
 //
 #pragma once
 #include <iostream>
+#include <optional>
 #include "individual.h"
 
 using indVec = std::vector<Individual>;
@@ -17,7 +18,10 @@ struct Population{
     
     void makePopulation(const Parameters& p, Randomizer &rng);
     void reproduce(const Parameters& p, Randomizer& rng);
-    void mortalityRound(const Parameters& p, Randomizer& rng, std::vector<Individual>& ageAtDeath);
+    void mortalityRound(const Parameters& p,
+                        Randomizer& rng,
+                        indVec& ageAtDeath,
+                        indVec& trackedIndividuals);
     void addOffspring(const Parameters& p, Randomizer& rng);
     void mutationRound(const Parameters& p, Randomizer& rng);
 };
@@ -42,18 +46,28 @@ void Population::reproduce(const Parameters& p,
     
     for (auto j = 0u; j < females.size(); ++j){ // loop through every female
         for (unsigned i = 0; i < p.numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
-            offspring.emplace_back(females[j], males[rng.drawRandomNumber(males.size())], rng, p); // reproduce
+            int male = rng.drawRandomNumber(males.size());
+            Individual newOffspring = Individual(females[j], males[male], rng, p);
+            //offspring.emplace_back(females[j], males[rng.drawRandomNumber(males.size())], rng, p); // reproduce
+            offspring.push_back(newOffspring);
+            if (males[male].identifier) males[male].offspringOfIndividual.push_back(newOffspring);
+            if (females[j].identifier) females[j].offspringOfIndividual.push_back(newOffspring);
         }
     }
 }
 
 void Population::mortalityRound(const Parameters& p,
                                 Randomizer& rng,                                
-                                std::vector<Individual>& deadIndividualsVec){
+                                indVec& deadIndividualsVec,
+                                indVec& trackedIndividuals){
     /**This function kills off adults.**/
     for (size_t male = 0; male < males.size();){
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
+            if (males[male].identifier) {
+                males[male].sex = 'M';
+                trackedIndividuals.push_back(males[male]);
+            }
             deadIndividualsVec.push_back(males[male]);
             males[male] = std::move(males.back());
             males.pop_back();
@@ -66,8 +80,13 @@ void Population::mortalityRound(const Parameters& p,
     for (size_t female = 0; female < females.size();){
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
+            //deadIndividualsVec.push_back(females[female]);
+            if (females[female].identifier){
+                females[female].sex = 'F';
+                trackedIndividuals.push_back(females[female]);
+            }
             deadIndividualsVec.push_back(females[female]);
-            females[female] = std::move(females.back()); // here!
+            females[female] = std::move(females.back()); 
             females.pop_back();
         } else { // else, continue loop
             ++female;

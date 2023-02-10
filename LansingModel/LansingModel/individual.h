@@ -21,12 +21,16 @@ struct Individual {
     double survivalProb;
     std::vector<Gamete> gametesOfIndividual;
     std::vector<std::array<Gamete, 2> > stemCells;
+    bool identifier;
+    std::vector<Individual> offspringOfIndividual;
+    char sex;
     
     Individual(const Parameters& p,
                Randomizer& rng,
                bool isFemale) : age(0),
                                 ageOfMother(0),
-                                ageOfFather(0){
+                                ageOfFather(0),
+                                identifier(0){
         // Initialising constructor. Initialise gene arrays represented by gametes.
         // upon initialisation, the gametes obtain their initial damage.
         Gamete gameteMaternal(p, rng);
@@ -44,7 +48,8 @@ struct Individual {
     Individual(Individual& mother,
                Individual& father,
                Randomizer& rng,
-               const Parameters& p) : age(0){
+               const Parameters& p) : age(0),
+                                      identifier(0){
         /**Constructor to reproduce and create offspring . **/
         // first, get a gamete from the mothers gamete list
         //Gamete gameteMother = mother.gametesOfIndividual.back();
