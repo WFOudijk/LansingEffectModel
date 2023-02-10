@@ -64,7 +64,7 @@ int main(int argc, const char * argv[]) {
     // shuffle to make it random
     std::shuffle(pop.males.begin(), pop.males.end(), rand);
     std::shuffle(pop.females.begin(), pop.females.end(), rand);
-    for (int i = 0; i < p.numOfIndividualsToFollow; ++i){
+    for (unsigned i = 0; i < p.numOfIndividualsToFollow; ++i){
         // Choosing individuals in order after shuffling the vector to prevent drawing random indviduals without replacement
         pop.males[i].identifier = 1;
         pop.females[i].identifier = 1;
@@ -82,7 +82,7 @@ int main(int argc, const char * argv[]) {
         pop.mutationRound(p, rng);
         
         numOfIndividualsToFollow = 0;
-        for (int ind = 0; ind < pop.males.size(); ++ind){
+        for (size_t ind = 0; ind < pop.males.size(); ++ind){
             if (pop.males[ind].identifier) numOfIndividualsToFollow += 1;
             if (pop.females[ind].identifier) numOfIndividualsToFollow += 1;
         }
