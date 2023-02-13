@@ -5,7 +5,6 @@ library(mgcv)
 d <- sub_maternal_LE
 d <- sub_paternal_LE
 d <- sub_both_LE
-d <- sub_sex_spec
 d <- myLongitudinalData
 d <- subSexSpec
 
@@ -45,13 +44,13 @@ m1 <- gam(y2 ~ s(ageOfFather) + s(ageOfMother),
           method = "ML")
 
 # add id to the dataframe 
-d$id <- NA
+d$identification <- NA
 for (i in seq(1, 4000, 2)){
-  d$id[i] <- i
-  d$id[(i + 1)] <- i
+  d$identification[i] <- as.integer(i)
+  d$identification[(i + 1)] <- as.integer(i)
 }
 
-m1 <- gam(y2 ~ sexOfParent + s(ageOfParent, by = as.factor(sexOfParent)) + s(id, bs="re"), # the "re" is random effect. To correct for the individuals being present duplicates 
+m1 <- gam(y2 ~ sexOfParent + s(ageOfParent, by = as.factor(sexOfParent)) + s(identification, bs="re"), # the "re" is random effect. To correct for the individuals being present duplicates 
           family=betar(link="logit"), 
           data=d, 
           eps=0.001,
@@ -89,6 +88,7 @@ logist <- function(x) 40/(1+exp(-x))
 
 ## Plot the fit plus confidence band
 plot(m1,all.terms = T,trans = logist)
+
 ## Seems a bit more extreme decline than suggested by the box plots
 
 
@@ -195,6 +195,10 @@ loo_compare(m2,m3, criterion = "loo")
 ##########################################################################
 
 # lme4 
+
+d <- myLongitudinalData
+d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath))
+d <- d %>% mutate(y2 = y1/40)
 
 library(lme4)
 m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID),data =d)
