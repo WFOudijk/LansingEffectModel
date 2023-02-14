@@ -9,7 +9,7 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(100),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
                    mutationProb(0.0045), // based on parameter simulations
