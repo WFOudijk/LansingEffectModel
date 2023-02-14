@@ -64,7 +64,7 @@ void Population::mortalityRound(const Parameters& p,
     for (size_t male = 0; male < males.size();){
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
-            if (males[male].identifier) {
+            if (males[male].identifier) { // the individual is tracked
                 males[male].sex = 'M';
                 trackedIndividuals.push_back(males[male]);
             }

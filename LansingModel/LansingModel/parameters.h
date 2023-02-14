@@ -19,7 +19,7 @@ struct Parameters {
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0045),
-                   numOfIndividualsToFollow(10){ // based on parameter simulations
+                   numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }

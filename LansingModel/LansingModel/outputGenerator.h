@@ -159,8 +159,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             
             // if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
             (trackedDeadIndividuals[ind].sex == 'M') ? ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfFather : ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfMother;
-            ofs << " "
-            << trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb << " " // write survival probability to file
+            ofs << " ";
+            (trackedDeadIndividuals[ind].sex == 'M') ? ofs << "M " : ofs << "F ";
+            ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb << " " // write survival probability to file
             << expectedAgeAtDeath << std::endl; // write expected age at death to file
         }
     }

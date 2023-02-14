@@ -188,9 +188,6 @@ loo_compare(m2,m3, criterion = "loo")
 ## m3 is slightly better but within 1 se.
 ## Evidence for nonlinearity weak.
 
-# lme4 package 
-# m1 <- lmer(y ~ age_parent + (age_parent | ID),data =d)
-# gaat ervan uit dat het linear is 
 
 ##########################################################################
 
@@ -201,39 +198,16 @@ d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath))
 d <- d %>% mutate(y2 = y1/40)
 
 library(lme4)
-m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID),data =d)
+m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
+           data =d,
+           control=lmerControl(calc.derivs=F))
+# calc.derivs = compute gradient and Hessian of nonlinear optimization solution
+# gradient = explains the rate of change of one variable with respect to another = vector of first order partial derivatives of a scalar function
+# scalar valued function = a function that takes one or more values but returns a single value 
+# Hessian = hessian matrix plays an role in machine learning algorithms = a matrix of the second order mixed partials of a scalar field 
+# to optimize a given function  
+
 summary(m1)
-
-numcols <- grep("^c\\.",names(d))
-dfs <- d
-dfs[,numcols] <- scale(dfs[,numcols])
-m1_sc <- update(m1,data=dfs)
-tt <- getME(m1_sc, "theta")
-ll <- getME(m1_sc, "lower")
-min(tt[ll==0])
-
-derivs1 <- m1_sc@optinfo$derivs
-sc_grad1 <- with(derivs1,solve(Hessian,gradient))
-max(abs(sc_grad1))
-max(pmin(abs(sc_grad1),abs(derivs1$gradient)))
-ss <- getME(m1_sc,c("theta","fixef"))
-m2 <- update(m1_sc,start=ss,control=glmerControl(optCtrl=list(maxfun=2e4)))
-m3 <- update(m1_sc,start=ss,control=glmerControl(optimizer="bobyqa",
-                                                 optCtrl=list(maxfun=2e5)))
-m1 = lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
-          data = d, REML = TRUE, 
-          control = lmerControl(optimizer ="Nelder_Mead"))
-library(optimx)
-m1 = lmer(y2 ~ ageOfParent + (ageOfParent | ID),
-                    data = d, REML = TRUE, 
-                    control = lmerControl(
-                      optimizer ='optimx', optCtrl=list(method='L-BFGS-B')))
-# with this one, one of the error messages disappears. 
-m1 = lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
-                    data = d, REML = FALSE, 
-                    control = lmerControl(
-                      optimizer ='optimx', optCtrl=list(method='nlminb')))
-
 
 plot(m1,all.terms = T,trans = logist)
 

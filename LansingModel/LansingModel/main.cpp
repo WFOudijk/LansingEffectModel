@@ -61,6 +61,7 @@ int main(int argc, const char * argv[]) {
     t_start = t_now;
     std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal." << std::endl;
     std::default_random_engine rand(seed);
+        
     // shuffle to make it random
     std::shuffle(pop.males.begin(), pop.males.end(), rand);
     std::shuffle(pop.females.begin(), pop.females.end(), rand);
