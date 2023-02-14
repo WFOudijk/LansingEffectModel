@@ -9,7 +9,7 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(100),
+    Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
                    mutationProb(0.0045), // based on parameter simulations
@@ -19,6 +19,9 @@ struct Parameters {
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0045),
+                   initSurvProb(0.5),
+                   meanMutationBias(-0.02),
+                   sdMutationalEffectSize(0.01),
                    numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
@@ -37,6 +40,9 @@ struct Parameters {
     unsigned int numOfStemCells; // number of stem cells a male should create
     double mutationProbStemcell; // mutation probability of stemcell to mutate
     unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
+    double initSurvProb; // initial survival probability
+    double meanMutationBias;
+    double sdMutationalEffectSize;
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,

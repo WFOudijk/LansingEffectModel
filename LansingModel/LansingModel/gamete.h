@@ -9,11 +9,11 @@
 #include <array>
 
 const int numOfGenes = 20; // the number of genes every individual contains
-using arrayOfGenes = std::array<bool, numOfGenes>; // binary
+//using arrayOfGenes = std::array<bool, numOfGenes>; // binary
 
 struct Gamete{
     
-    std::array<bool, numOfGenes> genesOfGamete; // an array with its genes
+    std::array<double, numOfGenes> genesOfGamete; // an array with its genes
     
     int numOfMuts = 0;
     // true (1) represents damage
@@ -41,14 +41,18 @@ void Gamete::mutate(const Parameters &p,
     if (isStemcell) { // if the stemcell will mutate
         for (size_t i = 0; i < genesOfGamete.size(); ++i){
             if (rng.bernoulli(p.mutationProbStemcell)){ // if mutation occurs:
-                genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
+                genesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
+                if (genesOfGamete[i] < 0) genesOfGamete[i] = 0; // negative survival probability makes no sense
+                if (genesOfGamete[i] > 1) genesOfGamete[i] = 1; // survival probability bigger than 1 makes no sense
             }
         }
     } else { // else a gamete will mutate
         for (size_t i = 0; i < genesOfGamete.size(); ++i){
             if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
                 numOfMuts += 1;
-                genesOfGamete[i] = 1; // the gene becomes damaged, meaning it becomes one.
+                genesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
+                if (genesOfGamete[i] < 0) genesOfGamete[i] = 0; // negative survival probability makes no sense
+                if (genesOfGamete[i] > 1) genesOfGamete[i] = 1; // survival probability bigger than 1 makes no sense
             }
         }
     }

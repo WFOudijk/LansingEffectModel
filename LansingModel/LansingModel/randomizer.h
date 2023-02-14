@@ -32,6 +32,14 @@ struct Randomizer {
         return std::bernoulli_distribution(p)(rng);        
     }
     
+    double drawMutationEffect() {
+            return mutationEffect(rng);
+        }
+    
+    void setMutationEffect(double m, double sd) {
+            // create normal distribution based on user defined mean and standard deviation
+            mutationEffect = std::normal_distribution<double>(m, sd);
+        }
     
     std::uniform_real_distribution<double> unif;
     std::normal_distribution<double> mutationEffect;

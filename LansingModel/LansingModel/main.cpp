@@ -35,6 +35,9 @@ int main(int argc, const char * argv[]) {
         p.readParameters(parameterFile); // sets parameters from file
     }
 
+    // set the mutationEffect distribution with mean and sd of mutation
+    rng.setMutationEffect(p.meanMutationBias, p.sdMutationalEffectSize);
+    
     Population pop;
     pop.makePopulation(p, rng); // initialise population
     

@@ -191,23 +191,78 @@ loo_compare(m2,m3, criterion = "loo")
 
 ##########################################################################
 
-# lme4 
+# lme4
 
 d <- myLongitudinalData
-d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath))
+
+length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
+
+## Count how many unique ageOfParent per ID
+z <- d %>% group_by(ID) %>% summarize(na = length(unique(ageOfParent)))
+table(z$na) # indeed there are plenty with more than 1 ageOfParent!
+
+## Add the counter to d
+d <- d %>% left_join(z,by="ID")
+
+## Filter out the one with 1 observation (but this selects ...)
+## Filter out the one with 1 observation (but this selects the individuals that die in the first time step)
+# filters out the weaker individuals. probably. 
+
+
+d <- d %>% filter(na>1)
+
+d <- d %>% mutate(ID = factor(ID))
+# compares 40 to the expected age at death. If expectedAgeAtDeath is lower > that will be y1; else it becomes 40 
+d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath)) 
 d <- d %>% mutate(y2 = y1/40)
 
+ggplot(d,aes(x=y2)) + geom_histogram(bins = 20)
+
+ggplot(d,aes(x=ageOfParent,y=y2)) +
+  geom_point() +
+  geom_smooth()
+## very weak downward trend towards the right ...
+
 library(lme4)
-m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
-           data =d,
-           control=lmerControl(calc.derivs=F))
-# calc.derivs = compute gradient and Hessian of nonlinear optimization solution
-# gradient = explains the rate of change of one variable with respect to another = vector of first order partial derivatives of a scalar function
-# scalar valued function = a function that takes one or more values but returns a single value 
-# Hessian = hessian matrix plays an role in machine learning algorithms = a matrix of the second order mixed partials of a scalar field 
-# to optimize a given function  
+library(lmerTest)
 
+m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID),data =d, control=lmerControl(calc.derivs = F))
 summary(m1)
+confint(m1)
 
-plot(m1,all.terms = T,trans = logist)
+plot(m1) # hmmm
+
+## Work with logits (then (0,1) -> (-inf,+inf))
+d <- d %>% mutate(y3 = car::logit(y2))
+
+m1b <- lmer(y3 ~ ageOfParent + (ageOfParent | ID),data =d, control=lmerControl(calc.derivs = F))
+summary(m1b)
+plot(m1b)
+
+## Work with glmmTMB, which has beta distribution:
+
+library(glmmTMB)
+m1c <- glmmTMB(y2 ~ ageOfParent + (ageOfParent | ID), data =d, family = beta_family())
+## A warning; don't know how serious
+summary(m1c)
+## So anyway, all models agree that there's a negative relation.
+
+## The gam model with beta family takes too long.
+## I'm going to remove some data.
+d2 <- d %>% filter(na>5)
+## Use faster bam on logit transformed y
+## bs="fs" means separate spline for each ID, same wigliness
+m1e <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+           #family=betar(link="logit"),
+           data=d2,
+           method = "REML")
+# m1d = bam over the 500 tracked individuals!
+
+summary(m1d)
+gratia::draw(m1d)
+## Overall curve linear (edf=1). Lots of variability
+## WO: Q: how to interpret the ID graph? 
+
+
+
 
