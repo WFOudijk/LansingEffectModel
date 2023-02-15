@@ -22,6 +22,7 @@ struct Parameters {
                    initSurvProb(0.5),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
+                   initAgeSpecificGenes(0.99),
                    numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
@@ -43,6 +44,7 @@ struct Parameters {
     double initSurvProb; // initial survival probability
     double meanMutationBias;
     double sdMutationalEffectSize;
+    double initAgeSpecificGenes;
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,

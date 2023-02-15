@@ -76,7 +76,9 @@ int main(int argc, const char * argv[]) {
     // to keep track of the followed individuals. If everyone has died, the simulation can stop
     int numOfIndividualsToFollow = p.numOfIndividualsToFollow * 2;
     
+				int count = 0;
     while (numOfIndividualsToFollow > 0) {
+								count += 1;
         indVec deadIndividualsVec;
         
         pop.reproduce(p, rng); // reproduce to make offspring
@@ -91,7 +93,8 @@ int main(int argc, const char * argv[]) {
             if (pop.females[ind].identifier) numOfIndividualsToFollow += 1;
         }
     }
-        
+				
+				std::cout << "Counter = " << count << std::endl; 
     // only create output of life expectancy for the remaining individuals
     createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals

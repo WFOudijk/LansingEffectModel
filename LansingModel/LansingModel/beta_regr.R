@@ -212,6 +212,7 @@ d <- d %>% left_join(z,by="ID")
 d <- d %>% filter(na>1)
 
 d <- d %>% mutate(ID = factor(ID))
+
 # compares 40 to the expected age at death. If expectedAgeAtDeath is lower > that will be y1; else it becomes 40 
 d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath)) 
 d <- d %>% mutate(y2 = y1/40)
@@ -226,7 +227,9 @@ ggplot(d,aes(x=ageOfParent,y=y2)) +
 library(lme4)
 library(lmerTest)
 
-m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID),data =d, control=lmerControl(calc.derivs = F))
+m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
+           data = d, 
+           control=lmerControl(calc.derivs = F))
 summary(m1)
 confint(m1)
 

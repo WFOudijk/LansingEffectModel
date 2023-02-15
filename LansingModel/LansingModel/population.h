@@ -33,8 +33,8 @@ void Population::makePopulation(const Parameters& p,
     males.reserve(p.populationSize);
     offspring.reserve(p.populationSize * p.numOfOffspringPerFemale);
     for (size_t i = 0; i < p.populationSize; ++i){
-	    males.emplace_back(p, rng, false);
-        females.emplace_back(p, rng, true);
+								males.emplace_back(p, rng, false);
+								females.emplace_back(p, rng, true);
     }
 }
 
