@@ -194,6 +194,7 @@ loo_compare(m2,m3, criterion = "loo")
 # lme4
 
 d <- myLongitudinalData
+d <- myData
 
 length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
 
@@ -255,17 +256,18 @@ summary(m1c)
 d2 <- d %>% filter(na>5)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1e <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+m1f <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
 # m1d = bam over the 500 tracked individuals!
+# m1e = bam over 500 tracked individuals, based only on age-specific genes 
 
-summary(m1d)
-gratia::draw(m1d)
+summary(m1f)
+gratia::draw(m1e, trans = logist)
 ## Overall curve linear (edf=1). Lots of variability
-## WO: Q: how to interpret the ID graph? 
 
+plot(m1e,all.terms = T,trans = logist)
 
 
 

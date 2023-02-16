@@ -9,7 +9,6 @@
 #include <array>
 
 const int numOfGenes = 20; // the number of genes every individual contains
-//using arrayOfGenes = std::array<bool, numOfGenes>; // binary
 
 struct Gamete{
     
