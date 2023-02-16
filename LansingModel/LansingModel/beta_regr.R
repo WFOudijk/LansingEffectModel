@@ -55,7 +55,7 @@ m1 <- gam(y2 ~ sexOfParent + s(ageOfParent, by = as.factor(sexOfParent)) + s(ide
           data=d, 
           eps=0.001,
           method = "ML")
-# id toevoegen, factor. 
+
 m1 <- gam(y2 ~ s(ageOfParent, by = as.factor(ID)),
           family=betar(link="logit"), 
           data=d, 
@@ -120,10 +120,11 @@ m2 <- brm(bf2,
           control = list(adapt_delta = 0.99,
                          max_treedepth = 10),
           seed = 667,
-          file = "m2.kl")
+          file = "m2.n")
 # j is with sex specific effects 
 # k is longitudinal over ageOfParent 
 # kl is bf2 with 'by = ID'
+# m is males, by = ID. 
 
 summary(m2)
 
@@ -168,6 +169,7 @@ ggplot(d.pred,aes(x=ageOfParent,y=y)) +
 
 bf3 <- bf(y2 ~ ageOfMother) + zero_one_inflated_beta()
 bf3 <- bf(y2 ~ ageOfFather) + zero_one_inflated_beta()
+bf3 <- bf(y2 ~ ageOfParent) + zero_one_inflated_beta()
 
 
 m3 <- brm(bf3,
@@ -181,7 +183,7 @@ m3 <- brm(bf3,
           control = list(adapt_delta = 0.99,
                          max_treedepth = 10),
           seed = 667,
-          file = "m3.g")
+          file = "m3.h")
 m2 <- add_criterion(m2, criterion = "loo")
 m3 <- add_criterion(m3, criterion = "loo")
 loo_compare(m2,m3, criterion = "loo")
@@ -194,9 +196,15 @@ loo_compare(m2,m3, criterion = "loo")
 # lme4
 
 d <- myLongitudinalData
-d <- myData
+d <- trackedIndividuals
+males <- subset(trackedIndividuals, sexOfParent == "M")
+females <- subset(trackedIndividuals, sexOfParent == "F")
+d <- males
+d <- females
 
 length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
+# 478 unique fathers
+# 500 unique mothers
 
 ## Count how many unique ageOfParent per ID
 z <- d %>% group_by(ID) %>% summarize(na = length(unique(ageOfParent)))
@@ -232,7 +240,9 @@ m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID),
            data = d, 
            control=lmerControl(calc.derivs = F))
 summary(m1)
+# males: negative estimate with p-val = 3.92e-5
 confint(m1)
+# males: negative confidence intervals
 
 plot(m1) # hmmm
 
@@ -241,6 +251,8 @@ d <- d %>% mutate(y3 = car::logit(y2))
 
 m1b <- lmer(y3 ~ ageOfParent + (ageOfParent | ID),data =d, control=lmerControl(calc.derivs = F))
 summary(m1b)
+# females: estimate is negative with a p-value of 0.017
+# males: negative estimate with p-val = 1.27e-7
 plot(m1b)
 
 ## Work with glmmTMB, which has beta distribution:
@@ -250,21 +262,29 @@ m1c <- glmmTMB(y2 ~ ageOfParent + (ageOfParent | ID), data =d, family = beta_fam
 ## A warning; don't know how serious
 summary(m1c)
 ## So anyway, all models agree that there's a negative relation.
+# females: estimate is negative with a p-value of 0.045 
+# males: estimate is negative with p-val = 9.77e-5
+
 
 ## The gam model with beta family takes too long.
 ## I'm going to remove some data.
 d2 <- d %>% filter(na>5)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1f <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+m1i <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
-           data=d2,
+           data=d,
            method = "REML")
 # m1d = bam over the 500 tracked individuals!
 # m1e = bam over 500 tracked individuals, based only on age-specific genes 
+# m1f = bam over 500 tracked individuals, based only on binary genes. With sex implemented - but not used yet 
+# m1g = females only 
+# m1h = males only 
 
-summary(m1f)
-gratia::draw(m1e, trans = logist)
+summary(m1i)
+# females: edf of 2.249 with p-val = 6.59e*-6
+# males: edf of 1 with p-val of 2e-16
+gratia::draw(m1i, fun = logist)
 ## Overall curve linear (edf=1). Lots of variability
 
 plot(m1e,all.terms = T,trans = logist)

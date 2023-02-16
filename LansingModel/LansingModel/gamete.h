@@ -43,23 +43,15 @@ void Gamete::mutate(const Parameters &p,
 					if a mutation will occur. If so, for the age-specific genes the mutational effect is drawn from a normal distribution. If a mutation occurs in a binary gene
 					this gene value will be set to one to indicate damage.
 					**/
-    if (isStemcell) { // if the stemcell will mutate
-        for (size_t i = 0; i < genesOfGamete.size(); ++i){
-            if (rng.bernoulli(p.mutationProbStemcell)){ // if mutation occurs:
-                ageSpecificGenesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
-                if (ageSpecificGenesOfGamete[i] < 0) ageSpecificGenesOfGamete[i] = 0; // negative survival probability makes no sense
-                if (ageSpecificGenesOfGamete[i] > 1) ageSpecificGenesOfGamete[i] = 1; // survival probability bigger than 1 makes no sense
-            }
+				for (size_t i = 0; i < genesOfGamete.size(); ++i){
+								if (rng.bernoulli(p.mutationProbAgeSpecificGenes)){ // if mutation occurs:
+												ageSpecificGenesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
+												if (ageSpecificGenesOfGamete[i] < 0) ageSpecificGenesOfGamete[i] = 0; // negative survival probability makes no sense
+												if (ageSpecificGenesOfGamete[i] > 1) ageSpecificGenesOfGamete[i] = 1; // survival probability bigger than 1 makes no sense
+								}
+								if (isStemcell) { // if the stemcell will mutate
 												if (rng.bernoulli(p.mutationProbStemcell)) genesOfGamete[i] = 1; // make this gene damaged
-        }
-    } else { // else a gamete will mutate
-        for (size_t i = 0; i < genesOfGamete.size(); ++i){
-            if (rng.bernoulli(p.mutationProb)){ // if mutation occurs:
-                numOfMuts += 1;
-                ageSpecificGenesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
-                if (ageSpecificGenesOfGamete[i] < 0) ageSpecificGenesOfGamete[i] = 0; // negative survival probability makes no sense
-                if (ageSpecificGenesOfGamete[i] > 1) ageSpecificGenesOfGamete[i] = 1; // survival probability bigger than 1 makes no sense
-            }
+        } else { // else a gamete will mutate
 												// check seperately for the gene array with binary genes if a mutation occurs.
 												if (rng.bernoulli(p.mutationProb)) genesOfGamete[i] = 1; // make this gene damaged
         }
