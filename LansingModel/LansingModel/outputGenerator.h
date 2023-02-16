@@ -12,19 +12,6 @@
 
 using indVec = std::vector<Individual>;
 
-void createOutput(const indVec& individualVec){
-    /**Function to create output to the terminal of Individuals in a vector. **/
-    std::cout << "Individual vector size = " << individualVec.size() << std::endl; 
-    for (auto individual : individualVec){ // for every individual in the vector
-        // calculate average of every gene/ age
-        for (auto i = 0u; i < individual.genesMaternal.size(); ++i) {
-        std::cout << individual.averageSurvivalProb[i] << " ";
-        }
-    std::cout << "Age: " << individual.age << " ";
-    std::cout << std::endl;
-    }
-}
-
 void createOutputAgeDeath(const int t,
                           const Parameters& p,
                           const std::vector<int>& ageAtDeath){
@@ -69,7 +56,7 @@ void createOutputDeclineInGameteQuality(const int t,
         << i.age << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
-        << i.averageSurvivalProb[i.age] << " "
+        << i.averageSurvivalProb[i.age] * i.survivalProb << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -86,7 +73,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         exit(EXIT_FAILURE);
     }
     for (Individual male : males){
-        double s = male.averageSurvivalProb[male.age] * (1 - p.extrinsicMortRisk);
+        double s = male.averageSurvivalProb[male.age] * male.survivalProb * (1 - p.extrinsicMortRisk);
         double expectedAgeAtDeath = male.age + (s / (1 - s));
         
         // write maternal information
@@ -94,7 +81,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfMother << " "
         << "F "
-        << male.averageSurvivalProb[male.age] << " "
+        << male.averageSurvivalProb[male.age] * male.survivalProb << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
         
@@ -103,14 +90,14 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfFather << " "
         << "M "
-        << male.averageSurvivalProb[male.age] << " "
+        << male.averageSurvivalProb[male.age] * male.survivalProb << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
 
     
     for (Individual female : females){
-        double s = female.averageSurvivalProb[female.age] * (1 - p.extrinsicMortRisk);
+        double s = female.averageSurvivalProb[female.age] * female.survivalProb * (1 - p.extrinsicMortRisk);
         double expectedAgeAtDeath = female.age + (s / (1 - s));
         
         // write maternal information
@@ -118,7 +105,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfMother << " "
         << "F "
-        << female.averageSurvivalProb[female.age] << " "
+        << female.averageSurvivalProb[female.age] * female.survivalProb << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
         
@@ -127,7 +114,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfFather << " "
         << "M "
-        << female.averageSurvivalProb[female.age] << " "
+        << female.averageSurvivalProb[female.age] * female.survivalProb << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -151,14 +138,24 @@ void createOutputTrackedIndividuals(const Parameters& p,
             ofs << ind << " "; // use this index as identifier of the individual
             
             // calculate expected age at death for this offspring of the tracked individual
-            double s = trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[trackedDeadIndividuals[ind].offspringOfIndividual[i].age] * (1 - p.extrinsicMortRisk);
+												// get the survival probability of the age-dependent genes
+            double ageDependentSurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[trackedDeadIndividuals[ind].offspringOfIndividual[i].age];
+												// get the survival probability of the binary genes
+												double binarySurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb;
+												// mulitply the above-mentioned two to get total survival probability
+												double totSurvProb = ageDependentSurvProb * binarySurvProb;
+												// calculate s = yearly probability of survival to the next year
+												double s = totSurvProb * (1 - p.extrinsicMortRisk);
+												// calculate expected age at death 
             double expectedAgeAtDeath = trackedDeadIndividuals[ind].offspringOfIndividual[i].age + (s / (1 - s));
             
             // if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
             (trackedDeadIndividuals[ind].sex == 'M') ? ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfFather : ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfMother;
             ofs << " ";
             (trackedDeadIndividuals[ind].sex == 'M') ? ofs << "M " : ofs << "F ";
-            ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[trackedDeadIndividuals[ind].offspringOfIndividual[i].age] << " " // write survival probability to file
+            ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[
+																trackedDeadIndividuals[ind].offspringOfIndividual[i].age]
+																* trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb << " " // write survival probability to file
             << expectedAgeAtDeath << std::endl; // write expected age at death to file
         }
     }

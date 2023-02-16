@@ -201,6 +201,7 @@ males <- subset(trackedIndividuals, sexOfParent == "M")
 females <- subset(trackedIndividuals, sexOfParent == "F")
 d <- males
 d <- females
+d <- myData1000Time
 
 length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
 # 478 unique fathers
@@ -280,6 +281,7 @@ m1i <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
 # m1f = bam over 500 tracked individuals, based only on binary genes. With sex implemented - but not used yet 
 # m1g = females only 
 # m1h = males only 
+# m1i = 1000 time steps, both gene arrays implemented 
 
 summary(m1i)
 # females: edf of 2.249 with p-val = 6.59e*-6

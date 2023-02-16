@@ -23,7 +23,7 @@ struct Parameters {
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.01),
+																   mutationProbAgeSpecificGenes(0.006),
                    numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
