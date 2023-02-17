@@ -221,7 +221,7 @@ d <- d %>% left_join(z,by="ID")
 
 d <- d %>% filter(na>1)
 
-d <- d %>% mutate(ID = factor(ID))
+d <- d %>% mutate(ID = factor(ID)) # TODO: try this with the gam 
 
 # compares 40 to the expected age at death. If expectedAgeAtDeath is lower > that will be y1; else it becomes 40 
 d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath)) 
@@ -272,18 +272,20 @@ summary(m1c)
 d2 <- d %>% filter(na>5)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1i <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+m1k <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
-           data=d,
+           data=d2,
            method = "REML")
 # m1d = bam over the 500 tracked individuals!
 # m1e = bam over 500 tracked individuals, based only on age-specific genes 
 # m1f = bam over 500 tracked individuals, based only on binary genes. With sex implemented - but not used yet 
 # m1g = females only 
 # m1h = males only 
-# m1i = 1000 time steps, both gene arrays implemented 
+# m1i = smaller mutation probabilities > {0.003, 0.004, 0.004} > {ageSpecGenes, gametes, stem cells}
+# mlj = {0.002, 0.0035, 0.0035}
+# mlk = {0.0025, 0.0035, 0.0035}
 
-summary(m1i)
+summary(m1k)
 # females: edf of 2.249 with p-val = 6.59e*-6
 # males: edf of 1 with p-val of 2e-16
 gratia::draw(m1i, fun = logist)

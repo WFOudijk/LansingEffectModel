@@ -56,7 +56,7 @@ void createOutputDeclineInGameteQuality(const int t,
         << i.age << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
-        << i.averageSurvivalProb[i.age] * i.survivalProb << " "
+        << (i.averageSurvivalProb[i.age] * i.survivalProb) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -73,7 +73,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         exit(EXIT_FAILURE);
     }
     for (Individual male : males){
-        double s = male.averageSurvivalProb[male.age] * male.survivalProb * (1 - p.extrinsicMortRisk);
+												double s = male.averageSurvivalProb[male.age] * male.survivalProb * (1 - p.extrinsicMortRisk);
         double expectedAgeAtDeath = male.age + (s / (1 - s));
         
         // write maternal information
@@ -81,7 +81,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfMother << " "
         << "F "
-        << male.averageSurvivalProb[male.age] * male.survivalProb << " "
+        << (male.averageSurvivalProb[male.age] * male.survivalProb) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
         
@@ -90,7 +90,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfFather << " "
         << "M "
-        << male.averageSurvivalProb[male.age] * male.survivalProb << " "
+        << (male.averageSurvivalProb[male.age] * male.survivalProb) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -105,7 +105,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfMother << " "
         << "F "
-        << female.averageSurvivalProb[female.age] * female.survivalProb << " "
+        << (female.averageSurvivalProb[female.age] * female.survivalProb) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
         
@@ -114,7 +114,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfFather << " "
         << "M "
-        << female.averageSurvivalProb[female.age] * female.survivalProb << " "
+        << (female.averageSurvivalProb[female.age] * female.survivalProb) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -153,9 +153,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             (trackedDeadIndividuals[ind].sex == 'M') ? ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfFather : ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfMother;
             ofs << " ";
             (trackedDeadIndividuals[ind].sex == 'M') ? ofs << "M " : ofs << "F ";
-            ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[
+            ofs << (trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[
 																trackedDeadIndividuals[ind].offspringOfIndividual[i].age]
-																* trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb << " " // write survival probability to file
+																* trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb) << " " // write survival probability to file
             << expectedAgeAtDeath << std::endl; // write expected age at death to file
         }
     }
