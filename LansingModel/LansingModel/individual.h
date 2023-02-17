@@ -20,6 +20,7 @@ struct Individual {
     unsigned int ageOfMother;
     unsigned int ageOfFather;
     double survivalProb; // based on the binary genes
+				double quality; // parental quality
     
     // array with genes - binary
     std::array<arrayOfGenes, 2> genetics;
@@ -43,7 +44,8 @@ struct Individual {
                bool isFemale) : age(0),
                                 ageOfMother(0),
                                 ageOfFather(0),
-                                identifier(0){
+                                identifier(0),
+																																quality(1.0){
 
         // initialise two gametes for this individual
 								Gamete gameteMaternal(p, rng);
@@ -67,7 +69,8 @@ struct Individual {
                Individual& father,
                Randomizer& rng,
                const Parameters& p) : age(0),
-                                      identifier(0){
+                                      identifier(0),
+																																				  quality(1.0){
         /**Constructor to reproduce and create offspring . **/
         // first, get a gamete from the mothers gamete list
         Gamete gameteMother = std::move(mother.gametesOfIndividual.back());
@@ -85,6 +88,7 @@ struct Individual {
         ageOfMother = mother.age;
         ageOfFather = father.age;
         calcSurvivalProb(p); // to set the survival probability of the new individual
+								//survivalProb *= mother.quality; // multiply calculated survival prob with the quality of the mother TODO: needs to be changed.
         }
        
     bool dies(Randomizer& rng, const Parameters& p);
@@ -127,6 +131,7 @@ bool Individual::dies(Randomizer& rng,
     double survivalProbIncExtrinsicRisk = survivalProbForAge * (1 - p.extrinsicMortRisk); // taking extrinsic mortality into account
     if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
+								quality -= p.qualityDecrease; // every time an individual ages, the parental quality should decrease
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
         dies = true; // Individual will die
@@ -184,7 +189,8 @@ void Individual::calcSurvivalProb(const Parameters& p){
 				// sum number of ones to calculate the survival probability
 				int sumOfDamage1 = std::accumulate(genetics[0].begin(), genetics[0].end(), 0);
 				int sumOfDamage2 = std::accumulate(genetics[1].begin(), genetics[1].end(), 0);
-
+				// TODO: determine if both parents quality play a part or at random one or etc
+				
 				// calculate survival probability based on number of ones
 				survivalProb = exp(p.strengthOfSelection * (sumOfDamage1 + sumOfDamage2));
 				

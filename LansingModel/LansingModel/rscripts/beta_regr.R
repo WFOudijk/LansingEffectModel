@@ -7,11 +7,14 @@ d <- sub_paternal_LE
 d <- sub_both_LE
 d <- myLongitudinalData
 d <- subSexSpec
+d <- equi_timepoint
 
 ggplot(d,aes(x=expectedAgeAtDeath)) + geom_histogram(bins=50)
 
 ## Let's cut off at 40
 d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath))
+d <- d %>% mutate(y1 = pmin(40,ageAtDeath))
+
 
 ggplot(d,aes(x=y1)) + geom_histogram(bins=50)
 ## Large peak at 40
@@ -120,7 +123,7 @@ m2 <- brm(bf2,
           control = list(adapt_delta = 0.99,
                          max_treedepth = 10),
           seed = 667,
-          file = "m2.n")
+          file = "m2aa")
 # j is with sex specific effects 
 # k is longitudinal over ageOfParent 
 # kl is bf2 with 'by = ID'
@@ -272,7 +275,7 @@ summary(m1c)
 d2 <- d %>% filter(na>5)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1k <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+m1l <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
@@ -282,13 +285,14 @@ m1k <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
 # m1g = females only 
 # m1h = males only 
 # m1i = smaller mutation probabilities > {0.003, 0.004, 0.004} > {ageSpecGenes, gametes, stem cells}
-# mlj = {0.002, 0.0035, 0.0035}
-# mlk = {0.0025, 0.0035, 0.0035}
+# mlj = {0.002, 0.0035, 0.0035} = 2
+# mlk = {0.0025, 0.0035, 0.0035} = 3
+# mll = {0.0025, 0.0037, 0.0037} = 4
 
-summary(m1k)
+summary(m1i)
 # females: edf of 2.249 with p-val = 6.59e*-6
 # males: edf of 1 with p-val of 2e-16
-gratia::draw(m1i, fun = logist)
+gratia::draw(m1l, fun = logist)
 ## Overall curve linear (edf=1). Lots of variability
 
 plot(m1e,all.terms = T,trans = logist)

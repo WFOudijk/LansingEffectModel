@@ -24,6 +24,7 @@ struct Parameters {
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
 																   mutationProbAgeSpecificGenes(0.0025),
+																   qualityDecrease(0.02),
                    numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
@@ -46,7 +47,8 @@ struct Parameters {
     double meanMutationBias;
     double sdMutationalEffectSize;
     double initAgeSpecificGenes;
-				double mutationProbAgeSpecificGenes; // mutation probability for the age specific genes 
+				double mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
+				double qualityDecrease; // the amount the quality should decrease every time an individual ages 
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,

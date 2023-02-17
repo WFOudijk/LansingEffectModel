@@ -83,11 +83,11 @@ ggplot(data = equi_timepoint, aes(x = ageOfFather, y = ageAtDeath, group = ageOf
 # first try = {0.003; 0.004; 0.004} > no significant decrease 
 # second try = {0.002; 0.0035; 0.0035} > no significant decrease and more randomeness. Too low? 
 # third try: {0.0025; 0.0035; 0.0035} > first lmer model not significant, second and third are significant 
-# fourth try = {0.0025; 0.0037; 0.0037}
+# fourth try = {0.0025; 0.0037; 0.0037} > no singularity issue! 
 survivingPop <- read.table(paste(path, "outputLifeExpectancySmallMuts3.txt", sep = ""))
 colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
 
-myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividualsSmallMuts3.txt", sep = ""))
+myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividualsSmallMuts.txt", sep = ""))
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 
 deathIndividuals <- read.table(paste(path, "outputDeclineGameteQualitySmallMuts3.txt", sep = ""))
