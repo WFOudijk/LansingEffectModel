@@ -54,7 +54,7 @@ int main(int argc, const char * argv[]) {
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << std::endl;
             //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
-            createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
+            //createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
         }
 
     }
