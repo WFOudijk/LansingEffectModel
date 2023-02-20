@@ -9,7 +9,7 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(5000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
                    mutationProb(0.0037), // based on parameter simulations
@@ -25,7 +25,7 @@ struct Parameters {
                    initAgeSpecificGenes(0.99),
 																   mutationProbAgeSpecificGenes(0.0025),
 																   qualityDecrease(0.02),
-                   numOfIndividualsToFollow(500){ // based on parameter simulations
+                   numOfIndividualsToFollow(3000){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }

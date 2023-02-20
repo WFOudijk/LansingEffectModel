@@ -59,7 +59,7 @@ m1 <- gam(y2 ~ sexOfParent + s(ageOfParent, by = as.factor(sexOfParent)) + s(ide
           eps=0.001,
           method = "ML")
 
-m1 <- gam(y2 ~ s(ageOfParent, by = as.factor(ID)),
+mtest <- gam(y2 ~ s(ageOfParent, by = as.factor(ID)),
           family=betar(link="logit"), 
           data=d, 
           eps=0.001,
@@ -231,15 +231,19 @@ d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath))
 d <- d %>% mutate(y2 = y1/40)
 
 ggplot(d,aes(x=y2)) + geom_histogram(bins = 20)
-
-ggplot(d,aes(x=ageOfParent,y=y2)) +
+IDsample <- sample(1:981, size = 50, replace = F)
+dshort <- d[d$ID %in% IDsample, ]
+ggplot(dshort,aes(x=ageOfParent,y=y2, color = factor(ID))) +
   geom_point() +
-  geom_smooth()
+  geom_smooth(method = lm, se = F)
 ## very weak downward trend towards the right ...
 
 library(lme4)
 library(lmerTest)
-
+d$az <- (d$ageOfParent - mean(d$ageOfParent)) / sd(d$ageOfParent)
+m1 <- lmer(y2 ~ az + (az | ID), 
+           data = d, 
+           control=lmerControl(calc.derivs = F))
 m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
            data = d, 
            control=lmerControl(calc.derivs = F))

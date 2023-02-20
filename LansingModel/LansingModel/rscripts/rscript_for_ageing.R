@@ -87,9 +87,11 @@ ggplot(data = equi_timepoint, aes(x = ageOfFather, y = ageAtDeath, group = ageOf
 survivingPop <- read.table(paste(path, "outputLifeExpectancySmallMuts3.txt", sep = ""))
 colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
 
-myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividualsSmallMuts.txt", sep = ""))
+myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividualsSmallMuts4.txt", sep = ""))
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 
 deathIndividuals <- read.table(paste(path, "outputDeclineGameteQualitySmallMuts3.txt", sep = ""))
 colnames(deathIndividuals) <- c("time", "ageAtDeath", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbStemCell", "mutationProb") 
+
+# fourth try parameter values but with 5000 individuals and 3000 tracked. 
 
