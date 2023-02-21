@@ -38,7 +38,7 @@ struct Parameters {
     int outputTime; // when to output info
     int tEnd; // end of simulation
     double strengthOfSelection; // this coefficient determines the strength of the effect of damage
-    const unsigned int maximumAge; // maximum age an individual can get to
+    unsigned int maximumAge; // maximum age an individual can get to
     unsigned int numOfGametes; // the derived number of gametes a female should have
     unsigned int numOfStemCells; // number of stem cells a male should create
     double mutationProbStemcell; // mutation probability of stemcell to mutate
@@ -55,6 +55,10 @@ struct Parameters {
                     const std::string focal_parametername,
                     double& parameter,
                     std::ifstream& ifs);
+				void checkParam(const std::string parID,
+																				const std::string focal_parametername,
+																				unsigned int& parameter,
+																				std::ifstream& ifs);
 };
 
 void Parameters::checkParam(const std::string parID,
@@ -66,6 +70,17 @@ void Parameters::checkParam(const std::string parID,
         ifs >> parameter;
         std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
     }
+}
+
+void Parameters::checkParam(const std::string parID,
+																												const std::string focal_parametername,
+																												unsigned int& parameter,
+																												std::ifstream& ifs) {
+				// set parameter from file to parameter in object parameter
+				if (parID == focal_parametername) {
+								ifs >> parameter;
+								std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
+				}
 }
 
 void Parameters::readParameters(const std::string& parameterFile){
@@ -86,6 +101,7 @@ void Parameters::readParameters(const std::string& parameterFile){
 												checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);
             checkParam(parID, "mutationProbAgeSpecificGenes", mutationProbAgeSpecificGenes, ifs);
 												checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
+												checkParam(parID, "populationSize", populationSize, ifs);
         }
         else break;
     }
