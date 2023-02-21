@@ -15,7 +15,7 @@ struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // array with binary genes
     // true (1) represents damage
 
-    std::array<double, numOfGenes> ageSpecificGenesOfGamete; // array with age-specific genes
+    std::array<double, 40> ageSpecificGenesOfGamete; // array with age-specific genes TODO: make param
     // represented by survival probabilities
     
     int numOfMuts = 0;

@@ -9,23 +9,23 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(5000),
+    Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.0037), // based on parameter simulations
+                   mutationProb(0.0045), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.0037),
+                   mutationProbStemcell(0.0045),
                    initSurvProb(0.5),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
-                   initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.0025),
+                   initAgeSpecificGenes(1),
+																   mutationProbAgeSpecificGenes(0.0),
 																   qualityDecrease(0.02),
-                   numOfIndividualsToFollow(3000){ // based on parameter simulations
+                   numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }

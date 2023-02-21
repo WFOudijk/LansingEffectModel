@@ -475,6 +475,27 @@ colnames(allDeadIndividuals) <- c("time", "ageAtDeath", "ageOfMother", "ageOfFat
 survivingPop <- read.table(paste(path_to_read, "outputLifeExpectancyFINAL.txt", sep = ""))
 colnames(survivingPop) <- c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
 
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
+  ylim(0, 40)
+
 trackedIndividuals <- read.table(paste(path_to_read, "outputLETrackedIndividualsFINAL.txt", sep = ""))
 colnames(trackedIndividuals) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 

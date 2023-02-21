@@ -13,7 +13,7 @@
 #include <vector>
 
 using arrayOfGenes = std::array<bool, numOfGenes>;
-using arrayOfGenesAgeSpecific = std::array<double, numOfGenes>;
+using arrayOfGenesAgeSpecific = std::array<double, 40>;
 
 struct Individual {
     unsigned int age;
@@ -107,8 +107,11 @@ Gamete Individual::makeGamete(Randomizer& rng){
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
         // based on a random value, determine whether the genes of the gamete come from the mother or from the father
         gamete.genesOfGamete[i] = genetics[rng.bernoulli()][i];
-        gamete.ageSpecificGenesOfGamete[i] = (rng.bernoulli()) ? genesMaternal[i] : genesPaternal[i];
+        //gamete.ageSpecificGenesOfGamete[i] = (rng.bernoulli()) ? genesMaternal[i] : genesPaternal[i];
     }
+				for (int i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
+								gamete.ageSpecificGenesOfGamete[i] = (rng.bernoulli()) ? genesMaternal[i] : genesPaternal[i];
+				}
     return gamete;
 }
 
@@ -179,8 +182,11 @@ Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
         // determine based on a bernoulli distribution which gene will be inherited
         gamete.genesOfGamete[i] = stemCell[rng.bernoulli()].genesOfGamete[i];
-								gamete.ageSpecificGenesOfGamete[i] = stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i];
+							//	gamete.ageSpecificGenesOfGamete[i] = stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i];
     }
+				for (int i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
+								gamete.ageSpecificGenesOfGamete[i] = stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i];
+				}
     return gamete;
 }
 

@@ -93,5 +93,114 @@ colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalP
 deathIndividuals <- read.table(paste(path, "outputDeclineGameteQualitySmallMuts3.txt", sep = ""))
 colnames(deathIndividuals) <- c("time", "ageAtDeath", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbStemCell", "mutationProb") 
 
-# fourth try parameter values but with 5000 individuals and 3000 tracked. 
+# fourth try parameter values but with 5000 individuals and 3000 tracked.
+survivingPop <- read.table(paste(path, "outputLifeExpectancy5000Indv.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
+  ylim(0, 40)
+
+myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividuals5000Indv.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+# test to see if ageing is implemented correct by turning the age-specific mutation rate to 0 
+# both mutation probabilities for gametes and stem cells are set to 0.0045
+survivingPop <- read.table(paste(path, "outputLifeExpectancyNoAgeing.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
+  ylim(0, 40)
+
+myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividualsNoAgeing.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+######### old model ########
+survivingPopOld <- read.table(paste(path, "outputLifeExpectancyOLD.txt", sep = ""))
+colnames(survivingPopOld) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+
+avgDataframe <- aggregate(survivingPopOld$expectedAgeAtDeath, list(survivingPopOld$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPopOld$expectedAgeAtDeath, survivingPopOld$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPopOld$expectedAgeAtDeath, survivingPopOld$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
+  ylim(0, 40)
+
+###### new model ##########
+survivingPop <- read.table(paste(path, "outputLifeExpectancyNEW.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
+  ylim(0, 40)
+
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLifeExpectancy.txt")
+colnames(test) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+survivingPop <- test
 

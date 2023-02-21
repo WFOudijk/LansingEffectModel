@@ -8,6 +8,7 @@ d <- sub_both_LE
 d <- myLongitudinalData
 d <- subSexSpec
 d <- equi_timepoint
+d <- trackedIndividuals
 
 ggplot(d,aes(x=expectedAgeAtDeath)) + geom_histogram(bins=50)
 
@@ -58,8 +59,8 @@ m1 <- gam(y2 ~ sexOfParent + s(ageOfParent, by = as.factor(sexOfParent)) + s(ide
           data=d, 
           eps=0.001,
           method = "ML")
-
-mtest <- gam(y2 ~ s(ageOfParent, by = as.factor(ID)),
+d <- d %>% mutate(ID = factor(ID)) 
+mtest <- gam(y2 ~ s(ageOfParent),
           family=betar(link="logit"), 
           data=d, 
           eps=0.001,
@@ -83,6 +84,8 @@ mtest <- gam(y2 ~ s(ageOfParent, by = as.factor(ID)),
 ## Maybe disappears for better-looking distribution
 
 summary(m1)
+summary(mtest)
+
 ## significant effect age, appears to be linear (edf=1)
 # WO: edf = effective degrees of freedom: 1 means straight line = linear 
 
@@ -90,7 +93,7 @@ summary(m1)
 logist <- function(x) 40/(1+exp(-x))
 
 ## Plot the fit plus confidence band
-plot(m1,all.terms = T,trans = logist)
+plot(mtest,all.terms = T,trans = logist)
 
 ## Seems a bit more extreme decline than suggested by the box plots
 
@@ -209,6 +212,7 @@ d <- myData1000Time
 length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
 # 478 unique fathers
 # 500 unique mothers
+# 5877 IDs; 6000 tracked. 
 
 ## Count how many unique ageOfParent per ID
 z <- d %>% group_by(ID) %>% summarize(na = length(unique(ageOfParent)))
@@ -276,10 +280,10 @@ summary(m1c)
 
 ## The gam model with beta family takes too long.
 ## I'm going to remove some data.
-d2 <- d %>% filter(na>5)
+d2 <- d %>% filter(na>7)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1l <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+m1n <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
@@ -291,12 +295,13 @@ m1l <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
 # m1i = smaller mutation probabilities > {0.003, 0.004, 0.004} > {ageSpecGenes, gametes, stem cells}
 # mlj = {0.002, 0.0035, 0.0035} = 2
 # mlk = {0.0025, 0.0035, 0.0035} = 3
-# mll = {0.0025, 0.0037, 0.0037} = 4
+# mll = {0.0025, 0.0037, 0.0037} = 4 over 5000. FAILED
+# m1m = 4th try with 5000 individuals. Filtered with na>7 to remove data. 
 
-summary(m1i)
+summary(m1m)
 # females: edf of 2.249 with p-val = 6.59e*-6
 # males: edf of 1 with p-val of 2e-16
-gratia::draw(m1l, fun = logist)
+gratia::draw(m1m, fun = logist)
 ## Overall curve linear (edf=1). Lots of variability
 
 plot(m1e,all.terms = T,trans = logist)
