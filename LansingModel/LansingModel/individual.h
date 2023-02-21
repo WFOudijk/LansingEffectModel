@@ -13,7 +13,6 @@
 #include <vector>
 
 using arrayOfGenes = std::array<bool, numOfGenes>;
-using arrayOfGenesAgeSpecific = std::array<double, 40>;
 
 struct Individual {
     unsigned int age;
@@ -24,13 +23,15 @@ struct Individual {
     
     // array with genes - binary
     std::array<arrayOfGenes, 2> genetics;
-    
+				
+				Parameters p;
+					
     // array with age specific genes - survival probabilities
-    arrayOfGenesAgeSpecific genesMaternal; // TODO: make this also array of two arrays
-    arrayOfGenesAgeSpecific genesPaternal;
+				std::array<double, 40> genesMaternal; // TODO: make this also array of two arrays
+				std::array<double, 40> genesPaternal; // TODO: how to get member variable of parameters instead of 40 hardcoded 
     
     // averaging the maternal and paternal survival probabilities
-    arrayOfGenesAgeSpecific averageSurvivalProb;
+				std::array<double, 40> averageSurvivalProb;
     
     std::vector<Gamete> gametesOfIndividual;
     std::vector<std::array<Gamete, 2> > stemCells;

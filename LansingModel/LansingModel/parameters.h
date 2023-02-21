@@ -12,7 +12,7 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.0045), // based on parameter simulations
+                   mutationProb(0.0037), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
@@ -22,8 +22,8 @@ struct Parameters {
                    initSurvProb(0.5),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
-                   initAgeSpecificGenes(1),
-																   mutationProbAgeSpecificGenes(0.0),
+                   initAgeSpecificGenes(0.99),
+																   mutationProbAgeSpecificGenes(0.0025),
 																   qualityDecrease(0.02),
                    numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
@@ -38,7 +38,7 @@ struct Parameters {
     int outputTime; // when to output info
     int tEnd; // end of simulation
     double strengthOfSelection; // this coefficient determines the strength of the effect of damage
-    unsigned int maximumAge; // maximum age an individual can get to
+    const unsigned int maximumAge; // maximum age an individual can get to
     unsigned int numOfGametes; // the derived number of gametes a female should have
     unsigned int numOfStemCells; // number of stem cells a male should create
     double mutationProbStemcell; // mutation probability of stemcell to mutate
@@ -83,10 +83,9 @@ void Parameters::readParameters(const std::string& parameterFile){
         ifs >> parID; // get row in file
         if(ifs.good()) { // setting of the parameters
             checkParam(parID, "mutationProb", mutationProb, ifs);
-            checkParam(parID, "extrinsicMortRisk", extrinsicMortRisk, ifs);
-            checkParam(parID, "strengthOfSelection", strengthOfSelection, ifs);
-            checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);
-
+												checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);
+            checkParam(parID, "mutationProbAgeSpecificGenes", mutationProbAgeSpecificGenes, ifs);
+												checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
         }
         else break;
     }
