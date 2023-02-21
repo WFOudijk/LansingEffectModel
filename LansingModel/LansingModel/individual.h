@@ -45,9 +45,8 @@ struct Individual {
                bool isFemale) : age(0),
                                 ageOfMother(0),
                                 ageOfFather(0),
-                                identifier(0),
-																																quality(1.0){
-
+																																quality(1.0),
+																																identifier(0){
         // initialise two gametes for this individual
 								Gamete gameteMaternal(p, rng);
         Gamete gametePaternal(p, rng);
@@ -110,7 +109,7 @@ Gamete Individual::makeGamete(Randomizer& rng){
         gamete.genesOfGamete[i] = genetics[rng.bernoulli()][i];
         //gamete.ageSpecificGenesOfGamete[i] = (rng.bernoulli()) ? genesMaternal[i] : genesPaternal[i];
     }
-				for (int i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
+				for (size_t i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
 								gamete.ageSpecificGenesOfGamete[i] = (rng.bernoulli()) ? genesMaternal[i] : genesPaternal[i];
 				}
     return gamete;
@@ -185,7 +184,7 @@ Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
         gamete.genesOfGamete[i] = stemCell[rng.bernoulli()].genesOfGamete[i];
 							//	gamete.ageSpecificGenesOfGamete[i] = stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i];
     }
-				for (int i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
+				for (size_t i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
 								gamete.ageSpecificGenesOfGamete[i] = stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i];
 				}
     return gamete;
