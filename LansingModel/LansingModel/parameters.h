@@ -39,16 +39,16 @@ struct Parameters {
     int tEnd; // end of simulation
     double strengthOfSelection; // this coefficient determines the strength of the effect of damage
     unsigned int maximumAge; // maximum age an individual can get to
-    unsigned int numOfGametes; // the derived number of gametes a female should have
-    unsigned int numOfStemCells; // number of stem cells a male should create
     double mutationProbStemcell; // mutation probability of stemcell to mutate
-    unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
     double initSurvProb; // initial survival probability
     double meanMutationBias;
     double sdMutationalEffectSize;
     double initAgeSpecificGenes;
 				double mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
-				double qualityDecrease; // the amount the quality should decrease every time an individual ages 
+				double qualityDecrease; // the amount the quality should decrease every time an individual ages
+				unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
+				unsigned int numOfGametes; // the derived number of gametes a female should have
+				unsigned int numOfStemCells; // number of stem cells a male should create
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
