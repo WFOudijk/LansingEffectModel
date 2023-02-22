@@ -12,19 +12,18 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.0037), // based on parameter simulations
+                   mutationProb(0.004), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.0045),
+                   mutationProbStemcell(0.004),
                    initSurvProb(0.5),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.0025),
-																   qualityDecrease(0.02),
+																   mutationProbAgeSpecificGenes(0.001),
                    numOfIndividualsToFollow(500){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
@@ -45,7 +44,6 @@ struct Parameters {
     double sdMutationalEffectSize;
     double initAgeSpecificGenes;
 				double mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
-				double qualityDecrease; // the amount the quality should decrease every time an individual ages
 				unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
 				unsigned int numOfGametes; // the derived number of gametes a female should have
 				unsigned int numOfStemCells; // number of stem cells a male should create

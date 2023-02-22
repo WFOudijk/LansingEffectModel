@@ -20,7 +20,8 @@ struct Individual {
     unsigned int ageOfFather;
     double survivalProb; // based on the binary genes
 				double quality; // parental quality
-    
+				bool identifier;
+				
     // array with genes - binary
     std::array<arrayOfGenes, 2> genetics;
 				
@@ -36,7 +37,6 @@ struct Individual {
     std::vector<Gamete> gametesOfIndividual;
     std::vector<std::array<Gamete, 2> > stemCells;
     
-    bool identifier;
     std::vector<Individual> offspringOfIndividual;
     char sex;
     
@@ -45,7 +45,6 @@ struct Individual {
                bool isFemale) : age(0),
                                 ageOfMother(0),
                                 ageOfFather(0),
-																																quality(1.0),
 																																identifier(0){
         // initialise two gametes for this individual
 								Gamete gameteMaternal(p, rng);
@@ -60,6 +59,7 @@ struct Individual {
         genesPaternal = gametePaternal.ageSpecificGenesOfGamete;
         
 								calcSurvivalProb(p);
+								quality = averageSurvivalProb[age]; // get initial quality
 
         // if the individual is female she should make gametes, otherwise the male should make stem cells.
         (isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p, rng);
@@ -69,9 +69,8 @@ struct Individual {
                Individual& father,
                Randomizer& rng,
                const Parameters& p) : age(0),
-                                      identifier(0),
-																																				  quality(1.0){
-        /**Constructor to reproduce and create offspring . **/
+                                      identifier(0){
+        /**Constructor to reproduce and create offspring . **/	
         // first, get a gamete from the mothers gamete list
         Gamete gameteMother = std::move(mother.gametesOfIndividual.back());
         // remove this gamete from the mothers gamete list
@@ -88,7 +87,10 @@ struct Individual {
         ageOfMother = mother.age;
         ageOfFather = father.age;
         calcSurvivalProb(p); // to set the survival probability of the new individual
-								//survivalProb *= mother.quality; // multiply calculated survival prob with the quality of the mother TODO: needs to be changed.
+								quality = averageSurvivalProb[age]; // get new individual its quality
+								// calculate effect of quality from both parents
+								double parentalQuality = survivalProb * mother.quality + (1 - survivalProb) * father.quality;
+								//survivalProb *= parentalQuality; // multiply survival prob with the quality of the parents
         }
        
     bool dies(Randomizer& rng, const Parameters& p);
@@ -134,7 +136,7 @@ bool Individual::dies(Randomizer& rng,
     double survivalProbIncExtrinsicRisk = survivalProbForAge * (1 - p.extrinsicMortRisk); // taking extrinsic mortality into account
     if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
-								quality -= p.qualityDecrease; // every time an individual ages, the parental quality should decrease
+								quality = averageSurvivalProb[age]; // every time an individual ages, the parental quality is recalculated
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
         dies = true; // Individual will die
