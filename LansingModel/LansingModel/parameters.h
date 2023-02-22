@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(100),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
                    mutationProb(0.004), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(10000), // 10.000
+                   tEnd(1000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.004),
@@ -24,7 +24,10 @@ struct Parameters {
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
 																   mutationProbAgeSpecificGenes(0.001),
-                   numOfIndividualsToFollow(500){ // based on parameter simulations
+                   numOfIndividualsToFollow(500),
+																   addBinary(false),
+																   addAgeSpecific(true),
+																   addQuality(true){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }
@@ -47,6 +50,9 @@ struct Parameters {
 				unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
 				unsigned int numOfGametes; // the derived number of gametes a female should have
 				unsigned int numOfStemCells; // number of stem cells a male should create
+				bool addBinary;
+				bool addAgeSpecific;
+				bool addQuality;
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,

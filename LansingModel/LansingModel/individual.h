@@ -90,7 +90,7 @@ struct Individual {
 								quality = averageSurvivalProb[age]; // get new individual its quality
 								// calculate effect of quality from both parents
 								double parentalQuality = survivalProb * mother.quality + (1 - survivalProb) * father.quality;
-								//survivalProb *= parentalQuality; // multiply survival prob with the quality of the parents
+								if (p.addQuality)	survivalProb *= parentalQuality; // multiply survival prob with the quality of the parents
         }
        
     bool dies(Randomizer& rng, const Parameters& p);
