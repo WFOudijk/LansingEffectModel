@@ -18,8 +18,8 @@ struct Individual {
     unsigned int age;
     unsigned int ageOfMother;
     unsigned int ageOfFather;
-    double survivalProb; // based on the binary genes
-				double quality; // parental quality
+    float survivalProb; // based on the binary genes
+				float quality; // parental quality
 				bool identifier;
 				
     // array with genes - binary
@@ -28,11 +28,11 @@ struct Individual {
 				Parameters p;
 					
     // array with age specific genes - survival probabilities
-				std::array<double, 40> genesMaternal; // TODO: make this also array of two arrays
-				std::array<double, 40> genesPaternal; // TODO: how to get member variable of parameters instead of 40 hardcoded 
+				std::array<float, 40> genesMaternal; // TODO: make this also array of two arrays
+				std::array<float, 40> genesPaternal; // TODO: how to get member variable of parameters instead of 40 hardcoded
     
     // averaging the maternal and paternal survival probabilities
-				std::array<double, 40> averageSurvivalProb;
+				std::array<float, 40> averageSurvivalProb;
     
     std::vector<Gamete> gametesOfIndividual;
     std::vector<std::array<Gamete, 2> > stemCells;
@@ -89,7 +89,7 @@ struct Individual {
         calcSurvivalProb(p); // to set the survival probability of the new individual
 								quality = averageSurvivalProb[age]; // get new individual its quality
 								// calculate effect of quality from both parents
-								double parentalQuality = survivalProb * mother.quality + (1 - survivalProb) * father.quality;
+								float parentalQuality = survivalProb * mother.quality + (1 - survivalProb) * father.quality;
 								if (p.addQuality)	survivalProb *= parentalQuality; // multiply survival prob with the quality of the parents
         }
        
@@ -132,8 +132,8 @@ bool Individual::dies(Randomizer& rng,
     bool dies = false;
     // multiply the survival probability of the individual at its age times
     // the effect of an extrinsic mortality risk on the survival probability
-    const double survivalProbForAge = averageSurvivalProb[age] * survivalProb; // the survival prob based on both gene arrays
-    double survivalProbIncExtrinsicRisk = survivalProbForAge * (1 - p.extrinsicMortRisk); // taking extrinsic mortality into account
+    const float survivalProbForAge = averageSurvivalProb[age] * survivalProb; // the survival prob based on both gene arrays
+    float survivalProbIncExtrinsicRisk = survivalProbForAge * (1 - p.extrinsicMortRisk); // taking extrinsic mortality into account
     if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
 								quality = averageSurvivalProb[age]; // every time an individual ages, the parental quality is recalculated
@@ -167,7 +167,8 @@ void Individual::makeStemcells(const Parameters& p,
 
 void Individual::mutateStemCells(const Parameters& p,
                                  Randomizer& rng){
-    for (size_t i = 0; i < stemCells.size(); ++i){
+    for (int i = ((int) stemCells.size() - 1); i >= 0; --i){
+						//for (size_t i = 0; i < stemCells.size(); ++i){
         stemCells[i][0].mutate(p, rng, true);
         stemCells[i][1].mutate(p, rng, true);
     }
@@ -204,7 +205,7 @@ void Individual::calcSurvivalProb(const Parameters& p){
 				
 				// calculate the array with survival probabilities for the age-specific genes
 				for (auto i = 0u; i < genesMaternal.size(); ++i){
-								double average = (genesMaternal[i] + genesPaternal[i]) * 0.5;
+								float average = (genesMaternal[i] + genesPaternal[i]) * 0.5;
 								averageSurvivalProb[i] = average;
 				}
 }

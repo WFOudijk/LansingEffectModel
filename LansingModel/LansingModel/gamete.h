@@ -15,7 +15,7 @@ struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // array with binary genes
     // true (1) represents damage
 
-    std::array<double, 40> ageSpecificGenesOfGamete; // array with age-specific genes TODO: make param
+    std::array<float, 40> ageSpecificGenesOfGamete; // array with age-specific genes TODO: make param
     // represented by survival probabilities
     
     int numOfMuts = 0;
@@ -44,16 +44,23 @@ void Gamete::mutate(const Parameters &p,
 					this gene value will be set to one to indicate damage.
 					**/
 				for (size_t i = 0; i < ageSpecificGenesOfGamete.size(); ++i){
+				//for (int i = (ageSpecificGenesOfGamete.size() - 1); i >= 0; --i){
 								if (rng.bernoulli(p.mutationProbAgeSpecificGenes)){ // if mutation occurs:
 												ageSpecificGenesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
 												if (ageSpecificGenesOfGamete[i] < 0) ageSpecificGenesOfGamete[i] = 0; // negative survival probability makes no sense
 												if (ageSpecificGenesOfGamete[i] > 1) ageSpecificGenesOfGamete[i] = 1; // survival probability bigger than 1 makes no sense
 								}
 				}
-				for (size_t i = 0; i < genesOfGamete.size(); ++i){
-								if (isStemcell) { // if the stemcell will mutate
+				if (isStemcell) { // if the stemcell will mutate
+								for (size_t i = 0; i < genesOfGamete.size(); ++i){
+								//for (int i = (genesOfGamete.size() - 1); i >= 0; --i){
 												if (rng.bernoulli(p.mutationProbStemcell)) genesOfGamete[i] = 1; // make this gene damaged
-								} else { // else a gamete will mutate
+								}
+				} else {
+								// else a gamete will mutate
+								for (size_t i = 0; i < genesOfGamete.size(); ++i){
+								//for (int i = (genesOfGamete.size() - 1); i >= 0; --i){
+
 												// check seperately for the gene array with binary genes if a mutation occurs.
 												if (rng.bernoulli(p.mutationProb)) genesOfGamete[i] = 1; // make this gene damaged
 								}

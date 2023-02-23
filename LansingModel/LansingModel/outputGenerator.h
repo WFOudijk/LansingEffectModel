@@ -73,8 +73,8 @@ void createOutputLifeExpectancy(const Parameters& p,
         exit(EXIT_FAILURE);
     }
     for (Individual male : males){
-								double s = male.averageSurvivalProb[male.age] * male.survivalProb * (1 - p.extrinsicMortRisk);
-        double expectedAgeAtDeath = male.age + (s / (1 - s));
+								float s = male.averageSurvivalProb[male.age] * male.survivalProb * (1 - p.extrinsicMortRisk);
+        float expectedAgeAtDeath = male.age + (s / (1 - s));
         
         // write maternal information
         ofs << male.age << " "
@@ -97,8 +97,8 @@ void createOutputLifeExpectancy(const Parameters& p,
 
     
     for (Individual female : females){
-        double s = female.averageSurvivalProb[female.age] * female.survivalProb * (1 - p.extrinsicMortRisk);
-        double expectedAgeAtDeath = female.age + (s / (1 - s));
+        float s = female.averageSurvivalProb[female.age] * female.survivalProb * (1 - p.extrinsicMortRisk);
+        float expectedAgeAtDeath = female.age + (s / (1 - s));
         
         // write maternal information
         ofs << female.age << " "
@@ -139,15 +139,15 @@ void createOutputTrackedIndividuals(const Parameters& p,
             
             // calculate expected age at death for this offspring of the tracked individual
 												// get the survival probability of the age-dependent genes
-            double ageDependentSurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[trackedDeadIndividuals[ind].offspringOfIndividual[i].age];
+            float ageDependentSurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProb[trackedDeadIndividuals[ind].offspringOfIndividual[i].age];
 												// get the survival probability of the binary genes
-												double binarySurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb;
+												float binarySurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb;
 												// mulitply the above-mentioned two to get total survival probability
-												double totSurvProb = ageDependentSurvProb * binarySurvProb;
+												float totSurvProb = ageDependentSurvProb * binarySurvProb;
 												// calculate s = yearly probability of survival to the next year
-												double s = totSurvProb * (1 - p.extrinsicMortRisk);
+												float s = totSurvProb * (1 - p.extrinsicMortRisk);
 												// calculate expected age at death 
-            double expectedAgeAtDeath = trackedDeadIndividuals[ind].offspringOfIndividual[i].age + (s / (1 - s));
+            float expectedAgeAtDeath = trackedDeadIndividuals[ind].offspringOfIndividual[i].age + (s / (1 - s));
             
             // if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
             (trackedDeadIndividuals[ind].sex == 'M') ? ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfFather : ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfMother;

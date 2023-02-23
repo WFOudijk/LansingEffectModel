@@ -9,53 +9,53 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(100),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.004), // based on parameter simulations
+                   mutationProb(0.001), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.004),
+                   mutationProbStemcell(0.001),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.005), // with 0.005 all three models are statistically significant. When only ageSpecific is true
-                   numOfIndividualsToFollow(1000),
+																   mutationProbAgeSpecificGenes(0.0001), // with 0.005 all three models are statistically significant. When only ageSpecific is true
+                   numOfIndividualsToFollow(100),
 																   addBinary(true),
 																   addAgeSpecific(true),
-																   addQuality(false){ // based on parameter simulations
+																   addQuality(true){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }
     
-    unsigned int populationSize; // total population size
-    double initDamageProportion; // the proportion of initial damage in the genome
-    unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
-    double mutationProb; // probability a mutation will occur
-    double extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
+    unsigned int populationSize, numOfOffspringPerFemale, maximumAge, numOfIndividualsToFollow, numOfGametes,numOfStemCells; // total population size
+    //float initDamageProportion; // the proportion of initial damage in the genome
+    //unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
+    //float mutationProb; // probability a mutation will occur
+    //float extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
     int outputTime; // when to output info
     int tEnd; // end of simulation
-    double strengthOfSelection; // this coefficient determines the strength of the effect of damage
-    unsigned int maximumAge; // maximum age an individual can get to
-    double mutationProbStemcell; // mutation probability of stemcell to mutate
-    double meanMutationBias;
-    double sdMutationalEffectSize;
-    double initAgeSpecificGenes;
-				double mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
-				unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
-				unsigned int numOfGametes; // the derived number of gametes a female should have
-				unsigned int numOfStemCells; // number of stem cells a male should create
-				bool addBinary;
-				bool addAgeSpecific;
-				bool addQuality;
+    //float strengthOfSelection; // this coefficient determines the strength of the effect of damage
+    //unsigned int maximumAge; // maximum age an individual can get to
+    float mutationProbStemcell, meanMutationBias, sdMutationalEffectSize, initAgeSpecificGenes, initDamageProportion, mutationProb, extrinsicMortRisk, strengthOfSelection, mutationProbAgeSpecificGenes; // mutation probability of stemcell to mutate
+    //float meanMutationBias;
+    //float sdMutationalEffectSize;
+    //float initAgeSpecificGenes;
+				//float mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
+				//unsigned int numOfIndividualsToFollow, numOfGametes, numOfStemCells, populationSize, numOfOffspringPerFemale, maximumAge; // number of individuals to follow longitudinal
+				//unsigned int numOfGametes; // the derived number of gametes a female should have
+				//unsigned int numOfStemCells; // number of stem cells a male should create
+				bool addBinary, addAgeSpecific, addQuality;
+				//bool addAgeSpecific;
+				//bool addQuality;
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
                     const std::string focal_parametername,
-                    double& parameter,
+                    float& parameter,
                     std::ifstream& ifs);
 				void checkParam(const std::string parID,
 																				const std::string focal_parametername,
@@ -65,7 +65,7 @@ struct Parameters {
 
 void Parameters::checkParam(const std::string parID,
                             const std::string focal_parametername,
-                            double& parameter,
+                            float& parameter,
                             std::ifstream& ifs) {
     // set parameter from file to parameter in object parameter
     if (parID == focal_parametername) {
