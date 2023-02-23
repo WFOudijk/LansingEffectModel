@@ -9,25 +9,24 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(100),
+    Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
                    mutationProb(0.004), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(1000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.004),
-                   initSurvProb(0.5),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.001),
-                   numOfIndividualsToFollow(500),
-																   addBinary(false),
+																   mutationProbAgeSpecificGenes(0.005), // with 0.005 all three models are statistically significant. When only ageSpecific is true
+                   numOfIndividualsToFollow(1000),
+																   addBinary(true),
 																   addAgeSpecific(true),
-																   addQuality(true){ // based on parameter simulations
+																   addQuality(false){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        numOfStemCells = numOfGametes * 2;
                    }
@@ -42,7 +41,6 @@ struct Parameters {
     double strengthOfSelection; // this coefficient determines the strength of the effect of damage
     unsigned int maximumAge; // maximum age an individual can get to
     double mutationProbStemcell; // mutation probability of stemcell to mutate
-    double initSurvProb; // initial survival probability
     double meanMutationBias;
     double sdMutationalEffectSize;
     double initAgeSpecificGenes;
