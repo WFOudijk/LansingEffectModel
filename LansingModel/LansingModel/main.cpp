@@ -47,7 +47,7 @@ int main(int argc, const char * argv[]) {
     Population pop;
     pop.makePopulation(p, rng); // initialise population
     
-    indVec deadTrackedIndividuals; // TODO: should be a better solution
+    indVec deadTrackedIndividuals;
 
     auto t_start = std::chrono::system_clock::now();
     for (int t = 0; t < p.tEnd; ++t){
@@ -69,16 +69,10 @@ int main(int argc, const char * argv[]) {
     std::cout << "First time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;
     t_start = t_now;
     std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal." << std::endl;
-    std::default_random_engine rand(seed);
-        
-    // shuffle to make it random
-    std::shuffle(pop.males.begin(), pop.males.end(), rand);
-    std::shuffle(pop.females.begin(), pop.females.end(), rand);
-    for (unsigned i = 0; i < p.numOfIndividualsToFollow; ++i){
-        // Choosing individuals in order after shuffling the vector to prevent drawing random indviduals without replacement
-        pop.males[i].identifier = 1;
-        pop.females[i].identifier = 1;
-    }
+    
+				// track a certain number of individuals
+				pop.setTrackedIndividuals(p, rng);				
+
     // to keep track of the followed individuals. If everyone has died, the simulation can stop
     int numOfIndividualsToFollow = p.numOfIndividualsToFollow * 2;
     
@@ -92,12 +86,10 @@ int main(int argc, const char * argv[]) {
 
         pop.addOffspring(p, rng); // adding offspring to the adults
         pop.mutationRound(p, rng);
-        
-        numOfIndividualsToFollow = 0;
-        for (size_t ind = 0; ind < pop.males.size(); ++ind){
-            if (pop.males[ind].identifier) numOfIndividualsToFollow += 1;
-            if (pop.females[ind].identifier) numOfIndividualsToFollow += 1;
-        }
+								
+								numOfIndividualsToFollow = (int) std::count_if(pop.males.begin(), pop.males.end(), [](auto& m) { return m.tracked==1; });
+								numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
+				
     }
 				
 				std::cout << "Counter = " << count << std::endl; 

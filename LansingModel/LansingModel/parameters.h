@@ -15,7 +15,7 @@ struct Parameters {
                    mutationProb(0.001), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(10000), // 10.000
+                   tEnd(100), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.001),
@@ -24,6 +24,7 @@ struct Parameters {
                    initAgeSpecificGenes(0.99),
 																   mutationProbAgeSpecificGenes(0.0001), // with 0.005 all three models are statistically significant. When only ageSpecific is true
                    numOfIndividualsToFollow(100),
+																   weightMaternalEffect(0.6),
 																   addBinary(true),
 																   addAgeSpecific(true),
 																   addQuality(true){ // based on parameter simulations
@@ -32,7 +33,7 @@ struct Parameters {
                    }
     
     unsigned int populationSize, numOfOffspringPerFemale, maximumAge, numOfIndividualsToFollow, numOfGametes,numOfStemCells; // total population size
-    //float initDamageProportion; // the proportion of initial damage in the genome
+				//float initDamageProportion; // the proportion of initial damage in the genome
     //unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
     //float mutationProb; // probability a mutation will occur
     //float extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
@@ -40,7 +41,7 @@ struct Parameters {
     int tEnd; // end of simulation
     //float strengthOfSelection; // this coefficient determines the strength of the effect of damage
     //unsigned int maximumAge; // maximum age an individual can get to
-    float mutationProbStemcell, meanMutationBias, sdMutationalEffectSize, initAgeSpecificGenes, initDamageProportion, mutationProb, extrinsicMortRisk, strengthOfSelection, mutationProbAgeSpecificGenes; // mutation probability of stemcell to mutate
+    float mutationProbStemcell, meanMutationBias, sdMutationalEffectSize, initAgeSpecificGenes, initDamageProportion, mutationProb, extrinsicMortRisk, strengthOfSelection, mutationProbAgeSpecificGenes, weightMaternalEffect; // mutation probability of stemcell to mutate
     //float meanMutationBias;
     //float sdMutationalEffectSize;
     //float initAgeSpecificGenes;
