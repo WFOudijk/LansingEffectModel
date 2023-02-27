@@ -104,6 +104,7 @@ Individual::Individual(Individual& mother,
 																																																		
 				// have the father generate a gamete
 				Gamete gameteFather = father.makeGameteFromStemCell(rng);
+				// TODO: have father duplicate the stemcell
 				
 				// make a new individual of these gametes
 				geneticsBinary[0] = gameteMother.genesOfGamete;
@@ -205,10 +206,9 @@ void Individual::mutateStemCells(const Parameters& p,
 
 Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
 				
-    // first, get a stem cell ...
-    std::array<Gamete, 2> stemCell = std::move(stemCells.back());
-    // ... then remove this stem cell from the list
-    stemCells.pop_back();
+    // first, get a random stem cell ...
+				std::array<Gamete, 2> stemCell = stemCells[rng.drawRandomNumber(stemCells.size())];
+				// ... then remove this stem cell from the list
 				
     // initialise gamete
     Gamete gamete;

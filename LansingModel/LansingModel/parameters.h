@@ -29,7 +29,9 @@ struct Parameters {
 																   addAgeSpecific(true),
 																   addQuality(true){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
-                       numOfStemCells = numOfGametes * 2;
+                       //numOfStemCells = numOfGametes * 2;
+																							numOfStemCells = 20;
+
                    }
     
     unsigned int populationSize, numOfOffspringPerFemale, maximumAge, numOfIndividualsToFollow, numOfGametes,numOfStemCells; // total population size
