@@ -18,24 +18,24 @@ struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // array with binary genes
     // true (1) represents damage
 
-    std::array<float, 40> ageSpecificGenesOfGamete; // array with age-specific genes 
-    // represented by survival probabilities
+    //std::array<float, 40> ageSpecificGenesOfGamete; // array with age-specific genes
+    std::vector<float> ageSpecificGenesOfGamete;
+				// represented by survival probabilities
     
     Gamete(){} // default constructor
     
     Gamete(const Parameters& p,
-           Randomizer& rng){
+											Randomizer& rng){
 								
-        /** Constructor to initialise the gamete genetics.
-        initDamageProportion represents the proportion of genes
-        which need to be initialised to one, representing the initial damage.
+								/** Constructor to initialise the gamete genetics.
+									initDamageProportion represents the proportion of genes
+									which need to be initialised to one, representing the initial damage.
 									the age-specific genes are initially filled with initAgeSpecificGenes. **/
 								
-        for (int i = 0; i < numOfGenes; ++i){ // to set some initial damage
-            genesOfGamete[i] = rng.bernoulli(p.initDamageProportion);
-        }
-								
-								ageSpecificGenesOfGamete.fill(p.initAgeSpecificGenes);
+								for (int i = 0; i < numOfGenes; ++i){ // to set some initial damage
+												genesOfGamete[i] = rng.bernoulli(p.initDamageProportion);
+								}
+								ageSpecificGenesOfGamete.resize(p.maximumAge, p.initAgeSpecificGenes);
     }
 				
     void mutate(const Parameters& p, Randomizer& rng, const bool isStemcell);

@@ -12,25 +12,25 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.001), // based on parameter simulations
+                   mutationProb(0.002), // based on parameter simulations
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.001),
+                   mutationProbStemcell(0.002),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
 																   mutationProbAgeSpecificGenes(0.0001), // with 0.005 all three models are statistically significant. When only ageSpecific is true
-                   numOfIndividualsToFollow(100),
+                   numOfIndividualsToFollow(1000),
 																   weightMaternalEffect(0.6),
 																   addBinary(true),
 																   addAgeSpecific(true),
 																   addQuality(true){ // based on parameter simulations
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        //numOfStemCells = numOfGametes * 2;
-																							numOfStemCells = 20;
+																							numOfStemCells = 50;
 
                    }
     

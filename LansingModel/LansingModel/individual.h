@@ -26,13 +26,13 @@ struct Individual {
 				static Parameters p;
 					
     // array with age specific genes - survival probabilities
-				std::array<float, 40> ageSpecificGenesMaternal; // TODO: make this also array of two arrays
+				//std::array<float, 40> ageSpecificGenesMaternal; // TODO: make this also array of two arrays
 				// use vector instead of array and reserve space
-
-				std::array<float, 40> ageSpecificGenesPaternal;
+				std::vector<float> ageSpecificGenesMaternal;
+				std::vector<float> ageSpecificGenesPaternal;
     
     // averaging the maternal and paternal survival probabilities
-				std::array<float, 40> averageSurvivalProbAgeGenes;
+				std::vector<float> averageSurvivalProbAgeGenes;
     
     std::vector<Gamete> gametes;
     std::vector<std::array<Gamete, 2> > stemCells;
@@ -51,12 +51,12 @@ struct Individual {
        
     bool dies(Randomizer& rng, const Parameters& p);
     void calcSurvivalProb(const Parameters& p);
-    Gamete makeGamete(Randomizer& rng);
+    Gamete makeGamete(Randomizer& rng, const Parameters& p);
     void makeSeveralGametes(const Parameters &p, Randomizer& rng);
     void mutateGametes(const Parameters& p, Randomizer& rng);
     void makeStemcells(const Parameters& p);
     void mutateStemCells(const Parameters& p, Randomizer& rng);
-    Gamete makeGameteFromStemCell(Randomizer& rng);
+    Gamete makeGameteFromStemCell(const Parameters& p, Randomizer& rng);
 };
 
 Individual::Individual(const Parameters& p, // initializing constructor
@@ -103,8 +103,7 @@ Individual::Individual(Individual& mother,
 				mother.gametes.pop_back();
 																																																		
 				// have the father generate a gamete
-				Gamete gameteFather = father.makeGameteFromStemCell(rng);
-				// TODO: have father duplicate the stemcell
+				Gamete gameteFather = father.makeGameteFromStemCell(p, rng);
 				
 				// make a new individual of these gametes
 				geneticsBinary[0] = gameteMother.genesOfGamete;
@@ -122,7 +121,8 @@ Individual::Individual(Individual& mother,
 				if (p.addQuality)	survivalProb *= parentalQuality; // multiply survival prob with the quality of the parents
 }
 
-Gamete Individual::makeGamete(Randomizer& rng){
+Gamete Individual::makeGamete(Randomizer& rng,
+																														const Parameters& p){
     /**Function to make a single gamete. Based on stochasticity to determine which genes the gamete receives. **/
 				
     Gamete gamete; // initialise gamete
@@ -132,8 +132,8 @@ Gamete Individual::makeGamete(Randomizer& rng){
         gamete.genesOfGamete[i] = geneticsBinary[rng.bernoulli()][i];
     }
 				
-				for (size_t i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
-								gamete.ageSpecificGenesOfGamete[i] = (rng.bernoulli()) ? ageSpecificGenesMaternal[i] : ageSpecificGenesPaternal[i];
+				for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
+								gamete.ageSpecificGenesOfGamete.push_back((rng.bernoulli()) ? ageSpecificGenesMaternal[i] : ageSpecificGenesPaternal[i]);
 				}
 				
     return gamete;
@@ -144,7 +144,7 @@ void Individual::makeSeveralGametes(const Parameters &p,
     /** Function to generate multiple gametes for a female.**/
 				
     for (unsigned i = 0; i < p.numOfGametes; ++i){
-        Gamete gamete = makeGamete(rng);
+        Gamete gamete = makeGamete(rng, p);
 								gametes.push_back(gamete);
     }
 }
@@ -204,11 +204,11 @@ void Individual::mutateStemCells(const Parameters& p,
     }
 }
 
-Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
+Gamete Individual::makeGameteFromStemCell(const Parameters& p,
+																																										Randomizer& rng){
 				
     // first, get a random stem cell ...
 				std::array<Gamete, 2> stemCell = stemCells[rng.drawRandomNumber(stemCells.size())];
-				// ... then remove this stem cell from the list
 				
     // initialise gamete
     Gamete gamete;
@@ -220,9 +220,11 @@ Gamete Individual::makeGameteFromStemCell(Randomizer& rng){
         // determine based on a bernoulli distribution which gene will be inherited
         gamete.genesOfGamete[i] = stemCell[rng.bernoulli()].genesOfGamete[i];
     }
+				// TODO: fix num
+				long long int num;
 				
-				for (size_t i = 0; i < gamete.ageSpecificGenesOfGamete.size(); ++i){
-								gamete.ageSpecificGenesOfGamete[i] = stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i];
+				for (size_t i = 0; i < p.maximumAge; ++i){
+								gamete.ageSpecificGenesOfGamete.push_back(stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i]);
 				}
 				
     return gamete;
@@ -241,6 +243,6 @@ void Individual::calcSurvivalProb(const Parameters& p){
 				// calculate the array with survival probabilities for the age-specific genes
 				for (auto i = 0u; i < ageSpecificGenesMaternal.size(); ++i){
 								float average = (ageSpecificGenesMaternal[i] + ageSpecificGenesPaternal[i]) * 0.5;
-								averageSurvivalProbAgeGenes[i] = average;
+								averageSurvivalProbAgeGenes.push_back(average);
 				}
 }
