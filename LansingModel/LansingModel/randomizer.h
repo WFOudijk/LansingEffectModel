@@ -40,8 +40,16 @@ struct Randomizer {
             // create normal distribution based on user defined mean and standard deviation
             mutationEffect = std::normal_distribution<double>(m, sd);
         }
+				
+				int drawNumOfMuts() {
+								return distMutEvents(rng);
+				}
+				
+				void setDistMutEvents(double setDist) {
+								distMutEvents = std::poisson_distribution<int>(setDist);
+				}
     
     std::uniform_real_distribution<double> unif;
     std::normal_distribution<double> mutationEffect;
+				std::poisson_distribution<int> distMutEvents;
 };
-

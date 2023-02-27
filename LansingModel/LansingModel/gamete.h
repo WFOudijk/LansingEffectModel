@@ -49,17 +49,14 @@ void Gamete::mutate(const Parameters &p,
 					if a mutation will occur. If so, for the age-specific genes the mutational effect is drawn from a normal distribution. If a mutation occurs in a binary gene
 					this gene value will be set to one to indicate damage.
 					**/
-				
-				for (size_t i = 0; i < ageSpecificGenesOfGamete.size(); ++i){
-				//for (int i = (ageSpecificGenesOfGamete.size() - 1); i >= 0; --i){
-								if (rng.bernoulli(p.mutationProbAgeSpecificGenes)){ // if mutation occurs:
-												ageSpecificGenesOfGamete[i] += rng.drawMutationEffect(); // the gene is mutated based on distribution.
-												clip01(ageSpecificGenesOfGamete[i]);
-								}
+				// mutation of age-specific genes
+				int numOfEvents = rng.drawNumOfMuts(); // draws how many mutations will occur
+				for (int i = 0; i < numOfEvents; ++i){
+								int geneToMutate = rng.drawRandomNumber(ageSpecificGenesOfGamete.size());
+								ageSpecificGenesOfGamete[geneToMutate] += rng.drawMutationEffect();
+								clip01(ageSpecificGenesOfGamete[i]);
 				}
-				
-// TODO: poisson distribution and small group of stem cells which duplicates
-				
+				// mutation of binary genes
 				if (isStemcell) { // if the stemcell will mutate
 								for (size_t i = 0; i < genesOfGamete.size(); ++i){
 												if (rng.bernoulli(p.mutationProbStemcell)) genesOfGamete[i] = 1; // make this gene damaged

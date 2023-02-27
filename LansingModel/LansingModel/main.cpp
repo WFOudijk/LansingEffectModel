@@ -43,6 +43,8 @@ int main(int argc, const char * argv[]) {
 
     // set the mutationEffect distribution with mean and sd of mutation
     rng.setMutationEffect(p.meanMutationBias, p.sdMutationalEffectSize);
+				// set the number of events distribution for the age specific genes
+				rng.setDistMutEvents(p.mutationProbAgeSpecificGenes * p.maximumAge);
     
     Population pop;
     pop.makePopulation(p, rng); // initialise population
