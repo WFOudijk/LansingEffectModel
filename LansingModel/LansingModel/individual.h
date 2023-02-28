@@ -11,6 +11,7 @@
 #include <vector>
 
 using arrayOfGenes = std::array<bool, numOfGenes>;
+using vectorOfAgeSpecificGenes = std::vector<float>;
 
 struct Individual {
     unsigned int age;
@@ -23,13 +24,12 @@ struct Individual {
     // array with genes - binary
     std::array<arrayOfGenes, 2> geneticsBinary;
 				
-				static Parameters p;
-					
-    // array with age specific genes - survival probabilities
-				//std::array<float, 40> ageSpecificGenesMaternal; // TODO: make this also array of two arrays
-				// use vector instead of array and reserve space
-				std::vector<float> ageSpecificGenesMaternal;
-				std::vector<float> ageSpecificGenesPaternal;
+				// array with age specific genes - survival probabilities
+				std::array<vectorOfAgeSpecificGenes, 2> ageSpecificGenes;
+							
+    
+				//std::vector<float> ageSpecificGenesMaternal;
+				//std::vector<float> ageSpecificGenesPaternal;
     
     // averaging the maternal and paternal survival probabilities
 				std::vector<float> averageSurvivalProbAgeGenes;
@@ -74,8 +74,8 @@ Individual::Individual(const Parameters& p, // initializing constructor
 				geneticsBinary[1] = gametePaternal.genesOfGamete;
 																																												
 				// fill the age-specific gene arrays
-				ageSpecificGenesMaternal = gameteMaternal.ageSpecificGenesOfGamete;
-				ageSpecificGenesPaternal = gametePaternal.ageSpecificGenesOfGamete;
+				ageSpecificGenes[0] = gameteMaternal.ageSpecificGenesOfGamete;
+				ageSpecificGenes[1] = gametePaternal.ageSpecificGenesOfGamete;
 				
 				// calculates survivalProb, based on binary genes and fills averageSurvivalProbAgeGenes array
 																																												// based on age-specific genes
@@ -108,8 +108,8 @@ Individual::Individual(Individual& mother,
 				// make a new individual of these gametes
 				geneticsBinary[0] = gameteMother.genesOfGamete;
 				geneticsBinary[1] = gameteFather.genesOfGamete;
-				ageSpecificGenesMaternal = gameteMother.ageSpecificGenesOfGamete;
-				ageSpecificGenesPaternal = gameteFather.ageSpecificGenesOfGamete;
+				ageSpecificGenes[0] = gameteMother.ageSpecificGenesOfGamete;
+				ageSpecificGenes[1] = gameteFather.ageSpecificGenesOfGamete;
 																																																		
 				calcSurvivalProb(p); // to set the survival probability of the new individual
 																																																		
@@ -133,7 +133,7 @@ Gamete Individual::makeGamete(Randomizer& rng,
     }
 				
 				for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
-								gamete.ageSpecificGenesOfGamete.push_back((rng.bernoulli()) ? ageSpecificGenesMaternal[i] : ageSpecificGenesPaternal[i]);
+								gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[rng.bernoulli()][i]);
 				}
 				
     return gamete;
@@ -187,10 +187,10 @@ void Individual::makeStemcells(const Parameters& p){
     for (unsigned i = 0; i < p.numOfStemCells; ++i){
         Gamete gamete;
         gamete.genesOfGamete = geneticsBinary[0];
-								gamete.ageSpecificGenesOfGamete = ageSpecificGenesMaternal;
+								gamete.ageSpecificGenesOfGamete = ageSpecificGenes[0];
         Gamete gamete2;
         gamete2.genesOfGamete = geneticsBinary[1];
-								gamete2.ageSpecificGenesOfGamete = ageSpecificGenesPaternal;
+								gamete2.ageSpecificGenesOfGamete = ageSpecificGenes[1];
         std::array<Gamete, 2> genetics = {gamete, gamete2};
         stemCells.push_back(genetics);
     }
@@ -220,8 +220,9 @@ Gamete Individual::makeGameteFromStemCell(const Parameters& p,
         // determine based on a bernoulli distribution which gene will be inherited
         gamete.genesOfGamete[i] = stemCell[rng.bernoulli()].genesOfGamete[i];
     }
-				// TODO: fix num
-				long long int num;
+				
+				//long long int num = LLONG_MAX;
+				//std::array<bool, 40> num;
 				
 				for (size_t i = 0; i < p.maximumAge; ++i){
 								gamete.ageSpecificGenesOfGamete.push_back(stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i]);
@@ -241,8 +242,8 @@ void Individual::calcSurvivalProb(const Parameters& p){
 				survivalProb = exp(p.strengthOfSelection * (sumOfDamage1 + sumOfDamage2));
 				
 				// calculate the array with survival probabilities for the age-specific genes
-				for (auto i = 0u; i < ageSpecificGenesMaternal.size(); ++i){
-								float average = (ageSpecificGenesMaternal[i] + ageSpecificGenesPaternal[i]) * 0.5;
+				for (auto i = 0u; i < ageSpecificGenes[0].size(); ++i){
+								float average = (ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5;
 								averageSurvivalProbAgeGenes.push_back(average);
 				}
 }

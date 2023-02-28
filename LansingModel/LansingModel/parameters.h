@@ -12,48 +12,47 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.002), // based on parameter simulations
+                   mutationProb(0.01),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.002),
+                   mutationProbStemcell(0.01),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.01),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.0001), // with 0.005 all three models are statistically significant. When only ageSpecific is true
-                   numOfIndividualsToFollow(1000),
+																   mutationProbAgeSpecificGenes(0.005),
+                   numOfIndividualsToFollow(500),
 																   weightMaternalEffect(0.6),
 																   addBinary(true),
-																   addAgeSpecific(true),
-																   addQuality(true){ // based on parameter simulations
+																   addAgeSpecific(false),
+																   addQuality(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
-                       //numOfStemCells = numOfGametes * 2;
-																							numOfStemCells = 50;
-
+																							numOfStemCells = 30;
                    }
     
-    unsigned int populationSize, numOfOffspringPerFemale, maximumAge, numOfIndividualsToFollow, numOfGametes,numOfStemCells; // total population size
-				//float initDamageProportion; // the proportion of initial damage in the genome
-    //unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
-    //float mutationProb; // probability a mutation will occur
-    //float extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
+    unsigned int populationSize; // total population size
+				float initDamageProportion; // the proportion of initial damage in the binary genes
+    unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
+    float mutationProb; // probability a mutation will occur
+    float extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
     int outputTime; // when to output info
     int tEnd; // end of simulation
-    //float strengthOfSelection; // this coefficient determines the strength of the effect of damage
-    //unsigned int maximumAge; // maximum age an individual can get to
-    float mutationProbStemcell, meanMutationBias, sdMutationalEffectSize, initAgeSpecificGenes, initDamageProportion, mutationProb, extrinsicMortRisk, strengthOfSelection, mutationProbAgeSpecificGenes, weightMaternalEffect; // mutation probability of stemcell to mutate
-    //float meanMutationBias;
-    //float sdMutationalEffectSize;
-    //float initAgeSpecificGenes;
-				//float mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
-				//unsigned int numOfIndividualsToFollow, numOfGametes, numOfStemCells, populationSize, numOfOffspringPerFemale, maximumAge; // number of individuals to follow longitudinal
-				//unsigned int numOfGametes; // the derived number of gametes a female should have
-				//unsigned int numOfStemCells; // number of stem cells a male should create
-				bool addBinary, addAgeSpecific, addQuality;
-				//bool addAgeSpecific;
-				//bool addQuality;
+    float strengthOfSelection; // this coefficient determines the strength of the effect of damage
+    unsigned int maximumAge; // maximum age an individual can get to
+    float mutationProbStemcell; // mutation probability of stemcell to mutate
+    float meanMutationBias; // the mean mutation bias of the age-specific genes
+    float sdMutationalEffectSize; // the sd of the mutation bias, i.e., the effect size
+    float initAgeSpecificGenes; // the initial value for the age-specific genes
+				float mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
+				unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
+				unsigned int numOfGametes; // the derived number of gametes a female should have
+				unsigned int numOfStemCells; // number of stem cells a male should create
+				double weightMaternalEffect; // to determine how much the maternal quality affects the offspring in ratio to paternal effect.
+				bool addBinary; // add binary genes to model
+				bool addAgeSpecific; // adds age-specific genes to model
+				bool addQuality; // adds quality effect to model
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
