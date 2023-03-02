@@ -18,7 +18,7 @@ struct Individual {
     unsigned int ageOfMother;
     unsigned int ageOfFather;
     float survivalProb; // based on the binary genes
-				float quality; // parental quality
+				float parentalQuality; // parental quality
 				bool tracked; // the flagged individuals will be true
 				
     // array with genes - binary
@@ -80,7 +80,7 @@ Individual::Individual(const Parameters& p, // initializing constructor
 				// calculates survivalProb, based on binary genes and fills averageSurvivalProbAgeGenes array
 																																												// based on age-specific genes
 				calcSurvivalProb(p);
-				quality = p.initAgeSpecificGenes; // get initial quality
+				parentalQuality = p.initAgeSpecificGenes; // get initial quality
 
 				// if the individual is female she should make gametes, otherwise the male should make stem cells.
 				(isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p);
@@ -113,12 +113,12 @@ Individual::Individual(Individual& mother,
 																																																		
 				calcSurvivalProb(p); // to set the survival probability of the new individual
 																																																		
-				quality = averageSurvivalProbAgeGenes[age]; // get new individual its quality
+				parentalQuality = averageSurvivalProbAgeGenes[age]; // get new individual its quality
 																																																		
 				// calculate effect of quality from both parents
-				float parentalQuality = p.weightMaternalEffect * mother.quality + (1 - p.weightMaternalEffect) * father.quality;
+				float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1 - p.weightMaternalEffect) * father.parentalQuality;
 																																																	
-				if (p.addQuality)	survivalProb *= parentalQuality; // multiply survival prob with the quality of the parents
+				if (p.addQuality)	survivalProb *= effectQuality; // multiply survival prob with the quality of the parents
 }
 
 Gamete Individual::makeGamete(Randomizer& rng,
@@ -165,7 +165,7 @@ bool Individual::dies(Randomizer& rng,
 				
     if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
-								quality = averageSurvivalProbAgeGenes[age]; // every time an individual ages, the parental quality is recalculated
+								parentalQuality = averageSurvivalProbAgeGenes[age]; // every time an individual ages, the parental quality is recalculated
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
         dies = true; // Individual will die

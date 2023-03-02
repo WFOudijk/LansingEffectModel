@@ -12,21 +12,21 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.01),
+                   mutationProb(0.002),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.01),
-                   meanMutationBias(-0.02),
-                   sdMutationalEffectSize(0.01),
+                   mutationProbStemcell(0.002),
+                   meanMutationBias(-0.02), // TODO: try out more extreme effect, eg -0.05 and sd 0.05
+                   sdMutationalEffectSize(0.02),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.005),
+																   mutationProbAgeSpecificGenes(0.001),
                    numOfIndividualsToFollow(500),
 																   weightMaternalEffect(0.6),
-																   addBinary(true),
-																   addAgeSpecific(false),
+																   addBinary(false),
+																   addAgeSpecific(true),
 																   addQuality(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
 																							numOfStemCells = 30;

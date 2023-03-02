@@ -54,7 +54,7 @@ void Gamete::mutate(const Parameters &p,
 				for (int i = 0; i < numOfEvents; ++i){
 								int geneToMutate = rng.drawRandomNumber(ageSpecificGenesOfGamete.size());
 								ageSpecificGenesOfGamete[geneToMutate] += rng.drawMutationEffect();
-								clip01(ageSpecificGenesOfGamete[i]);
+								clip01(ageSpecificGenesOfGamete[geneToMutate]);
 				}
 				// mutation of binary genes
 				if (isStemcell) { // if the stemcell will mutate

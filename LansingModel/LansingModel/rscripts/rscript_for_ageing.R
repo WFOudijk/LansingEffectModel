@@ -176,7 +176,44 @@ ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = a
   ylim(0, 40)
 
 ###### new model ##########
-survivingPop <- read.table(paste(path, "outputLifeExpectancyNEW.txt", sep = ""))
+survivingPop <- read.table(paste(path, "correctModel/outputLifeExpectancyFirst.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+survivingPop <- read.table(paste(path, "correctModel/outputLifeExpectancySecond.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+survivingPop <- read.table(paste(path, "correctModel/outputLifeExpectancyThird.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+survivingPop <- read.table(paste(path, "correctModel/outputLifeExpectancyFourth.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+survivingPop <- read.table(paste(path, "correctModel/outputLifeExpectancyBigPop.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+
+myLongitudinalData <- read.table(paste(path, "correctModel/outputLETrackedIndividualsBigPop.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+
+
+#### strength of selection = 0 ####
+survivingPop <- read.table(paste(path, "correctModel/outputLifeExpectancyNoStrengthSelec.txt", sep = ""))
 colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
 
 avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
@@ -200,7 +237,193 @@ ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = a
   scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
   ylim(0, 40)
 
+myLongitudinalData <- read.table(paste(path, "correctModel/outputLETrackedIndividualsNoStrengthSelec.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+### {0.002; 0.002; 0.0002}
+survivingPop <- read.table(paste(path, "correctModel/smallProbs/outputLifeExpectancy002_0002.txt", sep = ""))
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) +
+  ylim(0, 40)
+
+myLongitudinalData <- read.table(paste(path, "correctModel/smallProbs/outputLETrackedIndividuals002_0002.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+####### ONLY AGE-SPECIFIC GENES #########
+# 1 = {0.0004; 0.002; 0.002}
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy1.txt", sep = ""))
+# 2 = {0.0005; 0.002; 0.002}
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy2.txt", sep = ""))
+# 3 = {0.0005; 0.002; 0.002} with mutbias = -0.03
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy3.txt", sep = ""))
+# 4 = {0.0007; 0.002; 0.002} with mutbias = -0.01
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy4.txt", sep = ""))
+# 5 = {0.0009; 0.002; 0.002} with mutbias = -0.01
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy5.txt", sep = ""))
+# 6 = {0.0009; 0.002; 0.002} with mutbias = -0.02
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy6.txt", sep = ""))
+# 7 = {0.001; 0.002; 0.002} with mutbias = -0.02
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy7.txt", sep = ""))
+# 8 = {0.0015; 0.002; 0.002} with mutbias = -0.02
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy8.txt", sep = ""))
+# 9 = {0.002; 0.002; 0.002} with mutbias = -0.02
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy9.txt", sep = ""))
+
+
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+sum(survivingPop$survivalProb > 0.95)
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data  
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals1.txt", sep = "")) # 1
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals2.txt", sep = "")) # 2
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals3.txt", sep = "")) # 3
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals4.txt", sep = "")) # 4
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals5.txt", sep = "")) # 5
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals6.txt", sep = "")) # 6
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals7.txt", sep = "")) # 7
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals8.txt", sep = "")) # 8
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals9.txt", sep = "")) # 9
+
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+######### ONLY BINARY GENES #########
+# 1 = {0.002; 0.002}
+survivingPop <- read.table(paste(path, "correctModel/binary_genes/outputLifeExpectancy1.txt", sep = ""))
+# 2 = {0.004; 0.004}
+survivingPop <- read.table(paste(path, "correctModel/binary_genes/outputLifeExpectancy2.txt", sep = ""))
+
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+sum(survivingPop$survivalProb > 0.95)
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data  
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+myLongitudinalData <- read.table(paste(path, "correctModel/binary_genes/outputLETrackedIndividuals1.txt", sep = "")) # 1
+myLongitudinalData <- read.table(paste(path, "correctModel/binary_genes/outputLETrackedIndividuals2.txt", sep = "")) # 2
+
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+######### QUALITY + AGE-SPECIFIC EFFECTS #########
+# 1 = {0.0004}
+survivingPop <- read.table(paste(path, "correctModel/quality_age_spec/outputLifeExpectancy.txt", sep = ""))
+
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+sum(survivingPop$survivalProb > 0.95)
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data  
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+myLongitudinalData <- read.table(paste(path, "correctModel/quality_age_spec/outputLETrackedIndividuals.txt", sep = "")) # 1
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+  
+######### ALL TRUE #########
+
+
+######## TEST: TO REMOVE ##########
+
 test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLifeExpectancy.txt")
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLifeExpectancy.txt")
+
+
 colnames(test) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
 survivingPop <- test
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data  
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLETrackedIndividuals.txt")
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLETrackedIndividuals.txt")
+
+colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+myLongitudinalData <- test
 

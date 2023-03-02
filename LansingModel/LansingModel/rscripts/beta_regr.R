@@ -126,7 +126,7 @@ m2 <- brm(bf2,
           control = list(adapt_delta = 0.99,
                          max_treedepth = 10),
           seed = 667,
-          file = "m2aa")
+          file = "m2ab")
 # j is with sex specific effects 
 # k is longitudinal over ageOfParent 
 # kl is bf2 with 'by = ID'
@@ -189,7 +189,7 @@ m3 <- brm(bf3,
           control = list(adapt_delta = 0.99,
                          max_treedepth = 10),
           seed = 667,
-          file = "m3.h")
+          file = "m3.i")
 m2 <- add_criterion(m2, criterion = "loo")
 m3 <- add_criterion(m3, criterion = "loo")
 loo_compare(m2,m3, criterion = "loo")
@@ -251,9 +251,10 @@ m1 <- lmer(y2 ~ az + (az | ID),
 m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
            data = d, 
            control=lmerControl(calc.derivs = F))
+
 summary(m1)
 # males: negative estimate with p-val = 3.92e-5
-confint(m1)
+#confint(m1)
 # males: negative confidence intervals
 
 plot(m1) # hmmm
@@ -261,7 +262,7 @@ plot(m1) # hmmm
 ## Work with logits (then (0,1) -> (-inf,+inf))
 d <- d %>% mutate(y3 = car::logit(y2))
 
-m1b <- lmer(y3 ~ ageOfParent + (ageOfParent | ID),data =d, control=lmerControl(calc.derivs = F))
+m1b <- lmer(y3 ~ ageOfParent + (ageOfParent | ID),data = d, control=lmerControl(calc.derivs = F))
 summary(m1b)
 # females: estimate is negative with a p-value of 0.017
 # males: negative estimate with p-val = 1.27e-7
@@ -280,31 +281,54 @@ summary(m1c)
 
 ## The gam model with beta family takes too long.
 ## I'm going to remove some data.
-d2 <- d %>% filter(na>7)
+d2 <- d %>% filter(na>18)
+d3 <- d2 %>% filter(na<21)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1n <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
-# m1d = bam over the 500 tracked individuals!
-# m1e = bam over 500 tracked individuals, based only on age-specific genes 
-# m1f = bam over 500 tracked individuals, based only on binary genes. With sex implemented - but not used yet 
-# m1g = females only 
-# m1h = males only 
-# m1i = smaller mutation probabilities > {0.003, 0.004, 0.004} > {ageSpecGenes, gametes, stem cells}
-# mlj = {0.002, 0.0035, 0.0035} = 2
-# mlk = {0.0025, 0.0035, 0.0035} = 3
-# mll = {0.0025, 0.0037, 0.0037} = 4 over 5000. FAILED
-# m1m = 4th try with 5000 individuals. Filtered with na>7 to remove data. 
 
-summary(m1m)
+pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1])
+
+## Predict, only using the first term (i.e. without the "random" effect)
+z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(ageOfParent)"))
+z
+str(z)
+## Use logist transformed:
+zl <- logist(z)
+
+## Percentage decrease:
+100*(zl[1]-zl[2])/zl[1]
+## 14%
+
+# m1a = model with only age-specific genes to true: {0.0004; 0.002; 0.002} # 1
+# m1b = model with only age-specific genes to true: {0.0005; 0.002; 0.002} # 2
+# m1c = model with only age-specific genes to true: {0.0005; 0.002; 0.002} mut prob = -0.03 # 3
+# m1d = model with only age-specific genes to true: {0.0007; 0.002; 0.002} mut prob = -0.01 # 4
+# m1e = model with only age-specific genes to true: {0.0009; 0.002; 0.002} mut prob = -0.01 # 5
+# m1f = model with only age-specific genes to true: {0.0009; 0.002; 0.002} mut prob = -0.02 # 6
+# m1g = model with only age-specific genes to true: {0.001; 0.002; 0.002} # 7
+# m1h = model with only age-specific genes to true: {0.0015; 0.002; 0.002} # 8
+# m1i = model with only age-specific genes to true: {0.002; 0.002; 0.002} # 9
+
+
+# m1j = model with only binary genes to true: {0.002; 0.002} # 1
+# m1k = model with only binary genes to true: {0.004; 0.004} # 2 
+
+# m1l = model with both quality and age-specific genes to true: {0.0004} #1
+
+
+summary(m1z)
 # females: edf of 2.249 with p-val = 6.59e*-6
 # males: edf of 1 with p-val of 2e-16
-gratia::draw(m1m, fun = logist)
+gratia::draw(m1z, fun = logist)
+
 ## Overall curve linear (edf=1). Lots of variability
 
-plot(m1e,all.terms = T,trans = logist)
+
+
 
 
 
