@@ -19,15 +19,15 @@ struct Parameters {
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.002),
-                   meanMutationBias(-0.02), // TODO: try out more extreme effect, eg -0.05 and sd 0.05
+                   meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.02),
                    initAgeSpecificGenes(0.99),
 																   mutationProbAgeSpecificGenes(0.001),
                    numOfIndividualsToFollow(500),
 																   weightMaternalEffect(0.6),
 																   addBinary(false),
-																   addAgeSpecific(true),
-																   addQuality(false){
+																   addAgeSpecific(false),
+																   addQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
 																							numOfStemCells = 30;
                    }

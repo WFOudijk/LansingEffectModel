@@ -26,11 +26,7 @@ struct Individual {
 				
 				// array with age specific genes - survival probabilities
 				std::array<vectorOfAgeSpecificGenes, 2> ageSpecificGenes;
-							
-    
-				//std::vector<float> ageSpecificGenesMaternal;
-				//std::vector<float> ageSpecificGenesPaternal;
-    
+							    
     // averaging the maternal and paternal survival probabilities
 				std::vector<float> averageSurvivalProbAgeGenes;
     
@@ -91,9 +87,9 @@ Individual::Individual(Individual& mother,
 																							Individual& father,
 																							Randomizer& rng,
 																							const Parameters& p) : age(0),
-																																												  tracked(0),
 																																												  ageOfMother(mother.age),
-																																												  ageOfFather(father.age){
+																																												  ageOfFather(father.age),
+																																												  tracked(0){
 				/**Constructor to reproduce and create offspring . **/
 																																																		
 				// first, get a gamete from the mothers gamete list
@@ -157,7 +153,12 @@ bool Individual::dies(Randomizer& rng,
     
 				// multiply the survival probability of the individual at its age times
     // the effect of an extrinsic mortality risk on the survival probability
-    const float survivalProbForAge = averageSurvivalProbAgeGenes[age] * survivalProb;
+				float survivalProbForAge;
+				// if quality is on but age-specific genetic effects is off, the age-specific genes do need to evolve (for quality determination)
+				// but they should not be taken into account for determining survival probability of the individual
+				if (p.addQuality && !p.addAgeSpecific) survivalProbForAge = 1 * survivalProb;
+    else { survivalProbForAge = averageSurvivalProbAgeGenes[age] * survivalProb; }
+				//const float survivalProbForAge = averageSurvivalProbAgeGenes[age] * survivalProb;
 				// the survival prob based on both gene arrays
 				
     float survivalProbIncExtrinsicRisk = survivalProbForAge * (1 - p.extrinsicMortRisk);

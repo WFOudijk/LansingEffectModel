@@ -29,10 +29,10 @@ int main(int argc, const char * argv[]) {
     Parameters p; // make parameters object
 				
 				if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
-				if (!p.addAgeSpecific) { // survival probability of age-specific genes will be equal to 1
+				if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
 								p.mutationProbAgeSpecificGenes = 0;
 								p.initAgeSpecificGenes = 1;
-				}
+				}			
 				    
     // read parameter file
     std::string parameterFile;
