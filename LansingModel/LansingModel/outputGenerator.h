@@ -192,7 +192,7 @@ void createOutputWithSurvivalProbs(const Parameters& p,
 												ofs << ind << " " // write as id of individual
 												<< i << " " // write age
 												<< subPopMales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
-												<< std::endl; 
+												<< p.mutationProbAgeSpecificGenes << std::endl;
 								}
 				}
 				
@@ -202,7 +202,7 @@ void createOutputWithSurvivalProbs(const Parameters& p,
 												ofs << (ind + subPopMales.size()) << " " // write as id of individual
 												<< i << " " // write age
 												<< subPopFemales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
-												<< std::endl;
+												<< p.mutationProbAgeSpecificGenes << std::endl;
 								}
 				}
 				
