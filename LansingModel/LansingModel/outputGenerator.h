@@ -171,3 +171,41 @@ void createOutputTrackedIndividuals(const Parameters& p,
     ofs.close();
 }
 
+void createOutputWithSurvivalProbs(const Parameters& p,
+																																			indVec subPopMales,
+																																			indVec subPopFemales){
+				
+				/**Function to create output for a subpopulation to look at the individual survival probabilities instead of
+					only looking at the expected age at death. **/
+				
+				// open file 
+				std::ofstream ofs;
+				ofs.open("outputWithSurvivalProbs.txt"); // the output file
+				if (!ofs.is_open()){
+								std::cerr << "Error. Unable to open output file.\n";
+								exit(EXIT_FAILURE);
+				}
+				
+				// write survival probability information to file
+				for (int ind = 0; ind < subPopMales.size(); ++ind){
+								for (int i = 0; i < p.maximumAge; ++i){
+												ofs << ind << " " // write as id of individual
+												<< i << " " // write age
+												<< subPopMales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
+												<< std::endl; 
+								}
+				}
+				
+				// same thing for females
+				for (int ind = 0; ind < subPopFemales.size(); ++ind){
+								for (int i = 0; i < p.maximumAge; ++i){
+												ofs << (ind + subPopMales.size()) << " " // write as id of individual
+												<< i << " " // write age
+												<< subPopFemales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
+												<< std::endl;
+								}
+				}
+				
+				ofs.close();
+}
+

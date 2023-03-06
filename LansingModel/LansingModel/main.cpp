@@ -100,6 +100,13 @@ int main(int argc, const char * argv[]) {
     // create output for the tracked individuals
     createOutputTrackedIndividuals(p, deadTrackedIndividuals);
     // to print the duration of the program to the terminal
+				
+				// get 100 individuals to exmaine seperately
+				int toGet = p.populationSize - 10; // 990
+				indVec subPopMales = {pop.males.begin() + toGet, pop.males.end()}; // gets the final 100 males
+				indVec subPopFemales = {pop.females.begin() + toGet, pop.females.end()}; // gets the final 100 females
+				createOutputWithSurvivalProbs(p, subPopMales, subPopFemales); 
+				
     t_now = std::chrono::system_clock::now();
     diff_t = t_now - t_start;
     std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;

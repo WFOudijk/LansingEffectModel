@@ -287,7 +287,8 @@ survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeEx
 survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy8.txt", sep = ""))
 # 9 = {0.002; 0.002; 0.002} with mutbias = -0.02
 survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy9.txt", sep = ""))
-
+# 10 = big pop {0.001; 0.002; 0.002} mutbias = -0.02
+survivingPop <- read.table(paste(path, "correctModel/age_spec_genes/outputLifeExpectancy10.txt", sep = ""))
 
 colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
 sum(survivingPop$survivalProb > 0.95)
@@ -321,6 +322,7 @@ myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/output
 myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals7.txt", sep = "")) # 7
 myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals8.txt", sep = "")) # 8
 myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals9.txt", sep = "")) # 9
+myLongitudinalData <- read.table(paste(path, "correctModel/age_spec_genes/outputLETrackedIndividuals10.txt", sep = "")) # 10
 
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 
@@ -389,7 +391,56 @@ myLongitudinalData <- read.table(paste(path, "correctModel/quality_age_spec/outp
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 
   
-######### ALL TRUE #########
+######### BIG POPULATION #########
+# 0.002 all mut probs 
+survivingPop <- read.table(paste(path, "correctModel/bigpop/outputLifeExpectancy.txt", sep = ""))
+
+colnames(survivingPop) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
+sum(survivingPop$survivalProb > 0.95)
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data  
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+myLongitudinalData <- read.table(paste(path, "correctModel/bigpop/outputLETrackedIndividuals.txt", sep = "")) # 1
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+
+######## QUALITY ##########
+# only quality is on. To look at effect and find parameter. 
+survivalData <- read.table(paste(path, "correctModel/survival_data/outputWithSurvivalProbs.txt", sep = "")) 
+colnames(survivalData) <- c("ID", "Age", "SurvivalProb")
+sub <- subset(survivalData, survivalData$ID > 90)
+sub <- survivalData[0:4000,]
+sub <- subset(sub, sub$ID < 10)
+
+ggplot(data = survivalData, aes(x = Age, y = SurvivalProb, group = ID, color = factor(ID))) +
+  geom_line() +
+  labs(title = "",
+       subtitle = "",
+       x = "Age of parent",
+       y = "Survival probability") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
+  ylim(0, 1)
 
 
 ######## TEST: TO REMOVE ##########
