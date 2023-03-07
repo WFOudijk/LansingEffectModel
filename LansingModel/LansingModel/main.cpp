@@ -98,15 +98,10 @@ int main(int argc, const char * argv[]) {
     // only create output of life expectancy for the remaining individuals
     createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals
-    createOutputTrackedIndividuals(p, deadTrackedIndividuals);
-    // to print the duration of the program to the terminal
+    //createOutputTrackedIndividuals(p, deadTrackedIndividuals);
+				createOutputTrackedIndividuals(p, deadTrackedIndividuals);
 				
-				// get 100 individuals to exmaine seperately
-				int toGet = p.populationSize - 10; // 990
-				indVec subPopMales = {pop.males.begin() + toGet, pop.males.end()}; // gets the final 100 males
-				indVec subPopFemales = {pop.females.begin() + toGet, pop.females.end()}; // gets the final 100 females
-				createOutputWithSurvivalProbs(p, subPopMales, subPopFemales); 
-				
+				// to print the duration of the program to the terminal
     t_now = std::chrono::system_clock::now();
     diff_t = t_now - t_start;
     std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;

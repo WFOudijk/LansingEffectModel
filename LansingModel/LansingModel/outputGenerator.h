@@ -132,81 +132,66 @@ void createOutputLifeExpectancy(const Parameters& p,
 }
 
 void createOutputTrackedIndividuals(const Parameters& p,
-                                    const indVec& trackedDeadIndividuals){
-    /**
-     Function to write the output of the tracked individuals. These are longitudinally followed by keeping track of the offspring they
-     get over their lifetime.
-     */
-    std::ofstream ofs;
-    ofs.open("outputLETrackedIndividuals.txt"); // the output file
-    if (!ofs.is_open()){
-        std::cerr << "Error. Unable to open output file.\n";
-        exit(EXIT_FAILURE);
-    }
-    for (size_t ind = 0; ind < trackedDeadIndividuals.size(); ++ind){ // loop through the flagged individuals
-        for (size_t i = 0; i < trackedDeadIndividuals[ind].offspringOfIndividual.size(); ++i){ // loop through the number of offspring this individual has
-            ofs << ind << " "; // use this index as identifier of the individual
-            
-            // calculate expected age at death for this offspring of the tracked individual
-												// get the survival probability of the age-dependent genes
-            float ageDependentSurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProbAgeGenes[trackedDeadIndividuals[ind].offspringOfIndividual[i].age];
-												if (p.addQuality && !p.addAgeSpecific) ageDependentSurvProb = 1; // if
-												// get the survival probability of the binary genes
-												float binarySurvProb = trackedDeadIndividuals[ind].offspringOfIndividual[i].survivalProb;
-												// mulitply the above-mentioned two to get total survival probability
-												float totSurvProb = ageDependentSurvProb * binarySurvProb;
-												// calculate s = yearly probability of survival to the next year
-												float s = totSurvProb * (1 - p.extrinsicMortRisk);
-												// calculate expected age at death 
-            float expectedAgeAtDeath = trackedDeadIndividuals[ind].offspringOfIndividual[i].age + (s / (1 - s));
-            
-            // if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
-            (trackedDeadIndividuals[ind].isFemaleSex) ? ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfMother : ofs << trackedDeadIndividuals[ind].offspringOfIndividual[i].ageOfFather;
-            ofs << " ";
-            (trackedDeadIndividuals[ind].isFemaleSex) ? ofs << "F " : ofs << "M ";
-            ofs << (ageDependentSurvProb * binarySurvProb) << " " // write survival probability to file
-            << expectedAgeAtDeath << " "
-												<< p.mutationProbAgeSpecificGenes << std::endl; // write expected age at death to file
-        }
-    }
-    ofs.close();
-}
-
-void createOutputWithSurvivalProbs(const Parameters& p,
-																																			indVec subPopMales,
-																																			indVec subPopFemales){
+																																			const indVec& deadIndividuals){
 				
-				/**Function to create output for a subpopulation to look at the individual survival probabilities instead of
-					only looking at the expected age at death. **/
+				/**Function to create output for the tracked individuals. For every individual its age and the corresponding parental quality value
+					is documented to the first file. To the second file information about the offspring of the tracked individuals is documented. **/
 				
-				// open file 
+				// open file to write output for the
 				std::ofstream ofs;
-				ofs.open("outputWithSurvivalProbs.txt"); // the output file
+				ofs.open("outputWithParentalQuality.txt"); // the output file
 				if (!ofs.is_open()){
 								std::cerr << "Error. Unable to open output file.\n";
 								exit(EXIT_FAILURE);
 				}
 				
-				// write survival probability information to file
-				for (size_t ind = 0; ind < subPopMales.size(); ++ind){
+				
+				// open file to write output of the tracked individuals
+				std::ofstream ofs2;
+				ofs2.open("outputLETrackedIndividuals.txt"); // the output file
+				if (!ofs2.is_open()){
+								std::cerr << "Error. Unable to open output file.\n";
+								exit(EXIT_FAILURE);
+				}
+				
+				
+				// write parental quality for every age class to file
+				for (size_t ind = 0; ind < deadIndividuals.size(); ++ind){
+								// write to first file
 								for (unsigned i = 0; i < p.maximumAge; ++i){
 												ofs << ind << " " // write as id of individual
 												<< i << " " // write age
-												<< subPopMales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
+												<< deadIndividuals[ind].averageSurvivalProbAgeGenes[i] << " " // write parental quality for this age class
 												<< p.mutationProbAgeSpecificGenes << std::endl;
 								}
-				}
-				
-				// same thing for females
-				for (size_t ind = 0; ind < subPopFemales.size(); ++ind){
-								for (unsigned i = 0; i < p.maximumAge; ++i){
-												ofs << (ind + subPopMales.size()) << " " // write as id of individual
-												<< i << " " // write age
-												<< subPopFemales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
-												<< p.mutationProbAgeSpecificGenes << std::endl;
+								
+								// write expected age at death of the offspring to a file
+								for (size_t i = 0; i < deadIndividuals[ind].offspringOfIndividual.size(); ++i){ // loop through the number of offspring this individual has
+												ofs2 << ind << " "; // use this index as identifier of the individual
+												
+												// calculate expected age at death for this offspring of the tracked individual
+												// get the survival probability of the age-dependent genes
+												float ageDependentSurvProb = deadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProbAgeGenes[deadIndividuals[ind].offspringOfIndividual[i].age];
+												if (p.addQuality && !p.addAgeSpecific) ageDependentSurvProb = 1; // if
+												// get the survival probability of the binary genes
+												float binarySurvProb = deadIndividuals[ind].offspringOfIndividual[i].survivalProb;
+												// mulitply the above-mentioned two to get total survival probability
+												float totSurvProb = ageDependentSurvProb * binarySurvProb;
+												// calculate s = yearly probability of survival to the next year
+												float s = totSurvProb * (1 - p.extrinsicMortRisk);
+												// calculate expected age at death
+												float expectedAgeAtDeath = deadIndividuals[ind].offspringOfIndividual[i].age + (s / (1 - s));
+												
+												// if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
+												(deadIndividuals[ind].isFemaleSex) ? ofs2 << deadIndividuals[ind].offspringOfIndividual[i].ageOfMother : ofs2 << deadIndividuals[ind].offspringOfIndividual[i].ageOfFather;
+												ofs2 << " ";
+												(deadIndividuals[ind].isFemaleSex) ? ofs2 << "F " : ofs2 << "M ";
+												ofs2 << (ageDependentSurvProb * binarySurvProb) << " " // write survival probability to file
+												<< expectedAgeAtDeath << " "
+												<< p.mutationProbAgeSpecificGenes << std::endl; // write expected age at death to file
 								}
 				}
-				
+		
 				ofs.close();
+				ofs2.close();
 }
-
