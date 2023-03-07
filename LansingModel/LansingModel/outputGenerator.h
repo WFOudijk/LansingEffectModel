@@ -165,7 +165,8 @@ void createOutputTrackedIndividuals(const Parameters& p,
             ofs << " ";
             (trackedDeadIndividuals[ind].isFemaleSex) ? ofs << "F " : ofs << "M ";
             ofs << (ageDependentSurvProb * binarySurvProb) << " " // write survival probability to file
-            << expectedAgeAtDeath << std::endl; // write expected age at death to file
+            << expectedAgeAtDeath << " "
+												<< p.mutationProbAgeSpecificGenes << std::endl; // write expected age at death to file
         }
     }
     ofs.close();
@@ -187,8 +188,8 @@ void createOutputWithSurvivalProbs(const Parameters& p,
 				}
 				
 				// write survival probability information to file
-				for (int ind = 0; ind < subPopMales.size(); ++ind){
-								for (int i = 0; i < p.maximumAge; ++i){
+				for (size_t ind = 0; ind < subPopMales.size(); ++ind){
+								for (unsigned i = 0; i < p.maximumAge; ++i){
 												ofs << ind << " " // write as id of individual
 												<< i << " " // write age
 												<< subPopMales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
@@ -197,8 +198,8 @@ void createOutputWithSurvivalProbs(const Parameters& p,
 				}
 				
 				// same thing for females
-				for (int ind = 0; ind < subPopFemales.size(); ++ind){
-								for (int i = 0; i < p.maximumAge; ++i){
+				for (size_t ind = 0; ind < subPopFemales.size(); ++ind){
+								for (unsigned i = 0; i < p.maximumAge; ++i){
 												ofs << (ind + subPopMales.size()) << " " // write as id of individual
 												<< i << " " // write age
 												<< subPopFemales[ind].averageSurvivalProbAgeGenes[i] << " " // write survival prob for this age class
