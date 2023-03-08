@@ -6,6 +6,8 @@
 //
 
 #pragma once
+//#include <random>
+//#include <climits>
 
 struct Randomizer {
     std::mt19937_64 rng;
@@ -47,6 +49,31 @@ struct Randomizer {
 				
 				void setDistMutEvents(double setDist) {
 								distMutEvents = std::poisson_distribution<int>(setDist);
+				}
+				
+				template <typename T>
+				T rn(const T n){
+								static std::uniform_int_distribution<T> d{};
+								using parm_t = typename decltype(d)::param_type;
+								return d(rng, parm_t{0,n-1});
+				}
+
+				unsigned rui32(){
+								static std::uniform_int_distribution<unsigned> d{};
+								using parm_t = typename decltype(d)::param_type;
+								return d(rng, parm_t{0,UINT32_MAX});
+				}
+
+				unsigned long rui64(){
+								static std::uniform_int_distribution<unsigned long> d{};
+								using parm_t = typename decltype(d)::param_type;
+								return d(rng, parm_t{0,UINT64_MAX});
+				}
+
+				unsigned rpois(const double lambda){
+								static std::poisson_distribution<unsigned> d{};
+								using parm_t = typename decltype(d)::param_type;
+								return d(rng, parm_t{lambda});
 				}
     
     std::uniform_real_distribution<double> unif;

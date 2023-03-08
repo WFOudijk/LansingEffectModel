@@ -18,9 +18,8 @@ struct Gamete{
     std::array<bool, numOfGenes> genesOfGamete; // array with binary genes
     // true (1) represents damage
 
-    //std::array<float, 40> ageSpecificGenesOfGamete; // array with age-specific genes
-    std::vector<float> ageSpecificGenesOfGamete;
-				// represented by survival probabilities
+    std::vector<float> ageSpecificGenesOfGamete; // array with age-specific genes
+				// represented by floats between 0 and 1
     
     Gamete(){} // default constructor
     
@@ -35,6 +34,7 @@ struct Gamete{
 								for (int i = 0; i < numOfGenes; ++i){ // to set some initial damage
 												genesOfGamete[i] = rng.bernoulli(p.initDamageProportion);
 								}
+								// sets age-specific array to length maximum age and filled with intial value
 								ageSpecificGenesOfGamete.resize(p.maximumAge, p.initAgeSpecificGenes);
     }
 				
@@ -45,28 +45,46 @@ void Gamete::mutate(const Parameters &p,
                     Randomizer &rng,
                     const bool isStemcell){
 				
-				/**Function to mutate a gamete.  First a check occurs whether the gamete comes from a stem cell or from a female. Next, it checks for every gene
-					if a mutation will occur. If so, for the age-specific genes the mutational effect is drawn from a normal distribution. If a mutation occurs in a binary gene
-					this gene value will be set to one to indicate damage.
+				/**Function to mutate a gamete.  First is the age-specific gene array mutated.
+					This is done by using a Poisson distribution to draw how many times a mutation will occur. Next, the genes are randomly sampled to determine which will mutate.
+					Next, the binary gene array is mutated.
+					This is done by first checking whether the gamete comes from a male stem cell or from a female gamete. Next, another Poisson distribution is used
+					to determine how many times a mutation will occur. Finally, the genes are randomly sampled to determine which will mutate.
 					**/
+				
 				// mutation of age-specific genes
 				int numOfEvents = rng.drawNumOfMuts(); // draws how many mutations will occur
+				
+				// mutate
 				for (int i = 0; i < numOfEvents; ++i){
+								// determine which gene will mutate
 								int geneToMutate = rng.drawRandomNumber(ageSpecificGenesOfGamete.size());
+								// draw the effect from the mutation based on a normal distribution
 								ageSpecificGenesOfGamete[geneToMutate] += rng.drawMutationEffect();
+								// check if the gene value is not < 0 or > 1. If so, gene value is clipped
 								clip01(ageSpecificGenesOfGamete[geneToMutate]);
 				}
+				
 				// mutation of binary genes
 				if (isStemcell) { // if the stemcell will mutate
-								for (size_t i = 0; i < genesOfGamete.size(); ++i){
-												if (rng.bernoulli(p.mutationProbStemcell)) genesOfGamete[i] = 1; // make this gene damaged
-								}
-				} else {
-								// else a gamete will mutate
-								for (size_t i = 0; i < genesOfGamete.size(); ++i){
+								// draw number of mutations to occur based on Poisson distribution
+								const double expectedNumMut{genesOfGamete.size() * p.mutationProbStemcell};
+								const unsigned numMut{rng.rpois(expectedNumMut)};
 
-												// check seperately for the gene array with binary genes if a mutation occurs.
-												if (rng.bernoulli(p.mutationProb)) genesOfGamete[i] = 1; // make this gene damaged
+								// mutate
+								for (size_t i=0; i<numMut; ++i){
+												genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
 								}
+
+				} else {	// else a gamete will mutate
+								// draw number of mutations to occur based on Poisson distribution
+								const double expected_num_mut{genesOfGamete.size() * p.mutationProb};
+								const unsigned num_mut{rng.rpois(expected_num_mut)};
+
+								// mutate
+								for (size_t i = 0; i<num_mut; ++i){
+												genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
+								}
+								
 				}
 }

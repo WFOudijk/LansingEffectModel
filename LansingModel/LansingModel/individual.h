@@ -9,6 +9,7 @@
 #include "gamete.h"
 
 #include <vector>
+#include <bitset>
 
 using arrayOfGenes = std::array<bool, numOfGenes>;
 using vectorOfAgeSpecificGenes = std::vector<float>;
@@ -28,7 +29,7 @@ struct Individual {
 				std::array<vectorOfAgeSpecificGenes, 2> ageSpecificGenes;
 							    
     // averaging the maternal and paternal survival probabilities
-				std::vector<float> averageSurvivalProbAgeGenes;
+				std::vector<float> averageAgeSpecificGenes;
     
     std::vector<Gamete> gametes;
     std::vector<std::array<Gamete, 2> > stemCells;
@@ -44,15 +45,16 @@ struct Individual {
                Individual& father,
                Randomizer& rng,
 												   const Parameters& p);
-       
+				
+				Gamete makeGamete(Randomizer& rng, const Parameters& p);
+				void makeSeveralGametes(const Parameters &p, Randomizer& rng);
     bool dies(Randomizer& rng, const Parameters& p);
+				void mutateGametes(const Parameters& p, Randomizer& rng);
+				void makeStemcells(const Parameters& p);
+				void mutateStemCells(const Parameters& p, Randomizer& rng);
+				Gamete makeGameteFromStemCell(const Parameters& p, Randomizer& rng);
     void calcSurvivalProb(const Parameters& p);
-    Gamete makeGamete(Randomizer& rng, const Parameters& p);
-    void makeSeveralGametes(const Parameters &p, Randomizer& rng);
-    void mutateGametes(const Parameters& p, Randomizer& rng);
-    void makeStemcells(const Parameters& p);
-    void mutateStemCells(const Parameters& p, Randomizer& rng);
-    Gamete makeGameteFromStemCell(const Parameters& p, Randomizer& rng);
+				void calcAverageParentalQuality();
 };
 
 Individual::Individual(const Parameters& p, // initializing constructor
@@ -73,10 +75,12 @@ Individual::Individual(const Parameters& p, // initializing constructor
 				ageSpecificGenes[0] = gameteMaternal.ageSpecificGenesOfGamete;
 				ageSpecificGenes[1] = gametePaternal.ageSpecificGenesOfGamete;
 				
-				// calculates survivalProb, based on binary genes and fills averageSurvivalProbAgeGenes array
-																																												// based on age-specific genes
+				// calculates survivalProb, based on binary genes and
 				calcSurvivalProb(p);
-				parentalQuality = p.initAgeSpecificGenes; // get initial quality
+				// fills averageAgeSpecificGenes array based on age-specific genes
+				calcAverageParentalQuality();
+				// get initial quality
+				parentalQuality = p.initAgeSpecificGenes;
 
 				// if the individual is female she should make gametes, otherwise the male should make stem cells.
 				(isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p);
@@ -108,8 +112,9 @@ Individual::Individual(Individual& mother,
 				ageSpecificGenes[1] = gameteFather.ageSpecificGenesOfGamete;
 																																																		
 				calcSurvivalProb(p); // to set the survival probability of the new individual
+				calcAverageParentalQuality(); // averages the age-specific gene arrays
 																																																		
-				parentalQuality = averageSurvivalProbAgeGenes[age]; // get new individual its quality
+				parentalQuality = averageAgeSpecificGenes[0]; // get new individual its quality
 																																																		
 				// calculate effect of quality from both parents
 				float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1 - p.weightMaternalEffect) * father.parentalQuality;
@@ -123,13 +128,19 @@ Gamete Individual::makeGamete(Randomizer& rng,
 				
     Gamete gamete; // initialise gamete
 				
+				// get a bit of numOfGenes long to use the bits as random for setting the gamete genes
+				const std::bitset<numOfGenes> x{rng.rui32()};
+				
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        // based on a random value, determine whether the genes of the gamete come from the mother or from the father
-        gamete.genesOfGamete[i] = geneticsBinary[rng.bernoulli()][i];
+        // based on the random bit sequence, determine whether the genes of the gamete come from the mother or from the father
+								gamete.genesOfGamete[i] = geneticsBinary[x[i]][i];
     }
 				
+				// get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
+				const std::bitset<40> y{rng.rui64()};
+				
 				for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
-								gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[rng.bernoulli()][i]);
+								gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[y[i]][i]);
 				}
 				
     return gamete;
@@ -147,7 +158,7 @@ void Individual::makeSeveralGametes(const Parameters &p,
 
 bool Individual::dies(Randomizer& rng,
                       const Parameters& p){
-    /**Function to calculate which individuals will die.**/
+    /**Function to determine which individuals will die.**/
 				
     bool dies = false;
     
@@ -157,8 +168,7 @@ bool Individual::dies(Randomizer& rng,
 				// if quality is on but age-specific genetic effects is off, the age-specific genes do need to evolve (for quality determination)
 				// but they should not be taken into account for determining survival probability of the individual
 				if (p.addQuality && !p.addAgeSpecific) survivalProbForAge = 1 * survivalProb;
-    else { survivalProbForAge = averageSurvivalProbAgeGenes[age] * survivalProb; }
-				//const float survivalProbForAge = averageSurvivalProbAgeGenes[age] * survivalProb;
+    else { survivalProbForAge = averageAgeSpecificGenes[age] * survivalProb; }
 				// the survival prob based on both gene arrays
 				
     float survivalProbIncExtrinsicRisk = survivalProbForAge * (1 - p.extrinsicMortRisk);
@@ -166,7 +176,7 @@ bool Individual::dies(Randomizer& rng,
 				
     if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
-								parentalQuality = averageSurvivalProbAgeGenes[age]; // every time an individual ages, the parental quality is recalculated
+								parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
         dies = true; // Individual will die
@@ -176,6 +186,7 @@ bool Individual::dies(Randomizer& rng,
 
 void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
+				/**Function to mutate the gametes of a female. **/
 				
     for (size_t i = 0; i < gametes.size(); ++i){
 								gametes[i].mutate(p, rng, false); // false refers to being a stem cell
@@ -184,21 +195,26 @@ void Individual::mutateGametes(const Parameters &p,
 }
 
 void Individual::makeStemcells(const Parameters& p){
+				/**Function to make stem cells for a male. These stem cells are represented by gametes and have the same genome as the
+					male whose stem cells these are.  **/
+				
+				Gamete gamete;
+				gamete.genesOfGamete = geneticsBinary[0];
+				gamete.ageSpecificGenesOfGamete = ageSpecificGenes[0];
+				Gamete gamete2;
+				gamete2.genesOfGamete = geneticsBinary[1];
+				gamete2.ageSpecificGenesOfGamete = ageSpecificGenes[1];
+				std::array<Gamete, 2> genetics = {gamete, gamete2};
 				
     for (unsigned i = 0; i < p.numOfStemCells; ++i){
-        Gamete gamete;
-        gamete.genesOfGamete = geneticsBinary[0];
-								gamete.ageSpecificGenesOfGamete = ageSpecificGenes[0];
-        Gamete gamete2;
-        gamete2.genesOfGamete = geneticsBinary[1];
-								gamete2.ageSpecificGenesOfGamete = ageSpecificGenes[1];
-        std::array<Gamete, 2> genetics = {gamete, gamete2};
         stemCells.push_back(genetics);
     }
 }
 
 void Individual::mutateStemCells(const Parameters& p,
                                  Randomizer& rng){
+				/**Function to mutate the male stem cells. Occurs every time step. **/
+				
 						for (size_t i = 0; i < stemCells.size(); ++i){
         stemCells[i][0].mutate(p, rng, true);
         stemCells[i][1].mutate(p, rng, true);
@@ -207,44 +223,48 @@ void Individual::mutateStemCells(const Parameters& p,
 
 Gamete Individual::makeGameteFromStemCell(const Parameters& p,
 																																										Randomizer& rng){
+				/**Function to make a gamete using a male stem cell. This will occur when a male is selected to reproduce. */
 				
-    // first, get a random stem cell ...
+    // first, get a random stem cell
 				std::array<Gamete, 2> stemCell = stemCells[rng.drawRandomNumber(stemCells.size())];
 				
     // initialise gamete
     Gamete gamete;
-				// TODO: I use recombination in the generation of the gamete. Try out one array
-				// draw one random number which is at least 40 bits long. Random long long int = 8 bytes
-				// eg [0010101101010100010101001], n = 40. Pick every gene based on this
     
-				for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        // determine based on a bernoulli distribution which gene will be inherited
-        gamete.genesOfGamete[i] = stemCell[rng.bernoulli()].genesOfGamete[i];
+				// draw a random numOfGenes long bitset to use as a random template for distributing genes
+				const std::bitset<numOfGenes> x{rng.rui32()};
+				
+				for (int i = 0; i < numOfGenes; ++i){ // loop through every binary gene
+        // determine based on the bitset which binary gene will be inherited
+								gamete.genesOfGamete[i] = stemCell[x[i]].genesOfGamete[i];
     }
 				
-				//long long int num = LLONG_MAX;
-				//std::array<bool, 40> num;
+				// get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
+				const std::bitset<40> y{rng.rui64()};
 				
 				for (size_t i = 0; i < p.maximumAge; ++i){
-								gamete.ageSpecificGenesOfGamete.push_back(stemCell[rng.bernoulli()].ageSpecificGenesOfGamete[i]);
+								// for every age-specific gene of new gamete, determine which gene is inherited
+								gamete.ageSpecificGenesOfGamete.push_back(stemCell[y[i]].ageSpecificGenesOfGamete[i]);
 				}
 				
     return gamete;
 }
 
 void Individual::calcSurvivalProb(const Parameters& p){
+				/**Function to calculate the survival probability of the individual. Based on the number of damaged genes in the binary array. */
 				// calculate the survival probability based on the binary represented gene array
 				// sum number of ones to calculate the survival probability
 				int sumOfDamage1 = std::accumulate(geneticsBinary[0].begin(), geneticsBinary[0].end(), 0);
 				int sumOfDamage2 = std::accumulate(geneticsBinary[1].begin(), geneticsBinary[1].end(), 0);
 				
-				
 				// calculate survival probability based on number of ones
 				survivalProb = exp(p.strengthOfSelection * (sumOfDamage1 + sumOfDamage2));
-				
+}
+
+void Individual::calcAverageParentalQuality(){
 				// calculate the array with survival probabilities for the age-specific genes
 				for (auto i = 0u; i < ageSpecificGenes[0].size(); ++i){
 								float average = (ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5;
-								averageSurvivalProbAgeGenes.push_back(average);
+								averageAgeSpecificGenes.push_back(average);
 				}
 }

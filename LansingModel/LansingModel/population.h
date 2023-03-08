@@ -6,7 +6,6 @@
 //
 #pragma once
 #include <iostream>
-//#include <optional>
 #include "individual.h"
 
 using indVec = std::vector<Individual>;
@@ -103,13 +102,16 @@ void Population::mortalityRound(const Parameters& p,
 void Population::addOffspring(const Parameters& p,
                               Randomizer& rng){
     /**This function adds (random) offspring to the adult vectors untill the vectors are at their maximum size again. **/
+				
     while (males.size() < (p.populationSize)){
         int randIndex = rng.drawRandomNumber(offspring.size());
         males.push_back(offspring[randIndex]); // add a random offspring to the males vector
 								males.back().makeStemcells(p); // new male has to make stem cells
 								males.back().isFemaleSex = 0; // set sex bool to false to indicate this new individual is male
+								
+								// make sure to remove the offspring to prevent repetition
         offspring[randIndex] = std::move(offspring.back());
-        offspring.pop_back(); // make sure to remove the offspring to prevent repetition
+        offspring.pop_back();
     }
     
     // same for females
@@ -118,13 +120,17 @@ void Population::addOffspring(const Parameters& p,
         females.push_back(offspring[randIndex]); // add a random offspring to the females vector
 								females.back().makeSeveralGametes(p, rng); // new female has to make gametes
 								females.back().isFemaleSex = 1; // set sex bool to true to indicate new individual is female
+								
+								// make sure to remove the offspring to prevent repetition
         offspring[randIndex] = std::move(offspring.back());
-        offspring.pop_back(); // make sure to remove the offspring to prevent repetition
+        offspring.pop_back();
     }
 }
 
 void Population::mutationRound(const Parameters& p,
                                Randomizer &rng){
+				/**Function to mutate the gametes from the females and the stem cells from the males. */
+				
     for (size_t i = 0; i < females.size(); ++i){
         females[i].mutateGametes(p, rng);
         males[i].mutateStemCells(p, rng); // females and males need to remain same size
@@ -134,6 +140,7 @@ void Population::mutationRound(const Parameters& p,
 
 void Population::setTrackedIndividuals(const Parameters &p, Randomizer &rng){
 				/**Function to shuffle the remaing population and track a certain number of individuals longitudinally. **/
+				
 				// shuffle to make it random
 				std::shuffle(males.begin(), males.end(), rng.rng);
 				std::shuffle(females.begin(), females.end(), rng.rng);

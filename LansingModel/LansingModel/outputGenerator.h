@@ -56,7 +56,7 @@ void createOutputDeclineInGameteQuality(const int t,
         << i.age << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
-        << (i.averageSurvivalProbAgeGenes[i.age] * i.survivalProb) << " "
+        << (i.averageAgeSpecificGenes[i.age] * i.survivalProb) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -75,7 +75,7 @@ void createOutputLifeExpectancy(const Parameters& p,
     for (Individual male : males){
 								float ageSpecSurvProb; // male survival probability based on age-specific gene
 								// if age-specific gene effect should not be taken into account, this will be set to 1.
-								ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageSurvivalProbAgeGenes[male.age];
+								ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageAgeSpecificGenes[male.age];
 								// calculates survival into the next year
 								float s = ageSpecSurvProb * male.survivalProb * (1 - p.extrinsicMortRisk);
 								// calculate expected age at death
@@ -104,7 +104,7 @@ void createOutputLifeExpectancy(const Parameters& p,
     for (Individual female : females){
 								float ageSpecSurvProb; // female survival probability based on age-specific gene
 								// if age-specific gene effect should not be taken into account, this will be set to 1.
-								ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : female.averageSurvivalProbAgeGenes[female.age];
+								ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : female.averageAgeSpecificGenes[female.age];
 								// calculates survival into the next year
         float s = ageSpecSurvProb * female.survivalProb * (1 - p.extrinsicMortRisk);
 								// calculate expected age at death
@@ -161,7 +161,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
 								for (unsigned i = 0; i < p.maximumAge; ++i){
 												ofs << ind << " " // write as id of individual
 												<< i << " " // write age
-												<< deadIndividuals[ind].averageSurvivalProbAgeGenes[i] << " " // write parental quality for this age class
+												<< deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality for this age class
 												<< p.mutationProbAgeSpecificGenes << std::endl;
 								}
 								
@@ -171,7 +171,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
 												
 												// calculate expected age at death for this offspring of the tracked individual
 												// get the survival probability of the age-dependent genes
-												float ageDependentSurvProb = deadIndividuals[ind].offspringOfIndividual[i].averageSurvivalProbAgeGenes[deadIndividuals[ind].offspringOfIndividual[i].age];
+												float ageDependentSurvProb = deadIndividuals[ind].offspringOfIndividual[i].averageAgeSpecificGenes[deadIndividuals[ind].offspringOfIndividual[i].age];
 												if (p.addQuality && !p.addAgeSpecific) ageDependentSurvProb = 1; // if
 												// get the survival probability of the binary genes
 												float binarySurvProb = deadIndividuals[ind].offspringOfIndividual[i].survivalProb;
