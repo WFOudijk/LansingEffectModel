@@ -262,7 +262,7 @@ void Individual::calcSurvivalProb(const Parameters& p){
 }
 
 void Individual::calcAverageParentalQuality(){
-				// calculate the array with survival probabilities for the age-specific genes
+				// calculate the array with the average for the age-specific genes
 				for (auto i = 0u; i < ageSpecificGenes[0].size(); ++i){
 								float average = (ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5;
 								averageAgeSpecificGenes.push_back(average);

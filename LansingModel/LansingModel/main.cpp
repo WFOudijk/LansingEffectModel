@@ -98,7 +98,6 @@ int main(int argc, const char * argv[]) {
     // only create output of life expectancy for the remaining individuals
     createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals
-    //createOutputTrackedIndividuals(p, deadTrackedIndividuals);
 				createOutputTrackedIndividuals(p, deadTrackedIndividuals);
 				
 				// to print the duration of the program to the terminal

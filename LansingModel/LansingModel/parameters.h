@@ -106,6 +106,8 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "mutationProbAgeSpecificGenes", mutationProbAgeSpecificGenes, ifs);
 												checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
 												checkParam(parID, "populationSize", populationSize, ifs);
+												checkParam(parID, "meanMutationBias", meanMutationBias, ifs);
+												checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);
         }
         else break;
     }
