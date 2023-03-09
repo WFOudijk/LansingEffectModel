@@ -25,9 +25,9 @@ struct Parameters {
 																   mutationProbAgeSpecificGenes(0.002),
                    numOfIndividualsToFollow(500),
 																   weightMaternalEffect(0.6),
-																   addBinary(false),
+																   addBinary(true),
 																   addAgeSpecific(false),
-																   addQuality(true){
+																   addQuality(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
 																							numOfStemCells = 30;
                    }
