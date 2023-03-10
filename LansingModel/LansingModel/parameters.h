@@ -22,15 +22,15 @@ struct Parameters {
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.02),
                    initAgeSpecificGenes(0.99),
-                   mutationProbAgeSpecificGenes(0.002),
+                   mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.6),
                    initInvestmentInRepair(0.5),
-                   addBinary(true),
+                   numOfStemCells(30),
+                   addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(false){
+                   addQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
-                       numOfStemCells = 30;
                    }
     
     unsigned int populationSize; // total population size
@@ -49,9 +49,9 @@ struct Parameters {
     float mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
     unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
     unsigned int numOfGametes; // the derived number of gametes a female should have
-    unsigned int numOfStemCells; // number of stem cells a male should create
     float weightMaternalEffect; // to determine how much the maternal quality affects the offspring in ratio to paternal effect.
     float initInvestmentInRepair; // initial investement in repair vs reproduction
+    unsigned int numOfStemCells; // number of stem cells a male should create
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model

@@ -55,7 +55,7 @@ int main(int argc, const char * argv[]) {
     for (int t = 0; t < p.tEnd; ++t){
         std::vector<Individual> deadIndividualsVec; // to examine all dead individuals 
         pop.reproduce(p, rng); // reproduce to make offspring
-								pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
+        pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
         pop.addOffspring(p, rng); // adding offspring to the adults
         pop.mutationRound(p, rng);
         // output

@@ -198,7 +198,7 @@ bool Individual::dies(Randomizer& rng,
 				
     if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
-								parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
+        parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
         dies = true; // Individual will die
