@@ -23,7 +23,7 @@ struct Population{
                         indVec& trackedIndividuals);
     void addOffspring(const Parameters& p, Randomizer& rng);
     void mutationRound(const Parameters& p, Randomizer& rng);
-				void setTrackedIndividuals(const Parameters& p, Randomizer& rng);
+    void setTrackedIndividuals(const Parameters& p, Randomizer& rng);
 };
 
 void Population::makePopulation(const Parameters& p,
@@ -34,9 +34,9 @@ void Population::makePopulation(const Parameters& p,
     males.reserve(p.populationSize);
     offspring.reserve(p.populationSize * p.numOfOffspringPerFemale);
 				
-    for (size_t i = 0; i < p.populationSize; ++i){
-								males.emplace_back(p, rng, false);
-								females.emplace_back(p, rng, true);
+    for (size_t i = 0; i < p.populationSize; ++i) {
+        males.emplace_back(p, rng, false);
+        females.emplace_back(p, rng, true);
     }
 }
 
@@ -53,9 +53,9 @@ void Population::reproduce(const Parameters& p,
             Individual newOffspring = Individual(females[j], males[male], rng, p);
             offspring.push_back(newOffspring);
 												
-												// keep track of offspring of the flagged individuals
-            if (males[male].tracked) males[male].offspringOfIndividual.push_back(newOffspring);
-            if (females[j].tracked) females[j].offspringOfIndividual.push_back(newOffspring);
+            // keep track of offspring of the flagged individuals
+            if (males[male].tracked) males[male].offspring.push_back(newOffspring);
+            if (females[j].tracked) females[j].offspring.push_back(newOffspring);
         }
     }
 }
@@ -106,10 +106,10 @@ void Population::addOffspring(const Parameters& p,
     while (males.size() < (p.populationSize)){
         int randIndex = rng.drawRandomNumber(offspring.size());
         males.push_back(offspring[randIndex]); // add a random offspring to the males vector
-								males.back().makeStemcells(p); // new male has to make stem cells
-								males.back().isFemaleSex = 0; // set sex bool to false to indicate this new individual is male
+        males.back().makeStemcells(p); // new male has to make stem cells
+        males.back().isFemaleSex = 0; // set sex bool to false to indicate this new individual is male
 								
-								// make sure to remove the offspring to prevent repetition
+        // make sure to remove the offspring to prevent repetition
         offspring[randIndex] = std::move(offspring.back());
         offspring.pop_back();
     }
@@ -118,10 +118,10 @@ void Population::addOffspring(const Parameters& p,
     while (females.size() < (p.populationSize)){
         int randIndex = rng.drawRandomNumber(offspring.size());
         females.push_back(offspring[randIndex]); // add a random offspring to the females vector
-								females.back().makeSeveralGametes(p, rng); // new female has to make gametes
-								females.back().isFemaleSex = 1; // set sex bool to true to indicate new individual is female
+        females.back().makeSeveralGametes(p, rng); // new female has to make gametes
+        females.back().isFemaleSex = 1; // set sex bool to true to indicate new individual is female
 								
-								// make sure to remove the offspring to prevent repetition
+        // make sure to remove the offspring to prevent repetition
         offspring[randIndex] = std::move(offspring.back());
         offspring.pop_back();
     }
@@ -129,7 +129,7 @@ void Population::addOffspring(const Parameters& p,
 
 void Population::mutationRound(const Parameters& p,
                                Randomizer &rng){
-				/**Function to mutate the gametes from the females and the stem cells from the males. */
+    /**Function to mutate the gametes from the females and the stem cells from the males. */
 				
     for (size_t i = 0; i < females.size(); ++i){
         females[i].mutateGametes(p, rng);
@@ -139,15 +139,15 @@ void Population::mutationRound(const Parameters& p,
 }
 
 void Population::setTrackedIndividuals(const Parameters &p, Randomizer &rng){
-				/**Function to shuffle the remaing population and track a certain number of individuals longitudinally. **/
+    /**Function to shuffle the remaing population and track a certain number of individuals longitudinally. **/
 				
-				// shuffle to make it random
-				std::shuffle(males.begin(), males.end(), rng.rng);
-				std::shuffle(females.begin(), females.end(), rng.rng);
-				for (unsigned i = 0; i < p.numOfIndividualsToFollow; ++i){
-								// Choosing individuals in order after shuffling the vector to prevent drawing random indviduals without replacement
-								males[i].tracked = 1;
-								females[i].tracked = 1;
-				}
+    // shuffle to make it random
+    std::shuffle(males.begin(), males.end(), rng.rng);
+    std::shuffle(females.begin(), females.end(), rng.rng);
+    for (unsigned i = 0; i < p.numOfIndividualsToFollow; ++i){
+        // Choosing individuals in order after shuffling the vector to prevent drawing random indviduals without replacement
+        males[i].tracked = 1;
+        females[i].tracked = 1;
+    }
 }
 

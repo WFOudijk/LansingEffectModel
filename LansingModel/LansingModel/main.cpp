@@ -28,11 +28,11 @@ int main(int argc, const char * argv[]) {
     
     Parameters p; // make parameters object
 				
-				if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
-				if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
-								p.mutationProbAgeSpecificGenes = 0;
-								p.initAgeSpecificGenes = 1;
-				}			
+    if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
+    if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
+        p.mutationProbAgeSpecificGenes = 0;
+        p.initAgeSpecificGenes = 1;
+    }
 				    
     // read parameter file
     std::string parameterFile;
@@ -43,8 +43,8 @@ int main(int argc, const char * argv[]) {
 
     // set the mutationEffect distribution with mean and sd of mutation
     rng.setMutationEffect(p.meanMutationBias, p.sdMutationalEffectSize);
-				// set the number of events distribution for the age specific genes
-				rng.setDistMutEvents(p.mutationProbAgeSpecificGenes * p.maximumAge);
+    // set the number of events distribution for the age specific genes
+    rng.setDistMutEvents(p.mutationProbAgeSpecificGenes * p.maximumAge);
     
     Population pop;
     pop.makePopulation(p, rng); // initialise population
@@ -72,15 +72,15 @@ int main(int argc, const char * argv[]) {
     t_start = t_now;
     std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal." << std::endl;
     
-				// track a certain number of individuals
-				pop.setTrackedIndividuals(p, rng);				
+    // track a certain number of individuals
+    pop.setTrackedIndividuals(p, rng);
 
     // to keep track of the followed individuals. If everyone has died, the simulation can stop
     int numOfIndividualsToFollow = p.numOfIndividualsToFollow * 2;
     
-				int count = 0;
+    int count = 0;
     while (numOfIndividualsToFollow > 0) {
-								count += 1;
+        count += 1;
         indVec deadIndividualsVec;
         
         pop.reproduce(p, rng); // reproduce to make offspring
@@ -89,18 +89,18 @@ int main(int argc, const char * argv[]) {
         pop.addOffspring(p, rng); // adding offspring to the adults
         pop.mutationRound(p, rng);
 								
-								numOfIndividualsToFollow = (int) std::count_if(pop.males.begin(), pop.males.end(), [](auto& m) { return m.tracked==1; });
-								numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
+        numOfIndividualsToFollow = (int) std::count_if(pop.males.begin(), pop.males.end(), [](auto& m) { return m.tracked==1; });
+        numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
 				
     }
 				
-				std::cout << "Counter = " << count << std::endl; 
+    std::cout << "Counter = " << count << std::endl;
     // only create output of life expectancy for the remaining individuals
     createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals
-				createOutputTrackedIndividuals(p, deadTrackedIndividuals);
+    createOutputTrackedIndividuals(p, deadTrackedIndividuals);
 				
-				// to print the duration of the program to the terminal
+    // to print the duration of the program to the terminal
     t_now = std::chrono::system_clock::now();
     diff_t = t_now - t_start;
     std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;

@@ -12,28 +12,29 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.004),
+                   mutationProb(0.001),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.004),
+                   mutationProbStemcell(0.003),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.02),
                    initAgeSpecificGenes(0.99),
-																   mutationProbAgeSpecificGenes(0.002),
+                   mutationProbAgeSpecificGenes(0.002),
                    numOfIndividualsToFollow(500),
-																   weightMaternalEffect(0.6),
-																   addBinary(true),
-																   addAgeSpecific(false),
-																   addQuality(false){
+                   weightMaternalEffect(0.6),
+                   initInvestmentInRepair(0.5),
+                   addBinary(true),
+                   addAgeSpecific(false),
+                   addQuality(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
-																							numOfStemCells = 30;
+                       numOfStemCells = 30;
                    }
     
     unsigned int populationSize; // total population size
-				float initDamageProportion; // the proportion of initial damage in the binary genes
+    float initDamageProportion; // the proportion of initial damage in the binary genes
     unsigned int numOfOffspringPerFemale; // number of offspring a female should produce
     float mutationProb; // probability a mutation will occur
     float extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
@@ -45,24 +46,25 @@ struct Parameters {
     float meanMutationBias; // the mean mutation bias of the age-specific genes
     float sdMutationalEffectSize; // the sd of the mutation bias, i.e., the effect size
     float initAgeSpecificGenes; // the initial value for the age-specific genes
-				float mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
-				unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
-				unsigned int numOfGametes; // the derived number of gametes a female should have
-				unsigned int numOfStemCells; // number of stem cells a male should create
-				double weightMaternalEffect; // to determine how much the maternal quality affects the offspring in ratio to paternal effect.
-				bool addBinary; // add binary genes to model
-				bool addAgeSpecific; // adds age-specific genes to model
-				bool addQuality; // adds quality effect to model
+    float mutationProbAgeSpecificGenes; // mutation probability for the age specific genes
+    unsigned int numOfIndividualsToFollow; // number of individuals to follow longitudinal
+    unsigned int numOfGametes; // the derived number of gametes a female should have
+    unsigned int numOfStemCells; // number of stem cells a male should create
+    float weightMaternalEffect; // to determine how much the maternal quality affects the offspring in ratio to paternal effect.
+    float initInvestmentInRepair; // initial investement in repair vs reproduction
+    bool addBinary; // add binary genes to model
+    bool addAgeSpecific; // adds age-specific genes to model
+    bool addQuality; // adds quality effect to model
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
                     const std::string focal_parametername,
                     float& parameter,
                     std::ifstream& ifs);
-				void checkParam(const std::string parID,
-																				const std::string focal_parametername,
-																				unsigned int& parameter,
-																				std::ifstream& ifs);
+    void checkParam(const std::string parID,
+                    const std::string focal_parametername,
+                    unsigned int& parameter,
+                    std::ifstream& ifs);
 };
 
 void Parameters::checkParam(const std::string parID,
@@ -77,14 +79,14 @@ void Parameters::checkParam(const std::string parID,
 }
 
 void Parameters::checkParam(const std::string parID,
-																												const std::string focal_parametername,
-																												unsigned int& parameter,
-																												std::ifstream& ifs) {
-				// set parameter from file to parameter in object parameter
-				if (parID == focal_parametername) {
-								ifs >> parameter;
-								std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
-				}
+                            const std::string focal_parametername,
+                            unsigned int& parameter,
+                            std::ifstream& ifs) {
+    // set parameter from file to parameter in object parameter
+    if (parID == focal_parametername) {
+        ifs >> parameter;
+        std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
+    }
 }
 
 void Parameters::readParameters(const std::string& parameterFile){
@@ -93,7 +95,7 @@ void Parameters::readParameters(const std::string& parameterFile){
     std::ifstream ifs(parameterFile.c_str());
     if(!ifs.is_open()){
         std::cerr << "Error. Unable to read the following parameter file: "
-                    << parameterFile << std::endl;
+        << parameterFile << std::endl;
         exit(EXIT_FAILURE);
     }
     std::clog << "Reading parameters from file: " << parameterFile << std::endl;
@@ -102,12 +104,12 @@ void Parameters::readParameters(const std::string& parameterFile){
         ifs >> parID; // get row in file
         if(ifs.good()) { // setting of the parameters
             checkParam(parID, "mutationProb", mutationProb, ifs);
-												checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);
+            checkParam(parID, "mutationProbStemcell", mutationProbStemcell, ifs);
             checkParam(parID, "mutationProbAgeSpecificGenes", mutationProbAgeSpecificGenes, ifs);
-												checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
-												checkParam(parID, "populationSize", populationSize, ifs);
-												checkParam(parID, "meanMutationBias", meanMutationBias, ifs);
-												checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);
+            checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
+            checkParam(parID, "populationSize", populationSize, ifs);
+            checkParam(parID, "meanMutationBias", meanMutationBias, ifs);
+            checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);
         }
         else break;
     }
