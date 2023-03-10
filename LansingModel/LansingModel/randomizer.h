@@ -39,44 +39,44 @@ struct Randomizer {
         }
     
     void setMutationEffect(double m, double sd) {
-            // create normal distribution based on user defined mean and standard deviation
-            mutationEffect = std::normal_distribution<double>(m, sd);
-        }
+        // create normal distribution based on user defined mean and standard deviation
+        mutationEffect = std::normal_distribution<double>(m, sd);
+    }
 				
-				int drawNumOfMuts() {
-								return distMutEvents(rng);
-				}
+    int drawNumOfMuts() {
+        return distMutEvents(rng);
+    }
 				
-				void setDistMutEvents(double setDist) {
-								distMutEvents = std::poisson_distribution<int>(setDist);
-				}
+    void setDistMutEvents(double setDist) {
+        distMutEvents = std::poisson_distribution<int>(setDist);
+    }
 				
-				template <typename T>
-				T rn(const T n){
-								static std::uniform_int_distribution<T> d{};
-								using parm_t = typename decltype(d)::param_type;
-								return d(rng, parm_t{0,n-1});
-				}
+    template <typename T>
+    T rn(const T n){
+        static std::uniform_int_distribution<T> d{};
+        using parm_t = typename decltype(d)::param_type;
+        return d(rng, parm_t{0,n-1});
+    }
 
-				unsigned rui32(){
-								static std::uniform_int_distribution<unsigned> d{};
-								using parm_t = typename decltype(d)::param_type;
-								return d(rng, parm_t{0,UINT32_MAX});
-				}
+    unsigned rui32(){
+        static std::uniform_int_distribution<unsigned> d{};
+        using parm_t = typename decltype(d)::param_type;
+        return d(rng, parm_t{0,UINT32_MAX});
+    }
 
-				unsigned long rui64(){
-								static std::uniform_int_distribution<unsigned long> d{};
-								using parm_t = typename decltype(d)::param_type;
-								return d(rng, parm_t{0,UINT64_MAX});
-				}
+    unsigned long rui64(){
+        static std::uniform_int_distribution<unsigned long> d{};
+        using parm_t = typename decltype(d)::param_type;
+        return d(rng, parm_t{0,UINT64_MAX});
+    }
 
-				unsigned rpois(const double lambda){
-								static std::poisson_distribution<unsigned> d{};
-								using parm_t = typename decltype(d)::param_type;
-								return d(rng, parm_t{lambda});
-				}
+    unsigned rpois(const double lambda){
+        static std::poisson_distribution<unsigned> d{};
+        using parm_t = typename decltype(d)::param_type;
+        return d(rng, parm_t{lambda});
+    }
     
     std::uniform_real_distribution<double> unif;
     std::normal_distribution<double> mutationEffect;
-				std::poisson_distribution<int> distMutEvents;
+    std::poisson_distribution<int> distMutEvents;
 };
