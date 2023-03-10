@@ -161,7 +161,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << i << " " // write age
             << deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality for this age class
             << p.mutationProb << " "
-            << p.mutationProbStemcell << std::endl;
+            << p.mutationProbStemcell << " "
+            << p.meanMutationBias << " "
+            << p.sdMutationalEffectSize << std::endl;
         }
 								
         // write expected age at death of the offspring to a file
@@ -188,7 +190,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             ofs2 << (ageDependentSurvProb * binarySurvProb) << " " // write survival probability to file
             << expectedAgeAtDeath << " "
             << p.mutationProb << " "
-            << p.mutationProbStemcell << std::endl;
+            << p.mutationProbStemcell << " "
+            << p.meanMutationBias << " "
+            << p.sdMutationalEffectSize << std::endl;
         }
     }
 		
