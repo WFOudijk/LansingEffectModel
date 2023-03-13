@@ -45,6 +45,8 @@ int main(int argc, const char * argv[]) {
     rng.setMutationEffect(p.meanMutationBias, p.sdMutationalEffectSize);
     // set the number of events distribution for the age specific genes
     rng.setDistMutEvents(p.mutationProbAgeSpecificGenes * p.maximumAge);
+    // set the mutation effect for age-specific genes involved in repair/reproduction
+    rng.setMutationEffectInvestment(p.meanMutationBiasInvestmentInRepair, p.sdMutationalEffectInvestmentInRepair);
     
     Population pop;
     pop.makePopulation(p, rng); // initialise population

@@ -84,8 +84,8 @@ Individual::Individual(const Parameters& p, // initializing constructor
 																																												
     // get the recombination vector of maternal and paternal age-specific investment in repair vectors
     std::vector<float> recombinedVector = recombineAgeSpecificInvestmentInRepair(rng,
-																																																																																	gameteMaternal.ageSpecificInvestmentInRepair,
-																																																																																	gametePaternal.ageSpecificInvestmentInRepair);
+                                                                                 gameteMaternal.ageSpecificInvestmentInRepair,
+                                                                                 gametePaternal.ageSpecificInvestmentInRepair);
 																																																																																	
     // fill the age-specific investment in repair array
     ageSpecificInvestmentInRepair = recombinedVector;

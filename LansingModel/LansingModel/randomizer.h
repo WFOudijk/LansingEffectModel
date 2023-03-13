@@ -50,6 +50,14 @@ struct Randomizer {
     void setDistMutEvents(double setDist) {
         distMutEvents = std::poisson_distribution<int>(setDist);
     }
+    
+    double drawMutationEffectInvestment(){
+        return mutationEffectInvestment(rng);
+    }
+    
+    void setMutationEffectInvestment(double m, double sd){
+        mutationEffectInvestment = std::normal_distribution<unsigned>(m, sd);
+    }
 				
     template <typename T>
     T rn(const T n){
@@ -76,7 +84,9 @@ struct Randomizer {
         return d(rng, parm_t{lambda});
     }
     
+     
     std::uniform_real_distribution<double> unif;
     std::normal_distribution<double> mutationEffect;
     std::poisson_distribution<int> distMutEvents;
+    std::normal_distribution<unsigned> mutationEffectInvestment;
 };

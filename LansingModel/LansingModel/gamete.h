@@ -70,6 +70,15 @@ void Gamete::mutate(const Parameters &p,
         // check if the gene value is not < 0 or > 1. If so, gene value is clipped
         clip01(ageSpecificGenesOfGamete[geneToMutate]);
     }
+    
+    // mutation of age-specific genes for investment in repair/ reproduction
+    const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
+    const unsigned numMut{rng.rpois(expectedNumMut)};
+    for (int i = 0; i < numMut; ++i){
+        int geneToMutate = rng.drawRandomNumber(ageSpecificInvestmentInRepair.size());
+        ageSpecificInvestmentInRepair[geneToMutate] += rng.drawMutationEffectInvestment();
+        clip01(ageSpecificInvestmentInRepair[geneToMutate]);
+    }
 
     // mutation of binary genes
     if (isStemcell) { // if the stemcell will mutate

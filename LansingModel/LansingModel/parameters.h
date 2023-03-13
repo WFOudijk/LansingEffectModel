@@ -12,22 +12,25 @@ struct Parameters {
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(2),
-                   mutationProb(0.001),
+                   mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
-                   mutationProbStemcell(0.003),
-                   meanMutationBias(-0.02),
-                   sdMutationalEffectSize(0.02),
+                   mutationProbStemcell(0.0024),
+                   meanMutationBias(-0.022),
+                   sdMutationalEffectSize(0.024),
                    initAgeSpecificGenes(0.99),
                    mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.6),
                    initInvestmentInRepair(0.5),
                    numOfStemCells(30),
-                   addBinary(false),
+                   meanMutationBiasInvestmentInRepair(0),
+                   sdMutationalEffectInvestmentInRepair(1),
+                   mutationProbInvestmentGenes(0.001),
+                   addBinary(true),
                    addAgeSpecific(false),
                    addQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
@@ -52,6 +55,9 @@ struct Parameters {
     float weightMaternalEffect; // to determine how much the maternal quality affects the offspring in ratio to paternal effect.
     float initInvestmentInRepair; // initial investement in repair vs reproduction
     unsigned int numOfStemCells; // number of stem cells a male should create
+    float meanMutationBiasInvestmentInRepair; // mean for normal distribution to draw mutation effect on investment in repair genes
+    float sdMutationalEffectInvestmentInRepair; // sd for normal distribution to draw mutation effect on investment in repair genes
+    float mutationProbInvestmentGenes; // mutation rate of age-specific investment in repair genes 
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
