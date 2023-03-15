@@ -87,8 +87,11 @@ void createOutputLifeExpectancy(const Parameters& p,
         << male.ageOfMother << " "
         << "F "
         << (ageSpecSurvProb * male.survivalProb) << " "
+        << p.mutationProb << " "
         << p.mutationProbStemcell << " "
-        << p.mutationProb << std::endl;
+        << p.meanMutationBias << " "
+        << p.sdMutationalEffectSize << " "
+        << p.mutationProbAgeSpecificGenes << std::endl;
         
         // write paternal information
         ofs << male.age << " "
@@ -96,8 +99,11 @@ void createOutputLifeExpectancy(const Parameters& p,
         << male.ageOfFather << " "
         << "M "
         << (ageSpecSurvProb * male.survivalProb) << " "
+        << p.mutationProb << " "
         << p.mutationProbStemcell << " "
-        << p.mutationProb << std::endl;
+        << p.meanMutationBias << " "
+        << p.sdMutationalEffectSize << " "
+        << p.mutationProbAgeSpecificGenes << std::endl;
     }
 
     
@@ -116,8 +122,11 @@ void createOutputLifeExpectancy(const Parameters& p,
         << female.ageOfMother << " "
         << "F "
         << (ageSpecSurvProb * female.survivalProb) << " "
+        << p.mutationProb << " "
         << p.mutationProbStemcell << " "
-        << p.mutationProb << std::endl;
+        << p.meanMutationBias << " "
+        << p.sdMutationalEffectSize << " "
+        << p.mutationProbAgeSpecificGenes << std::endl;
         
         // write paternal information
         ofs << female.age << " "
@@ -125,8 +134,11 @@ void createOutputLifeExpectancy(const Parameters& p,
         << female.ageOfFather << " "
         << "M "
         << (ageSpecSurvProb * female.survivalProb) << " "
+        << p.mutationProb << " "
         << p.mutationProbStemcell << " "
-        << p.mutationProb << std::endl;
+        << p.meanMutationBias << " "
+        << p.sdMutationalEffectSize << " "
+        << p.mutationProbAgeSpecificGenes << std::endl;
     }
     ofs.close();
 }
@@ -157,18 +169,23 @@ void createOutputTrackedIndividuals(const Parameters& p,
     for (size_t ind = 0; ind < deadIndividuals.size(); ++ind){
         // write to first file
         for (unsigned i = 0; i < p.maximumAge; ++i){
-            ofs << ind << " " // write as id of individual
+            ofs << ind << "_" << p.mutationProb << "_" << p.mutationProbStemcell << "_"
+            << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
+            << p.mutationProbAgeSpecificGenes << " " // write as id of individual
             << i << " " // write age
             << deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality for this age class
             << p.mutationProb << " "
             << p.mutationProbStemcell << " "
             << p.meanMutationBias << " "
-            << p.sdMutationalEffectSize << std::endl;
+            << p.sdMutationalEffectSize << " "
+            << p.mutationProbAgeSpecificGenes << std::endl;
         }
 								
         // write expected age at death of the offspring to a file
         for (size_t i = 0; i < deadIndividuals[ind].offspring.size(); ++i){ // loop through the number of offspring this individual has
-            ofs2 << ind << " "; // use this index as identifier of the individual
+            ofs2 << ind << "_" << p.mutationProb << "_" << p.mutationProbStemcell << "_"
+            << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
+            << p.mutationProbAgeSpecificGenes << " "; // use this index as identifier of the individual
 												
             // calculate expected age at death for this offspring of the tracked individual
             // get the survival probability of the age-dependent genes
@@ -192,7 +209,8 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.mutationProb << " "
             << p.mutationProbStemcell << " "
             << p.meanMutationBias << " "
-            << p.sdMutationalEffectSize << std::endl;
+            << p.sdMutationalEffectSize << " "
+            << p.mutationProbAgeSpecificGenes << std::endl;
         }
     }
 		

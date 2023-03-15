@@ -41,7 +41,7 @@ struct Gamete{
         ageSpecificGenesOfGamete.resize(p.maximumAge, p.initAgeSpecificGenes);
 
         // set age-specific invstment in repair to maximum age and fill with initial value
-        ageSpecificInvestmentInRepair.resize(p.maximumAge, p.initInvestmentInRepair);
+        //ageSpecificInvestmentInRepair.resize(p.maximumAge, p.initInvestmentInRepair);
     }
 
     void mutate(const Parameters& p, Randomizer& rng, const bool isStemcell);
@@ -71,14 +71,14 @@ void Gamete::mutate(const Parameters &p,
         clip01(ageSpecificGenesOfGamete[geneToMutate]);
     }
     
-    // mutation of age-specific genes for investment in repair/ reproduction
-    const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
-    const unsigned numMut{rng.rpois(expectedNumMut)};
-    for (int i = 0; i < numMut; ++i){
-        int geneToMutate = rng.drawRandomNumber(ageSpecificInvestmentInRepair.size());
-        ageSpecificInvestmentInRepair[geneToMutate] += rng.drawMutationEffectInvestment();
-        clip01(ageSpecificInvestmentInRepair[geneToMutate]);
-    }
+//    // mutation of age-specific genes for investment in repair/ reproduction
+//    const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
+//    const unsigned numMut{rng.rpois(expectedNumMut)};
+//    for (int i = 0; i < numMut; ++i){
+//        int geneToMutate = rng.drawRandomNumber(ageSpecificInvestmentInRepair.size());
+//        ageSpecificInvestmentInRepair[geneToMutate] += rng.drawMutationEffectInvestment();
+//        clip01(ageSpecificInvestmentInRepair[geneToMutate]);
+//    }
 
     // mutation of binary genes
     if (isStemcell) { // if the stemcell will mutate
@@ -93,11 +93,11 @@ void Gamete::mutate(const Parameters &p,
 
     } else { // else a gamete will mutate
         // draw number of mutations to occur based on Poisson distribution
-        const double expected_num_mut{genesOfGamete.size() * p.mutationProb};
-        const unsigned num_mut{rng.rpois(expected_num_mut)};
+        const double expectedNumMut{genesOfGamete.size() * p.mutationProb};
+        const unsigned numMut{rng.rpois(expectedNumMut)};
 
         // mutate
-        for (size_t i = 0; i<num_mut; ++i){
+        for (size_t i = 0; i<numMut; ++i){
             genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
         }
 				

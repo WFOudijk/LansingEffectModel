@@ -48,14 +48,28 @@ void Population::reproduce(const Parameters& p,
     offspring.clear(); // to make sure the vector is empty
     
     for (auto j = 0u; j < females.size(); ++j){ // loop through every female
-        for (unsigned i = 0; i < p.numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
+        unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale;
+        
+        // checks if investment into repair/ reproduction is included in the model
+        if (p.addInvestmentInRepair) {
+            // gets number of offspring this female should have based on her repair/reproduction ratio
+            int numOfOffspring = females[j].calcNumberOfOffspring(p, rng);
+            numOfOffspringPerFemale = numOfOffspring;
+        }
+        
+        // start loop to generate offspring
+        for (unsigned i = 0; i < numOfOffspringPerFemale;){ // loop through number of offspring to produce
             int male = rng.drawRandomNumber(males.size());
-            Individual newOffspring = Individual(females[j], males[male], rng, p);
-            offspring.push_back(newOffspring);
-												
-            // keep track of offspring of the flagged individuals
-            if (males[male].tracked) males[male].offspring.push_back(newOffspring);
-            if (females[j].tracked) females[j].offspring.push_back(newOffspring);
+            //int numOfOffspring = males[male].calcNumberOfOffspring(p, rng);
+            //if (numOfOffspring != 0) { // check if male has enough budget to reproduce
+                Individual newOffspring = Individual(females[j], males[male], rng, p);
+                offspring.push_back(newOffspring);
+                ++i; // if this male could not make offspring, i should not increment and a new male will be picked
+                
+                // keep track of offspring of the flagged individuals
+                if (males[male].tracked) males[male].offspring.push_back(newOffspring);
+                if (females[j].tracked) females[j].offspring.push_back(newOffspring);
+            //}
         }
     }
 }
@@ -70,7 +84,6 @@ void Population::mortalityRound(const Parameters& p,
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
             if (males[male].tracked) { // the individual is tracked
-                //males[male].sex = 'M';
                 trackedIndividuals.push_back(males[male]);
             }
             deadIndividualsVec.push_back(males[male]);
@@ -87,7 +100,6 @@ void Population::mortalityRound(const Parameters& p,
         if (die){ // if this is the case, remove female from vector
             //deadIndividualsVec.push_back(females[female]);
             if (females[female].tracked){
-                //females[female].sex = 'F';
                 trackedIndividuals.push_back(females[female]);
             }
             deadIndividualsVec.push_back(females[female]);

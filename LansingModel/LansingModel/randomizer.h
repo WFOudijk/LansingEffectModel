@@ -56,7 +56,7 @@ struct Randomizer {
     }
     
     void setMutationEffectInvestment(double m, double sd){
-        mutationEffectInvestment = std::normal_distribution<unsigned>(m, sd);
+        mutationEffectInvestment = std::normal_distribution<double>(m, sd);
     }
 				
     template <typename T>
@@ -88,5 +88,5 @@ struct Randomizer {
     std::uniform_real_distribution<double> unif;
     std::normal_distribution<double> mutationEffect;
     std::poisson_distribution<int> distMutEvents;
-    std::normal_distribution<unsigned> mutationEffectInvestment;
+    std::normal_distribution<double> mutationEffectInvestment;
 };

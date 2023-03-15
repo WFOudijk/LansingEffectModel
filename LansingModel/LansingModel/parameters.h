@@ -28,12 +28,17 @@ struct Parameters {
                    initInvestmentInRepair(0.5),
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
-                   sdMutationalEffectInvestmentInRepair(1),
+                   sdMutationalEffectInvestmentInRepair(0.1),
                    mutationProbInvestmentGenes(0.001),
+                   weightInvestment(0.1),
+                   maxOffspring(5),
+                   pointOfHalfMaxOffspring(0.5),
                    addBinary(true),
                    addAgeSpecific(false),
-                   addQuality(true){
+                   addQuality(false),
+                   addInvestmentInRepair(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
+                       //numOfGametes = maximumAge * maxOffspring;
                    }
     
     unsigned int populationSize; // total population size
@@ -57,10 +62,14 @@ struct Parameters {
     unsigned int numOfStemCells; // number of stem cells a male should create
     float meanMutationBiasInvestmentInRepair; // mean for normal distribution to draw mutation effect on investment in repair genes
     float sdMutationalEffectInvestmentInRepair; // sd for normal distribution to draw mutation effect on investment in repair genes
-    float mutationProbInvestmentGenes; // mutation rate of age-specific investment in repair genes 
+    float mutationProbInvestmentGenes; // mutation rate of age-specific investment in repair genes
+    float weightInvestment; // to weigh the investment in repair genes
+    unsigned int maxOffspring; // maximum number of offspring an individual could get in one time step
+    float pointOfHalfMaxOffspring; // value between 0 and 1 at which half of max offspring is defined
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
+    bool addInvestmentInRepair; // adds investment in repair to model
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
