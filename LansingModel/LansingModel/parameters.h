@@ -33,9 +33,9 @@ struct Parameters {
                    weightInvestment(0.1),
                    maxOffspring(5),
                    pointOfHalfMaxOffspring(0.5),
-                   addBinary(true),
+                   addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(false),
+                   addQuality(true),
                    addInvestmentInRepair(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        //numOfGametes = maximumAge * maxOffspring;
