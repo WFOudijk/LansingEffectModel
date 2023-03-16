@@ -421,9 +421,14 @@ ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = a
 myLongitudinalData <- read.table(paste(path, "correctModel/bigpop/outputLETrackedIndividuals.txt", sep = "")) # 1
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 
-######## QUALITY ##########
-# only quality is on. To look at effect and find parameter. 
-survivalData <- read.table(paste(path, "correctModel/survival_data/outputWithSurvivalProbs.txt", sep = "")) 
+###############################################################################
+# QUALITY-ONLY-SCENARIO
+# PARAMETER EXPLORATION 
+###############################################################################
+
+######## MUTATION PROB OF AGE-SPECIFIC GENES ##########
+
+survivalData <- read.table(paste(path, "correctModel/survival_data/outputWithSurvivalProbs1.txt", sep = "")) 
 colnames(survivalData) <- c("ID", "Age", "SurvivalProb")
 sub <- subset(survivalData, survivalData$ID > 90)
 sub <- survivalData[0:4000,]
@@ -442,15 +447,222 @@ ggplot(data = survivalData, aes(x = Age, y = SurvivalProb, group = ID, color = f
   scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
   ylim(0, 1)
 
+#### parameter exploration from job array 
+parent_path <- paste(path, "correctModel/survival_data/", sep = "")
 
-######## TEST: TO REMOVE ##########
+f <- list.files(path = parent_path, pattern = "outputWithParentalQuality.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "age", "survivalProb", "mutationProb") 
 
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLifeExpectancy.txt")
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLifeExpectancy.txt")
+# get 10 IDs to examine
+found <- subset(found, found$ID >= 990)
+#found <- subset(found, found$ID < 511)
+p <- ggplot(data = found, aes(age, survivalProb, group = ID, color = factor(ID))) +
+  geom_line() +
+  labs(title = "Looking at parental quality per age class",
+       subtitle = "With differing mutation probabilities",
+       x = "Age",
+       y = "Age-specific parental quality") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 7)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
+  ylim(0, 1)
+p + facet_wrap(vars(mutationProb))
 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProb")
 
-colnames(test) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbStemCell", "mutationProb")
-survivingPop <- test
+# get the same IDs 
+found <- subset(found, found$ID >= 990)
+#found <- subset(found, found$ID < 511)
+
+######## MUTATION BIAS (MEAN) ##########
+# -0.05 + repl * 0.0055 (repl = 1:10)
+parent_path <- paste(path, "correctModel/mean_varied/", sep = "")
+
+f <- list.files(path = parent_path, pattern = "outputWithParentalQuality.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "age", "quality", "mutationProb", "mean", "sd") 
+
+# get 10 IDs to examine
+found <- subset(found, found$ID >= 990)
+#found <- subset(found, found$ID < 511)
+p <- ggplot(data = found, aes(age, quality, group = ID, color = factor(ID))) +
+  geom_line() +
+  labs(title = "Looking at parental quality per age class",
+       subtitle = "With differing mean mutation bias",
+       x = "Age",
+       y = "Age-specific parental quality") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 7)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
+  ylim(0, 1)
+p + facet_wrap(vars(mean))
+
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProb", "mean", "sd")
+
+# get the same IDs 
+found <- subset(found, found$ID >= 990)
+
+######## MUTATIONAL EFFECT SIZE (SD) ##########
+# 0.006 * repl
+parent_path <- paste(path, "correctModel/sd_varied/", sep = "")
+
+f <- list.files(path = parent_path, pattern = "outputWithParentalQuality.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "age", "quality", "mutationProb", "mean", "sd") 
+
+# get 10 IDs to examine
+found <- subset(found, found$ID >= 990)
+#found <- subset(found, found$ID < 511)
+p <- ggplot(data = found, aes(age, quality, group = ID, color = factor(ID))) +
+  geom_line() +
+  labs(title = "Looking at parental quality per age class",
+       subtitle = "With differing mean mutation bias",
+       x = "Age",
+       y = "Age-specific parental quality") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 7)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
+  ylim(0, 1)
+p + facet_wrap(vars(sd))
+
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProb", "mean", "sd")
+
+# get the same IDs 
+found <- subset(found, found$ID >= 900)
+found <- subset(found, found$ID <= 620)
+
+###############################################################################
+# DAMAGE-ONLY-SCENARIO
+# 1 = VARYING MUTATION PROBS; GAMETES = STEM CELLS
+###############################################################################
+
+parent_path <- paste(path, "correctModel/damage-only/sameProbs/", sep = "")
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC")
+
+females <- subset(found, found$sexOfParent == 'F')
+males <- subset(found, found$sexOfParent == 'M')
+
+######## GAMETES = STEM CELLS = 0.0028 ##########
+
+myLongitudinalData <- read.table(paste(path, "correctModel/damage-only/sameProbs/outputLETrackedIndividuals.txt", sep = "")) # same probs 
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbStemCell")
+males <- subset(myLongitudinalData, myLongitudinalData$sexOfParent == "M")
+females <- subset(myLongitudinalData, myLongitudinalData$sexOfParent == "F")
+
+######## GAMETES = 0.003; STEM CELLS = 0.001 ##########
+
+myLongitudinalData <- read.table(paste(path, "correctModel/damage-only/sameProbs/outputLETrackedIndividualsGameteHigh.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbStemCell")
+males <- subset(myLongitudinalData, myLongitudinalData$sexOfParent == "M")
+females <- subset(myLongitudinalData, myLongitudinalData$sexOfParent == "F")
+
+######## GAMETES = 0.001; STEM CELLS = 0.003 ##########
+
+myLongitudinalData <- read.table(paste(path, "correctModel/damage-only/sameProbs/outputLETrackedIndividualsStemCellHigh.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbStemCell")
+males <- subset(myLongitudinalData, myLongitudinalData$sexOfParent == "M")
+females <- subset(myLongitudinalData, myLongitudinalData$sexOfParent == "F")
+
+###############################################################################
+# QUALITY-ONLY-SCENARIO
+###############################################################################
+
+######## Varying mean with mut prob = 0.003 ##########
+
+parent_path <- paste(path, "correctModel/quality-only/vary-mean/", sep = "")
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found2 <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found2 <- rbind(found2, local_data)
+}
+colnames(found2) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize")
+found2$ID <- found2$ID + 1000 
+
+######## Varying sd with mut prob = 0.003 and mean = -0.022 ##########
+
+parent_path <- paste(path, "correctModel/quality-only/vary-sd/", sep = "")
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize")
+
+tmp <- rbind(found, found2)
+
+###############################################################################
+# Combining quality and damage scenarios with following parameters: 
+# mutationProbAgeSpecificGenes = 0.003
+# meanMutationBias = -0.022
+# sdMutationalEffectSize = 0.02
+# mutationProb = 0.0024
+# mutationProbStemcell = 0.0024
+###############################################################################
+
+survivalData <- read.table(paste(path, "correctModel/combinedModel/outputLifeExpectancy.txt", sep = "")) 
+# same parameters but sd of 0.024. 
+survivalData <- read.table(paste(path, "correctModel/combinedModel/outputLifeExpectancy2.txt", sep = "")) 
+
+colnames(survivalData) <- c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProbSC", "mutationProbGamete")
 
 avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
 colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
@@ -472,9 +684,196 @@ ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = a
         axis.text.x = element_text(angle = 90, size = 15)) +
   scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
 
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLETrackedIndividuals.txt")
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLETrackedIndividuals.txt")
+myLongitudinalData <- read.table(paste(path, "correctModel/combinedModel/outputLETrackedIndividuals.txt", sep = "")) # same probs
+# same parameters but sd = 0.024 
+myLongitudinalData <- read.table(paste(path, "correctModel/combinedModel/outputLETrackedIndividuals2.txt", sep = "")) # same probs
 
-colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
-myLongitudinalData <- test
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbStemCell", "meanMutationBias", "sdMutationalEffectSize")
+
+parentalQuality <- read.table(paste(path, "correctModel/combinedModel/outputWithParentalQuality.txt", sep = "")) 
+colnames(parentalQuality) <- c("ID", "age", "quality", "mutationProbGametes", "mutationProbStemCell", "meanMutationBias", "sdMutationalEffectSize")
+
+# get 10 IDs to examine
+parentalQualitySub <- subset(parentalQuality, parentalQuality$ID >= 990)
+#found <- subset(found, found$ID < 511)
+
+ggplot(data = parentalQualitySub, aes(age, quality, group = ID, color = factor(ID))) +
+  geom_line() +
+  labs(title = "Looking at parental quality per age class",
+       #subtitle = "With differing mean mutation bias",
+       x = "Age",
+       y = "Age-specific parental quality") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 7)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
+  ylim(0, 1)
+p + facet_wrap(vars(sd))
+
+###############################################################################
+# Running all parameter simulations again and combining the data for
+# extensive gam analysis 
+###############################################################################
+
+## DAMAGE ONLY 
+path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/CombiningDataForGam/"
+
+parent_path <- paste(path, "Damage-only/", sep = "")
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes")
+
+# plot this data
+ggplot(data = found, aes(x = ageOfParent, y = expectedAgeAtDeath, color = as.factor(mutationProbGametes))) +
+  geom_smooth() + 
+  labs(title = "Expected age at death of offspring over parental ages",
+       x = "Age of parent",
+       y = "Expected age of death offspring",
+       color = "Mutation prob of 
+gametes and stem cells") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+# sample from the data
+sampled_data <- c()
+for (x in unique(found$mutationProbGametes)){
+  # get subset of this mutation probability
+  sub <- subset(found, found$mutationProbGametes == x)
+  # get 100 randomly sampled and unique IDs 
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 50)]
+  # subset the data of these 100 IDs
+  tmp2 <- subset(sub, sub$ID %in% tmp)
+  # add them to the dataframe 
+  sampled_data <- rbind(sampled_data, tmp2)
+}
+
+## QUALITY ONLY
+
+## varying mutation probability of age-specific genes 
+parent_path <- paste(path, "Quality-only/mutationProb/", sep = "")
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes")
+
+# plot this data
+ggplot(data = found, aes(x = ageOfParent, y = expectedAgeAtDeath, color = as.factor(mutationProbAgeGenes))) +
+  geom_smooth() + 
+  labs(title = "Expected age at death of offspring over parental ages",
+       x = "Age of parent",
+       y = "Expected age of death offspring",
+       color = "Mutation prob of 
+age-specific genes") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+# sample from the data
+sampled_data_mut_prob <- c()
+for (x in unique(found$mutationProbAgeGenes)){
+  # get subset of this mutation probability
+  sub <- subset(found, found$mutationProbAgeGenes == x)
+  # get 100 randomly sampled and unique IDs 
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 15)]
+  # subset the data of these 100 IDs
+  tmp2 <- subset(sub, sub$ID %in% tmp)
+  # add them to the dataframe 
+  sampled_data_mut_prob <- rbind(sampled_data_mut_prob, tmp2)
+}
+
+## Varying mean mutation bias 
+parent_path <- paste(path, "Quality-only/mean/", sep = "")
+
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes")
+
+# plot this data
+ggplot(data = found, aes(x = ageOfParent, y = expectedAgeAtDeath, color = as.factor(meanMutBias))) +
+  geom_smooth() + 
+  labs(title = "Expected age at death of offspring over parental ages",
+       x = "Age of parent",
+       y = "Expected age of death offspring",
+       color = "Mutation bias") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+# sample from the data
+sampled_data_mean <- c()
+for (x in unique(found$meanMutBias)){
+  # get subset of this mutation probability
+  sub <- subset(found, found$meanMutBias == x)
+  # get 100 randomly sampled and unique IDs 
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 15)]
+  # subset the data of these 100 IDs
+  tmp2 <- subset(sub, sub$ID %in% tmp)
+  # add them to the dataframe 
+  sampled_data_mean <- rbind(sampled_data_mean, tmp2)
+}
+
+## Varying the sd mutational effect size 
+parent_path <- paste(path, "Quality-only/sd/", sep = "")
+
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes")
+
+# plot this data
+ggplot(data = found, aes(x = ageOfParent, y = expectedAgeAtDeath, color = as.factor(sdMutEffectSize))) +
+  geom_smooth() + 
+  labs(title = "Expected age at death of offspring over parental ages",
+       x = "Age of parent",
+       y = "Expected age of death offspring",
+       color = "Mutational effect size") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+# sample from the data
+sampled_data_sd <- c()
+for (x in unique(found$sdMutEffectSize)){
+  # get subset of this mutation probability
+  sub <- subset(found, found$sdMutEffectSize == x)
+  # get 100 randomly sampled and unique IDs 
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 15)]
+  # subset the data of these 100 IDs
+  tmp2 <- subset(sub, sub$ID %in% tmp)
+  # add them to the dataframe 
+  sampled_data_sd <- rbind(sampled_data_sd, tmp2)
+}
+sampled_data_tot <- rbind(sampled_data_mut_prob, sampled_data_mean, sampled_data_sd)
 
