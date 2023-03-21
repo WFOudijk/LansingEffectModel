@@ -877,3 +877,105 @@ for (x in unique(found$sdMutEffectSize)){
 }
 sampled_data_tot <- rbind(sampled_data_mut_prob, sampled_data_mean, sampled_data_sd)
 
+######## looking at age at death - QUALITY-ONLY ##########
+path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/ageAtDeath/"
+theme_big <- theme(axis.text = element_text(size = 20),
+                   axis.title = element_text(size = 20),
+                   title = element_text(size = 20),
+                   legend.text = element_text(size = 20))
+#### Age at death at time > 9000
+myData <- read.table(paste(path, "outputDeclineGameteQuality.txt", sep = "")) # mut prob of age genes = 0.003
+colnames(myData) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete")
+ggplot(myData, aes(ageAtDeath)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Histogram of age at death distribution",
+       subtitle = "At time > 9000. Quality-only scenario.", 
+       x = "Age at death") + 
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        title = element_text(size = 20))
+
+# make age distribution plots
+myData <- read.table(paste(path, "outputAgeAlivePop.txt", sep = ""))
+colnames(myData) <- c("maleAge", "femaleAge")
+# library(reshape2)
+myData <- melt(myData)
+ggplot(myData, aes(x = value, fill = variable)) + 
+  geom_density(alpha=.25) + 
+  labs(title = "Density plot of the age distribution at the final time point",
+       subtitle = "Quality-only scenario.",
+       x = "age") + 
+  theme_big + 
+  scale_fill_manual(values = c("darkblue", "pink")) + 
+  xlim(0, 40)
+
+#### DAMAGE-ONLY
+myData <- read.table(paste(path, "outputDeclineGameteQualityDamage.txt", sep = "")) # mut prob of age genes = 0.003
+colnames(myData) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete")
+ggplot(myData, aes(ageAtDeath)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Histogram of age at death distribution",
+       subtitle = "At time > 9000. Damage-only scenario.", 
+       x = "Age at death") + 
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        title = element_text(size = 20))
+
+# make age distribution plots
+myData <- read.table(paste(path, "outputAgeAlivePopDamage.txt", sep = ""))
+colnames(myData) <- c("maleAge", "femaleAge")
+# library(reshape2)
+myData <- melt(myData)
+ggplot(myData, aes(x = value, fill = variable)) + 
+  geom_density(alpha=.25) + 
+  labs(title = "Density plot of the age distribution at the final time point",
+       subtitle = "Damage-only scenario.",
+       x = "age") + 
+  theme_big + 
+  scale_fill_manual(values = c("darkblue", "pink")) +
+  xlim(0,40)
+
+######## TEST: TO REMOVE ##########
+
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLifeExpectancy.txt")
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLifeExpectancy.txt")
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputWithParentalQuality.txt")
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLETrackedIndividuals.txt")
+
+
+colnames(test) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProb")
+colnames(test) <- c("ID", "age", "survivalProb", "mutationProb") 
+colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProb")
+colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes")
+
+
+
+survivingPop <- test
+
+avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
+colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
+avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
+avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
+
+# look at data  
+ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
+  geom_point() + 
+  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
+                 linetype = 2) +
+  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
+       subtitle = "Dashed lines point to min and max expected age",
+       x = "Age of parent",
+       y = "Expected age of death") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLETrackedIndividuals.txt")
+test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLETrackedIndividuals.txt")
+
+colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
+myLongitudinalData <- test
+
+# geom_smooth for smooth. Use group and color as differing parameter values. Method = gam. 
