@@ -52,8 +52,10 @@ void createOutputDeclineInGameteQuality(const int t,
     std::ofstream ofs;
     ofs.open("outputDeclineGameteQuality.txt", std::ios::app); // output file for age of death
     for (auto i : deadIndividualsVec){
+        char sex = i.isFemaleSex ? 'F' : 'M';
         ofs << t << " "
         << i.age << " "
+        << sex << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
         << (i.averageAgeSpecificGenes[i.age] * i.survivalProb) << " "
@@ -175,7 +177,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << i << " " // write age
             << deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality for this age class
             << p.mutationProb << " "
-            << p.mutationProbStemcell << " "
+            << p.mutationProbStemcell << " "    
             << p.meanMutationBias << " "
             << p.sdMutationalEffectSize << " "
             << p.mutationProbAgeSpecificGenes << std::endl;
@@ -186,7 +188,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             ofs2 << ind << "_" << p.mutationProb << "_" << p.mutationProbStemcell << "_"
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << " "; // use this index as identifier of the individual
-												
+            //ofs2 << deadIndividuals[ind].age << " ";
             // calculate expected age at death for this offspring of the tracked individual
             // get the survival probability of the age-dependent genes
             float ageDependentSurvProb = deadIndividuals[ind].offspring[i].averageAgeSpecificGenes[deadIndividuals[ind].offspring[i].age];

@@ -85,15 +85,15 @@ Individual::Individual(const Parameters& p, // initializing constructor
     ageSpecificGenes[1] = gametePaternal.ageSpecificGenesOfGamete;
 																																																																																		
     // fill the age-specific investment in repair array
-    //ageSpecificInvestmentInRepair[0] = gameteMaternal.ageSpecificInvestmentInRepair;
-    //ageSpecificInvestmentInRepair[1] = gametePaternal.ageSpecificInvestmentInRepair;
+    ageSpecificInvestmentInRepair[0] = gameteMaternal.ageSpecificInvestmentInRepair;
+    ageSpecificInvestmentInRepair[1] = gametePaternal.ageSpecificInvestmentInRepair;
 
     // calculates survivalProb, based on binary genes and
     calcSurvivalProb(p);
     // fills averageAgeSpecificGenes array based on age-specific genes
     calcAverageParentalQuality();
     // fills average averageInvestmentGenes
-    //calcAverageInvestmentGenes();
+    calcAverageInvestmentGenes();
     // get initial quality
    parentalQuality = p.initAgeSpecificGenes;
 
@@ -125,12 +125,12 @@ Individual::Individual(Individual& mother,
     geneticsBinary[1] = gameteFather.genesOfGamete;
     ageSpecificGenes[0] = gameteMother.ageSpecificGenesOfGamete;
     ageSpecificGenes[1] = gameteFather.ageSpecificGenesOfGamete;
-    //ageSpecificInvestmentInRepair[0] = gameteMother.ageSpecificInvestmentInRepair;
-    //ageSpecificInvestmentInRepair[1] = gameteFather.ageSpecificInvestmentInRepair;
+    ageSpecificInvestmentInRepair[0] = gameteMother.ageSpecificInvestmentInRepair;
+    ageSpecificInvestmentInRepair[1] = gameteFather.ageSpecificInvestmentInRepair;
     
     calcSurvivalProb(p); // to set the survival probability of the new individual
     calcAverageParentalQuality(); // averages the age-specific gene arrays
-    //calcAverageInvestmentGenes(); // average the age-specific investment gene arrays;
+    calcAverageInvestmentGenes(); // average the age-specific investment gene arrays;
                                                                                                                                                                                         
     parentalQuality = averageAgeSpecificGenes[0]; // get new individual its quality
                                                                                                                                                                                         
@@ -161,12 +161,12 @@ Gamete Individual::makeGamete(Randomizer& rng,
         gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[y[i]][i]);
     }
     
-//    // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
-//    const std::bitset<40> z{rng.rui64()};
-//
-//    for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
-//        gamete.ageSpecificInvestmentInRepair.push_back(ageSpecificInvestmentInRepair[z[i]][i]);
-//    }
+    // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
+    const std::bitset<40> z{rng.rui64()};
+
+    for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
+        gamete.ageSpecificInvestmentInRepair.push_back(ageSpecificInvestmentInRepair[z[i]][i]);
+    }
 				
     return gamete;
 }
@@ -192,8 +192,11 @@ bool Individual::dies(Randomizer& rng,
     // if quality is on but age-specific genetic effects is off, the age-specific genes do need to evolve (for quality determination)
     // but they should not be taken into account for determining survival probability of the individual
     if (p.addQuality && !p.addAgeSpecific) survivalProbAgeSpec = 1;
-    float investmentInRepair = 1;
-    if (p.addInvestmentInRepair) investmentInRepair = averageInvestmentGenes[age] / (averageInvestmentGenes[age] + p.weightInvestment);
+    
+    // set investment in repair based on their resource budget
+    float investmentInRepair = 1 - p.weightInvestment * (1 - averageInvestmentGenes[age]) * (1 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
+    // if investment is off in the model. It should not play a part. 
+    if (!p.addInvestmentInRepair) investmentInRepair = 1;
     // the survival prob based on both gene arrays
     float survivalProbTot = survivalProbAgeSpec * survivalProb * investmentInRepair;
     // taking extrinsic mortality into account
@@ -226,11 +229,11 @@ void Individual::makeStemcells(const Parameters& p){
     Gamete gamete;
     gamete.genesOfGamete = geneticsBinary[0];
     gamete.ageSpecificGenesOfGamete = ageSpecificGenes[0];
-    //gamete.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[0];
+    gamete.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[0];
     Gamete gamete2;
     gamete2.genesOfGamete = geneticsBinary[1];
     gamete2.ageSpecificGenesOfGamete = ageSpecificGenes[1];
-    //gamete2.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[1];
+    gamete2.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[1];
     std::array<Gamete, 2> genetics = {gamete, gamete2};
 				
     for (unsigned i = 0; i < p.numOfStemCells; ++i){
@@ -275,13 +278,13 @@ Gamete Individual::makeGameteFromStemCell(const Parameters& p,
         gamete.ageSpecificGenesOfGamete.push_back(stemCell[y[i]].ageSpecificGenesOfGamete[i]);
     }
     
-//    // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
-//    const std::bitset<40> z{rng.rui64()};
-//
-//    for (size_t i = 0; i < p.maximumAge; ++i){
-//        // for every age-specific gene of new gamete, determine which gene is inherited
-//        gamete.ageSpecificInvestmentInRepair.push_back(stemCell[z[i]].ageSpecificInvestmentInRepair[i]);
-//    }
+    // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
+    const std::bitset<40> z{rng.rui64()};
+
+    for (size_t i = 0; i < p.maximumAge; ++i){
+        // for every age-specific gene of new gamete, determine which gene is inherited
+        gamete.ageSpecificInvestmentInRepair.push_back(stemCell[z[i]].ageSpecificInvestmentInRepair[i]);
+    }
 				
     return gamete;
 }
@@ -315,8 +318,11 @@ void Individual::calcAverageInvestmentGenes(){
 unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
                                                Randomizer& rng){
     // calculate numOfOffspring based on sigmoidal/logistic function
-    // 10 is to scale the numbers between 0 and 100 and to make the graph less steep. 
-    float numOfOffspring = p.maxOffspring / (1 + std::exp(-10 * (averageInvestmentGenes[age] - p.pointOfHalfMaxOffspring)));
+    // 10 is to scale the numbers between 0 and 100 and to make the graph less steep.
+    //float numOfOffspring = p.maxOffspring / (1 + std::exp(-10 * (averageInvestmentGenes[age] - p.pointOfHalfMaxOffspring))); // sigmoidal
+    //float numOfOffspring = p.maxOffspring * averageInvestmentGenes[age] / (p.pointOfHalfMaxOffspring + averageInvestmentGenes[age]); // quickest?
+    float investmentInReproduction = (1 - averageInvestmentGenes[age]); // determine investment in reproduction based on investment in repair genes.
+    float numOfOffspring = p.maxOffspring * pow(investmentInReproduction, (p.pointOfHalfMaxOffspring + investmentInReproduction));
     // get decimal
     float decimal = numOfOffspring - trunc(numOfOffspring);
     // draw bernoulli based on decimal, if true: round up, if false: round down

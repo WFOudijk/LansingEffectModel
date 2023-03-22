@@ -41,7 +41,7 @@ struct Gamete{
         ageSpecificGenesOfGamete.resize(p.maximumAge, p.initAgeSpecificGenes);
 
         // set age-specific invstment in repair to maximum age and fill with initial value
-        //ageSpecificInvestmentInRepair.resize(p.maximumAge, p.initInvestmentInRepair);
+        ageSpecificInvestmentInRepair.resize(p.maximumAge, p.initInvestmentInRepair);
     }
 
     void mutate(const Parameters& p, Randomizer& rng, const bool isStemcell);
@@ -58,27 +58,31 @@ void Gamete::mutate(const Parameters &p,
      to determine how many times a mutation will occur. Finally, the genes are randomly sampled to determine which will mutate.
      **/
 
-    // mutation of age-specific genes
-    int numOfEvents = rng.drawNumOfMuts(); // draws how many mutations will occur
-
-    // mutate
-    for (int i = 0; i < numOfEvents; ++i){
-        // determine which gene will mutate
-        int geneToMutate = rng.drawRandomNumber(ageSpecificGenesOfGamete.size());
-        // draw the effect from the mutation based on a normal distribution
-        ageSpecificGenesOfGamete[geneToMutate] += rng.drawMutationEffect();
-        // check if the gene value is not < 0 or > 1. If so, gene value is clipped
-        clip01(ageSpecificGenesOfGamete[geneToMutate]);
+    // if both are off, the genes don't need to mutate. Saves speed in model.
+    if(p.addQuality || p.addAgeSpecific){
+        // mutation of age-specific genes
+        int numOfEvents = rng.drawNumOfMuts(); // draws how many mutations will occur
+        // mutate
+        for (int i = 0; i < numOfEvents; ++i){
+            // determine which gene will mutate
+            int geneToMutate = rng.drawRandomNumber(ageSpecificGenesOfGamete.size());
+            // draw the effect from the mutation based on a normal distribution
+            ageSpecificGenesOfGamete[geneToMutate] += rng.drawMutationEffect();
+            // check if the gene value is not < 0 or > 1. If so, gene value is clipped
+            clip01(ageSpecificGenesOfGamete[geneToMutate]);
+        }
     }
     
-//    // mutation of age-specific genes for investment in repair/ reproduction
-//    const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
-//    const unsigned numMut{rng.rpois(expectedNumMut)};
-//    for (int i = 0; i < numMut; ++i){
-//        int geneToMutate = rng.drawRandomNumber(ageSpecificInvestmentInRepair.size());
-//        ageSpecificInvestmentInRepair[geneToMutate] += rng.drawMutationEffectInvestment();
-//        clip01(ageSpecificInvestmentInRepair[geneToMutate]);
-//    }
+    if (p.addInvestmentInRepair) { // if resrouce distribution is on, these genes will mutate
+        // mutation of age-specific genes for investment in repair/ reproduction
+        const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
+        const unsigned numMut{rng.rpois(expectedNumMut)};
+        for (int i = 0; i < numMut; ++i){
+            int geneToMutate = rng.drawRandomNumber(ageSpecificInvestmentInRepair.size());
+            ageSpecificInvestmentInRepair[geneToMutate] += rng.drawMutationEffectInvestment();
+            clip01(ageSpecificInvestmentInRepair[geneToMutate]);
+        }
+    }
 
     // mutation of binary genes
     if (isStemcell) { // if the stemcell will mutate

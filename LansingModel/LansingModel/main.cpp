@@ -30,8 +30,12 @@ int main(int argc, const char * argv[]) {
 				
     if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
     if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
-        p.mutationProbAgeSpecificGenes = 0;
+        //p.mutationProbAgeSpecificGenes = 0;
         p.initAgeSpecificGenes = 1;
+    }
+    if (p.addInvestmentInRepair) {
+        // reset number of gametes per female
+        p.numOfGametes = p.maximumAge * p.maxOffspring;
     }
 				    
     // read parameter file
@@ -54,6 +58,7 @@ int main(int argc, const char * argv[]) {
     indVec deadTrackedIndividuals;
 
     auto t_start = std::chrono::system_clock::now();
+    
     for (int t = 0; t < p.tEnd; ++t){
         std::vector<Individual> deadIndividualsVec; // to examine all dead individuals 
         pop.reproduce(p, rng); // reproduce to make offspring
@@ -64,10 +69,10 @@ int main(int argc, const char * argv[]) {
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << std::endl;
             //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
-            //createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
+            createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
         }
-
     }
+  
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;
     std::cout << "First time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;
@@ -95,10 +100,17 @@ int main(int argc, const char * argv[]) {
         numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
 				
     }
-				
+    std::ofstream ofs;
+    ofs.open("outputAgeAlivePop.txt"); // the output file
+    for (int i =0 ; i < pop.males.size(); ++i) {
+        ofs << pop.males[i].age << " "
+        << pop.females[i].age << std::endl;
+    }
+    ofs.close();
+
     std::cout << "Counter = " << count << std::endl;
     // only create output of life expectancy for the remaining individuals
-    createOutputLifeExpectancy(p, pop.males, pop.females);
+    //createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals
     createOutputTrackedIndividuals(p, deadTrackedIndividuals);
 				

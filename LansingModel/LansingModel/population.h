@@ -58,18 +58,14 @@ void Population::reproduce(const Parameters& p,
         }
         
         // start loop to generate offspring
-        for (unsigned i = 0; i < numOfOffspringPerFemale;){ // loop through number of offspring to produce
+        for (unsigned i = 0; i < numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
             int male = rng.drawRandomNumber(males.size());
-            //int numOfOffspring = males[male].calcNumberOfOffspring(p, rng);
-            //if (numOfOffspring != 0) { // check if male has enough budget to reproduce
-                Individual newOffspring = Individual(females[j], males[male], rng, p);
-                offspring.push_back(newOffspring);
-                ++i; // if this male could not make offspring, i should not increment and a new male will be picked
+            Individual newOffspring = Individual(females[j], males[male], rng, p);
+            offspring.push_back(newOffspring);
                 
-                // keep track of offspring of the flagged individuals
-                if (males[male].tracked) males[male].offspring.push_back(newOffspring);
-                if (females[j].tracked) females[j].offspring.push_back(newOffspring);
-            //}
+            // keep track of offspring of the flagged individuals
+            if (males[male].tracked) males[male].offspring.push_back(newOffspring);
+            if (females[j].tracked) females[j].offspring.push_back(newOffspring);
         }
     }
 }
@@ -98,7 +94,6 @@ void Population::mortalityRound(const Parameters& p,
     for (size_t female = 0; female < females.size();){
         bool die = females[female].dies(rng, p); // check if current female will die
         if (die){ // if this is the case, remove female from vector
-            //deadIndividualsVec.push_back(females[female]);
             if (females[female].tracked){
                 trackedIndividuals.push_back(females[female]);
             }
