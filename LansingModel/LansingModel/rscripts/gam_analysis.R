@@ -10,6 +10,7 @@ library(mgcv)
 d <- sampled_data_tot 
 # damage-only. MutationProbGametes and mutationProbStemCells varied together. 
 d <- sampled_data
+d <- myLongitudinalData
 
 # check number of parents.
 length(unique(d$ID))  
@@ -84,7 +85,7 @@ d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes))
 pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], 
                         mutationProbGametes = levels(d2$mutationProbGametes)[1])
 
-# test 
+# using predict and expand grid to plot offspring expected age over parental age per parameter
 d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes))
 d2 <- d2 %>% mutate(ID = factor(ID))
 d2 <- d2 %>% mutate(ageOfParent = factor(ageOfParent))
@@ -166,14 +167,23 @@ pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1],
                         mutationProbAgeGenes = levels(d2$mutationProbAgeGenes)[1],
                         meanMutBias = levels(d2$meanMutBias)[1],
                         sdMutEffectSize = levels(d2$sdMutEffectSize)[1])
-pred_data = expand.grid(ageOfParent = seq(0,40), ID = levels(d2$ID),
+
+### GENERATE NEW DATA FOR PLOT
+pred_data_test = expand.grid(ageOfParent = seq(0,40), ID = levels(d2$ID),
                         expectedAgeAtDeath = d2$expectedAgeAtDeath,
-                        mutationProbAgeGenes = levels(d2$mutationProbAgeGenes),
-                        meanMutBias = levels(d2$meanMutBias)[5],
-                        sdMutEffectSize = levels(d2$sdMutEffectSize)[5])
-t = expand.grid(ageOfParent = seq(0, 40), ID = levels(d2$ID)[1], 
+                        mutationProbAgeGenes = levels(d2$mutationProbAgeGenes), # get all mutation probs 
+                        meanMutBias = levels(d2$meanMutBias)[5], # make constant
+                        sdMutEffectSize = levels(d2$sdMutEffectSize)[5]) # make constant 
+# what does the new data need? 
+
+test = expand.grid(ageOfParent = seq(0, 40), ID = levels(d2$ID)[1], 
                  mutationProbAgeGenes = levels(d2$mutationProbAgeGenes))
-t$z <- predict(m1zb, t)
+
+# add the predict outcome to the new data? 
+test$z <- predict(m1zb, t)
+pred_data_test$z <- predict(m1zb, newdata = pred_data, type="terms",terms = c("s(ageOfParent)", "ti(ageOfParent,mutationProbAgeGenes)"))
+# plot ? How to plot per parameter group? 
+
 #######################
 ## Predict, only using the first term (i.e. without the "random" effect)
 z <- predict(m1zb, newdata = pred_data, type="terms",terms = c("s(ageOfParent)", "ti(ageOfParent,mutationProbAgeGenes)"))
