@@ -2,12 +2,8 @@ library(tidyverse)
 library(mgcv)
 
 #d <- read.csv("maternal_LE.csv")
-d <- sub_maternal_LE
-d <- sub_paternal_LE
-d <- sub_both_LE
+
 d <- myLongitudinalData
-d <- subSexSpec
-d <- equi_timepoint
 d <- trackedIndividuals
 
 ggplot(d,aes(x=expectedAgeAtDeath)) + geom_histogram(bins=50)
@@ -203,16 +199,10 @@ loo_compare(m2,m3, criterion = "loo")
 
 d <- myLongitudinalData
 d <- trackedIndividuals
-males <- subset(trackedIndividuals, sexOfParent == "M")
-females <- subset(trackedIndividuals, sexOfParent == "F")
-d <- males
-d <- females
-d <- myData1000Time
+d <- found
 
 length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
-# 478 unique fathers
-# 500 unique mothers
-# 5877 IDs; 6000 tracked. 
+
 
 ## Count how many unique ageOfParent per ID
 z <- d %>% group_by(ID) %>% summarize(na = length(unique(ageOfParent)))
@@ -222,13 +212,10 @@ table(z$na) # indeed there are plenty with more than 1 ageOfParent!
 d <- d %>% left_join(z,by="ID")
 
 ## Filter out the one with 1 observation (but this selects ...)
-## Filter out the one with 1 observation (but this selects the individuals that die in the first time step)
-# filters out the weaker individuals. probably. 
-
 
 d <- d %>% filter(na>1)
 
-d <- d %>% mutate(ID = factor(ID)) # TODO: try this with the gam 
+d <- d %>% mutate(ID = factor(ID)) 
 
 # compares 40 to the expected age at death. If expectedAgeAtDeath is lower > that will be y1; else it becomes 40 
 d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath)) 
@@ -240,57 +227,74 @@ dshort <- d[d$ID %in% IDsample, ]
 ggplot(dshort,aes(x=ageOfParent,y=y2, color = factor(ID))) +
   geom_point() +
   geom_smooth(method = lm, se = F)
-## very weak downward trend towards the right ...
+# very weak downward trend towards the right ...
 
 library(lme4)
 library(lmerTest)
-d$az <- (d$ageOfParent - mean(d$ageOfParent)) / sd(d$ageOfParent)
-m1 <- lmer(y2 ~ az + (az | ID), 
-           data = d, 
-           control=lmerControl(calc.derivs = F))
 m1 <- lmer(y2 ~ ageOfParent + (ageOfParent | ID), 
            data = d, 
            control=lmerControl(calc.derivs = F))
 
 summary(m1)
-# males: negative estimate with p-val = 3.92e-5
-#confint(m1)
-# males: negative confidence intervals
+confint(m1)
 
-plot(m1) # hmmm
+plot(m1) 
 
 ## Work with logits (then (0,1) -> (-inf,+inf))
 d <- d %>% mutate(y3 = car::logit(y2))
 
-m1b <- lmer(y3 ~ ageOfParent + (ageOfParent | ID),data = d, control=lmerControl(calc.derivs = F))
+m1b <- lmer(y3 ~ ageOfParent + (ageOfParent | ID),
+            data = d, control=lmerControl(calc.derivs = F))
 summary(m1b)
-# females: estimate is negative with a p-value of 0.017
-# males: negative estimate with p-val = 1.27e-7
 plot(m1b)
 
 ## Work with glmmTMB, which has beta distribution:
 
 library(glmmTMB)
 m1c <- glmmTMB(y2 ~ ageOfParent + (ageOfParent | ID), data =d, family = beta_family())
-## A warning; don't know how serious
+# A warning; don't know how serious
 summary(m1c)
-## So anyway, all models agree that there's a negative relation.
-# females: estimate is negative with a p-value of 0.045 
-# males: estimate is negative with p-val = 9.77e-5
+# So anyway, all models agree that there's a negative relation.
+repl <- 1:10
+rangeMean <- c(-0.05 + repl * 0.0055) # range used in job array. Doesn't work? Do not understand why. 
+rangeMean <- c(-0.0445, -0.0390, -0.0335, -0.0280, -0.0225, -0.0170, -0.0115, -0.0060, -0.0005, 0.0050)
+rangeSD <- repl * 0.006
+rangeSD <- c(0.006, 0.012, 0.018, 0.024, 0.030, 0.036, 0.042, 0.048, 0.054, 0.060)
+rangeMutProb <- c(0.0004, 0.0008, 0.0012, 0.0016, 0.0020, 0.0024, 0.0028, 0.0032, 0.0036, 0.0040)
+for (x in rangeMutProb) {
+  d2 <- subset(d, d$mutationProbGametes == x)
+  d2 <- d2 %>% filter(na>32)
+  m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+             #family=betar(link="logit"),
+             data=d2,
+             method = "REML")
+  pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1])
+  z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(ageOfParent)"))
+  zl <- logist(z)
+  perc_decr <- 100*(zl[1]-zl[2])/zl[1]
+  
+  plot(m1z, trans = logist, ylab = "Expected age at death of offspring",
+       main = paste("with effect size = ", x, " and % decrease = ", perc_decr),
+       ylim = c(10, 35))
+}
 
+# remove some data otherwise it takes too long 
+d2 <- d %>% filter(na>20)
 
-## The gam model with beta family takes too long.
-## I'm going to remove some data.
-d2 <- d %>% filter(na>18)
-d3 <- d2 %>% filter(na<21)
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
 m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
+# interaction term. use k = 5. One-by-one? 
+
+d2 <- d2 %>% mutate(ID = factor(ID)) 
+d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes)) 
 
 pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1])
+pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], mutationProbGametes = levels(d2$mutationProbGametes)[1])
+
 
 ## Predict, only using the first term (i.e. without the "random" effect)
 z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(ageOfParent)"))
@@ -300,35 +304,17 @@ str(z)
 zl <- logist(z)
 
 ## Percentage decrease:
-100*(zl[1]-zl[2])/zl[1]
-## 14%
-
-# m1a = model with only age-specific genes to true: {0.0004; 0.002; 0.002} # 1
-# m1b = model with only age-specific genes to true: {0.0005; 0.002; 0.002} # 2
-# m1c = model with only age-specific genes to true: {0.0005; 0.002; 0.002} mut prob = -0.03 # 3
-# m1d = model with only age-specific genes to true: {0.0007; 0.002; 0.002} mut prob = -0.01 # 4
-# m1e = model with only age-specific genes to true: {0.0009; 0.002; 0.002} mut prob = -0.01 # 5
-# m1f = model with only age-specific genes to true: {0.0009; 0.002; 0.002} mut prob = -0.02 # 6
-# m1g = model with only age-specific genes to true: {0.001; 0.002; 0.002} # 7
-# m1h = model with only age-specific genes to true: {0.0015; 0.002; 0.002} # 8
-# m1i = model with only age-specific genes to true: {0.002; 0.002; 0.002} # 9
-
-
-# m1j = model with only binary genes to true: {0.002; 0.002} # 1
-# m1k = model with only binary genes to true: {0.004; 0.004} # 2 
-
-# m1l = model with both quality and age-specific genes to true: {0.0004} #1
-
+perc_decr <- 100*(zl[1]-zl[2])/zl[1]
+perc_decr
 
 summary(m1z)
-# females: edf of 2.249 with p-val = 6.59e*-6
-# males: edf of 1 with p-val of 2e-16
-gratia::draw(m1z, fun = logist)
 
-## Overall curve linear (edf=1). Lots of variability
+#gratia::draw(m1z, fun = logist, main = "test")
+plot(m1z, trans = logist, 
+     #xlab = "Parental age",
+     #ylab = "Expected age at death of offspring",
+     #main = paste("% decrease = ", perc_decr)
+     )
 
-
-
-
-
+##########################################################################
 

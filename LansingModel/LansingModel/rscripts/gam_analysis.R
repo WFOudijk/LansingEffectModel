@@ -54,7 +54,8 @@ summary(m1z)
 ## Model with interaction (ti term)
 m1zb <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) +
               s(mutationProbGametes, k = 5) +
-              ti(ageOfParent, mutationProbGametes, k = c(5,5)),
+              ti(ageOfParent, mutationProbGametes, k = c(5,5)), 
+              #ti(ageOfParent, mutationProbSC, k = c(5,5)),
             #family=betar(link="logit"),
             data=d2,
             method = "REML")
@@ -85,27 +86,41 @@ d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes))
 pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], 
                         mutationProbGametes = levels(d2$mutationProbGametes)[1])
 
-# using predict and expand grid to plot offspring expected age over parental age per parameter
-d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes))
-d2 <- d2 %>% mutate(ID = factor(ID))
-d2 <- d2 %>% mutate(ageOfParent = factor(ageOfParent))
+# GENERATE NEW DATA FOR PLOT
+len <- 20
+length(unique(d2$mutationProbGametes)) #10
+length(unique(d2$mutationProbSC)) #10
 
-pred_data = expand.grid(ageOfParent = levels(d2$ageOfParent), ID = levels(d2$ID),
-                        mutationProbGametes = levels(d2$mutationProbGametes))
+# I'm using 20 age values, and 4 for each of the 2 other predictors.
+# Could use all of course, but then the plot becomes a bit messy.
+# A single ID value because we will ignore the term involving ID anyway.
+d.pred <- expand.grid(ageOfParent=seq(0,40,length=len),
+                      ID=levels(d2$ID)[1],
+                      mutationProbGametes=unique(d2$mutationProbGametes))
+                      #mutationProbSC=unique(d2$mutationProbSC)[c(1,4,7,10)])
 
-pred_data$z <- predict(m1zb, newdata = pred_data, type="terms",terms = c("s(ageOfParent)", "ti(ageOfParent,mutationProbGametes)"))
-pred_data$z <- logist(pred_data$z)
+# Compute all terms, excluding the one with ID
+z <- predict(m1zb,newdata = d.pred,
+             type = "terms",
+             exclude = c("s(ageOfParent,ID)"))
+str(z) # contains 9 terms (the s and ti terms, not including the intercept)
+attr(z,"constant") # here is the intercept
 
-d2$z <- predict(m1zb)
-d2$z <- logist(d2$z)
-ggplot(d2, aes(ageOfParent, z, group = factor(mutationProbGametes), color = factor(mutationProbGametes))) + geom_smooth() 
+# Add intercept and all terms, transform back
+d.pred$y3 <- attr(z,"constant") + apply(z,1,sum) 
+logist <- function(x) 1/(1+exp(-x))
+d.pred$y4 <- 40*logist(d.pred$y3)
 
-ggplot(pred_data, aes(ageOfParent, z[,1], group = factor(mutationProbGametes), color = factor(mutationProbGametes))) +
-  geom_point()
-d3 <- d2
-d3$z <- predict(m1zb, newdata = pred_data, type="terms",terms = c("s(ageOfParent)", "ti(ageOfParent,mutationProbGametes)"))
-ggplot(data = d3, aes(x = ageOfParent, z, group = factor(mutationProbGametes), color = factor(mutationProbGametes))) +
-  geom_smooth()
+# Use predictors as factors for use in ggplot
+d.pred <- d.pred %>% mutate(mutationProbGametes=factor(mutationProbGametes))
+                            #mutationProbSC=factor(mutationProbSC))
+
+ggplot(d.pred,aes(x=ageOfParent,y=y4,color=mutationProbGametes)) +
+  theme_cowplot() +
+  geom_line() +
+  #facet_wrap(mutationProbSC) +
+  background_grid(major = "xy")
+
 
 ##########################
 #for quality-only scenario
@@ -169,20 +184,42 @@ pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1],
                         sdMutEffectSize = levels(d2$sdMutEffectSize)[1])
 
 ### GENERATE NEW DATA FOR PLOT
-pred_data_test = expand.grid(ageOfParent = seq(0,40), ID = levels(d2$ID),
-                        expectedAgeAtDeath = d2$expectedAgeAtDeath,
-                        mutationProbAgeGenes = levels(d2$mutationProbAgeGenes), # get all mutation probs 
-                        meanMutBias = levels(d2$meanMutBias)[5], # make constant
-                        sdMutEffectSize = levels(d2$sdMutEffectSize)[5]) # make constant 
-# what does the new data need? 
+len <- 20
+length(unique(d2$mutationProbAgeGenes)) #11
+length(unique(d2$meanMutBias)) #10
+length(unique(d2$sdMutEffectSize)) #10
 
-test = expand.grid(ageOfParent = seq(0, 40), ID = levels(d2$ID)[1], 
-                 mutationProbAgeGenes = levels(d2$mutationProbAgeGenes))
+# I'm using 20 age values, and 4 for each of the 3 other predictors.
+# Could use all of course, but then the plot becomes a bit messy.
+# A single ID value because we will ignore the term involving ID anyway.
+d.pred <- expand.grid(ageOfParent=seq(0,40,length=len),
+                      ID=levels(d2$ID)[1],
+                      mutationProbAgeGenes=unique(d2$mutationProbAgeGenes)[c(1,4,7,11)],
+                      meanMutBias=unique(d2$meanMutBias)[c(1,4,7,10)],
+                      sdMutEffectSize=unique(d2$sdMutEffectSize)[c(1,4,7,10)])
 
-# add the predict outcome to the new data? 
-test$z <- predict(m1zb, t)
-pred_data_test$z <- predict(m1zb, newdata = pred_data, type="terms",terms = c("s(ageOfParent)", "ti(ageOfParent,mutationProbAgeGenes)"))
-# plot ? How to plot per parameter group? 
+# Compute all terms, excluding the one with ID
+z <- predict(m1zb,newdata = d.pred,
+             type = "terms",
+             exclude = c("s(ageOfParent,ID)"))
+str(z) # contains 9 terms (the s and ti terms, not including the intercept)
+attr(z,"constant") # here is the intercept
+
+# Add intercept and all terms, transform back
+d.pred$y3 <- attr(z,"constant") + apply(z,1,sum) 
+logist <- function(x) 1/(1+exp(-x))
+d.pred$y4 <- 40*logist(d.pred$y3)
+
+# Use predictors as factors for use in ggplot
+d.pred <- d.pred %>% mutate(mutationProbAgeGenes=factor(mutationProbAgeGenes),
+                            meanMutBias=factor(meanMutBias),
+                            sdMutEffectSize=factor(sdMutEffectSize))
+
+ggplot(d.pred,aes(x=ageOfParent,y=y4,color=mutationProbAgeGenes)) +
+  theme_cowplot() +
+  geom_line() +
+  facet_wrap(meanMutBias~sdMutEffectSize) +
+  background_grid(major = "xy")
 
 #######################
 ## Predict, only using the first term (i.e. without the "random" effect)
