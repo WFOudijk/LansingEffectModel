@@ -15,7 +15,7 @@ struct Parameters {
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(1000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -29,7 +29,7 @@ struct Parameters {
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.1),
-                   mutationProbInvestmentGenes(0.001),
+                   mutationProbInvestmentGenes(0.003),
                    weightInvestment(0.3),
                    maxOffspring(4),
                    pointOfHalfMaxOffspring(0.5),

@@ -52,13 +52,20 @@ void createOutputDeclineInGameteQuality(const int t,
     std::ofstream ofs;
     ofs.open("outputDeclineGameteQuality.txt", std::ios::app); // output file for age of death
     for (auto i : deadIndividualsVec){
+        // if age-specific gene effect should not be taken into account, this will be set to 1.
+        float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : i.averageAgeSpecificGenes[i.age];
+        // set investment in repair based on their resource budget
+        float investmentInRepair = 1 - p.weightInvestment * (1 - i.averageInvestmentGenes[i.age]) * (1 - i.averageInvestmentGenes[i.age]); // 1 - c3 * (1 - a)^2
+        // if investment is off in the model. It should not play a part.
+        if (!p.addInvestmentInRepair) investmentInRepair = 1;
+        
         char sex = i.isFemaleSex ? 'F' : 'M';
         ofs << t << " "
         << i.age << " "
         << sex << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
-        << (i.averageAgeSpecificGenes[i.age] * i.survivalProb) << " "
+        << (ageSpecSurvProb * i.survivalProb * investmentInRepair) << " "
         << p.mutationProbStemcell << " "
         << p.mutationProb << std::endl;
     }
@@ -75,11 +82,16 @@ void createOutputLifeExpectancy(const Parameters& p,
         exit(EXIT_FAILURE);
     }
     for (Individual male : males){
-        float ageSpecSurvProb; // male survival probability based on age-specific gene
         // if age-specific gene effect should not be taken into account, this will be set to 1.
-        ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageAgeSpecificGenes[male.age];
+        float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageAgeSpecificGenes[male.age];
+        // set investment in repair based on their resource budget
+        float investmentInRepair = 1 - p.weightInvestment * (1 - male.averageInvestmentGenes[male.age]) * (1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
+        // if investment is off in the model. It should not play a part.
+        if (!p.addInvestmentInRepair) investmentInRepair = 1;
+        
+        
         // calculates survival into the next year
-        float s = ageSpecSurvProb * male.survivalProb * (1 - p.extrinsicMortRisk);
+        float s = ageSpecSurvProb * male.survivalProb * investmentInRepair * (1 - p.extrinsicMortRisk);
         // calculate expected age at death
         float expectedAgeAtDeath = male.age + (s / (1 - s));
         
@@ -88,7 +100,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfMother << " "
         << "F "
-        << (ageSpecSurvProb * male.survivalProb) << " "
+        << (ageSpecSurvProb * male.survivalProb * investmentInRepair) << " "
         << p.mutationProb << " "
         << p.mutationProbStemcell << " "
         << p.meanMutationBias << " "
@@ -100,7 +112,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << male.ageOfFather << " "
         << "M "
-        << (ageSpecSurvProb * male.survivalProb) << " "
+        << (ageSpecSurvProb * male.survivalProb * investmentInRepair) << " "
         << p.mutationProb << " "
         << p.mutationProbStemcell << " "
         << p.meanMutationBias << " "
@@ -113,8 +125,13 @@ void createOutputLifeExpectancy(const Parameters& p,
         float ageSpecSurvProb; // female survival probability based on age-specific gene
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : female.averageAgeSpecificGenes[female.age];
+        // set investment in repair based on their resource budget
+        float investmentInRepair = 1 - p.weightInvestment * (1 - female.averageInvestmentGenes[female.age]) * (1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
+        // if investment is off in the model. It should not play a part.
+        if (!p.addInvestmentInRepair) investmentInRepair = 1;
+        
         // calculates survival into the next year
-        float s = ageSpecSurvProb * female.survivalProb * (1 - p.extrinsicMortRisk);
+        float s = ageSpecSurvProb * female.survivalProb * investmentInRepair * (1 - p.extrinsicMortRisk);
         // calculate expected age at death
         float expectedAgeAtDeath = female.age + (s / (1 - s));
         
@@ -123,7 +140,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfMother << " "
         << "F "
-        << (ageSpecSurvProb * female.survivalProb) << " "
+        << (ageSpecSurvProb * female.survivalProb * investmentInRepair) << " "
         << p.mutationProb << " "
         << p.mutationProbStemcell << " "
         << p.meanMutationBias << " "
@@ -135,7 +152,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         << expectedAgeAtDeath << " "
         << female.ageOfFather << " "
         << "M "
-        << (ageSpecSurvProb * female.survivalProb) << " "
+        << (ageSpecSurvProb * female.survivalProb * investmentInRepair) << " "
         << p.mutationProb << " "
         << p.mutationProbStemcell << " "
         << p.meanMutationBias << " "
@@ -153,7 +170,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
 				
     // open file to write output for the
     std::ofstream ofs;
-    ofs.open("outputWithParentalQuality.txt"); // the output file
+    ofs.open("outputWithInvestmentDistribution.txt"); // the output file
     if (!ofs.is_open()){
         std::cerr << "Error. Unable to open output file.\n";
         exit(EXIT_FAILURE);
@@ -175,7 +192,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << " " // write as id of individual
             << i << " " // write age
-            << deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality for this age class
+            << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental quality for this age class
             << p.mutationProb << " "
             << p.mutationProbStemcell << " "    
             << p.meanMutationBias << " "
@@ -188,15 +205,22 @@ void createOutputTrackedIndividuals(const Parameters& p,
             ofs2 << ind << "_" << p.mutationProb << "_" << p.mutationProbStemcell << "_"
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << " "; // use this index as identifier of the individual
-            //ofs2 << deadIndividuals[ind].age << " ";
+            
             // calculate expected age at death for this offspring of the tracked individual
             // get the survival probability of the age-dependent genes
             float ageDependentSurvProb = deadIndividuals[ind].offspring[i].averageAgeSpecificGenes[deadIndividuals[ind].offspring[i].age];
             if (p.addQuality && !p.addAgeSpecific) ageDependentSurvProb = 1; // if
+            
             // get the survival probability of the binary genes
             float binarySurvProb = deadIndividuals[ind].offspring[i].survivalProb;
-            // mulitply the above-mentioned two to get total survival probability
-            float totSurvProb = ageDependentSurvProb * binarySurvProb;
+            
+            // set investment in repair based on their resource budget
+            float investmentInRepair = 1 - p.weightInvestment * (1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]) * (1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
+            // if investment is off in the model. It should not play a part.
+            if (!p.addInvestmentInRepair) investmentInRepair = 1;
+            
+            // mulitply the above-mentioned three to get total survival probability
+            float totSurvProb = ageDependentSurvProb * binarySurvProb * investmentInRepair;
             // calculate s = yearly probability of survival to the next year
             float s = totSurvProb * (1 - p.extrinsicMortRisk);
             // calculate expected age at death
@@ -206,7 +230,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             (deadIndividuals[ind].isFemaleSex) ? ofs2 << deadIndividuals[ind].offspring[i].ageOfMother : ofs2 << deadIndividuals[ind].offspring[i].ageOfFather;
             ofs2 << " ";
             (deadIndividuals[ind].isFemaleSex) ? ofs2 << "F " : ofs2 << "M ";
-            ofs2 << (ageDependentSurvProb * binarySurvProb) << " " // write survival probability to file
+            ofs2 << (ageDependentSurvProb * binarySurvProb * investmentInRepair) << " " // write survival probability to file
             << expectedAgeAtDeath << " "
             << p.mutationProb << " "
             << p.mutationProbStemcell << " "

@@ -291,6 +291,7 @@ Gamete Individual::makeGameteFromStemCell(const Parameters& p,
 
 void Individual::calcSurvivalProb(const Parameters& p){
     /**Function to calculate the survival probability of the individual. Based on the number of damaged genes in the binary array. */
+    
     // calculate the survival probability based on the binary represented gene array
     // sum number of ones to calculate the survival probability
     int sumOfDamage1 = std::accumulate(geneticsBinary[0].begin(), geneticsBinary[0].end(), 0);
@@ -301,7 +302,8 @@ void Individual::calcSurvivalProb(const Parameters& p){
 }
 
 void Individual::calcAverageParentalQuality(){
-    // calculate the array with the average for the age-specific genes
+    /** Function to calculate the array with the average for the age-specific parental quality genes **/
+    
     for (size_t i = 0; i < ageSpecificGenes[0].size(); ++i){
         float average = (ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5;
         averageAgeSpecificGenes.push_back(average);
@@ -309,6 +311,8 @@ void Individual::calcAverageParentalQuality(){
 }
 
 void Individual::calcAverageInvestmentGenes(){
+    /** Function to calculate the array with the average for the age-specific repair/reproduction distribution genes **/
+
     for (size_t i = 0; i < ageSpecificInvestmentInRepair[0].size(); ++i){
         float average = (ageSpecificInvestmentInRepair[0][i] + ageSpecificInvestmentInRepair[1][i]) * 0.5;
         averageInvestmentGenes.push_back(average);
@@ -317,14 +321,22 @@ void Individual::calcAverageInvestmentGenes(){
 
 unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
                                                Randomizer& rng){
+    /**Function to calculate the number of offspring an individual wil get based on their investment in repair/reproduction distribution.
+     The function uses stochastic rounding to determine the actual number of offspring. **/
+    
+    // determine investment in reproduction based on investment in repair genes.
+    float investmentInReproduction = (1 - averageInvestmentGenes[age]);
+    
     // calculate numOfOffspring based on sigmoidal/logistic function
     // 10 is to scale the numbers between 0 and 100 and to make the graph less steep.
     //float numOfOffspring = p.maxOffspring / (1 + std::exp(-10 * (averageInvestmentGenes[age] - p.pointOfHalfMaxOffspring))); // sigmoidal
-    //float numOfOffspring = p.maxOffspring * averageInvestmentGenes[age] / (p.pointOfHalfMaxOffspring + averageInvestmentGenes[age]); // quickest?
-    float investmentInReproduction = (1 - averageInvestmentGenes[age]); // determine investment in reproduction based on investment in repair genes.
-    float numOfOffspring = p.maxOffspring * pow(investmentInReproduction, (p.pointOfHalfMaxOffspring + investmentInReproduction));
-    // get decimal
-    float decimal = numOfOffspring - trunc(numOfOffspring);
+    
+    float numOfOffspring = p.maxOffspring * averageInvestmentGenes[age] / (p.pointOfHalfMaxOffspring + averageInvestmentGenes[age]); // quickest?
+    
+    //float numOfOffspring = p.maxOffspring * pow(investmentInReproduction, (p.pointOfHalfMaxOffspring + investmentInReproduction)); max * x^(0.5+x)
+    
+    // stochastic rounding
+    float decimal = numOfOffspring - trunc(numOfOffspring); // get decimal
     // draw bernoulli based on decimal, if true: round up, if false: round down
     unsigned int numOfOffspringRounded = (rng.bernoulli(decimal)) ? (numOfOffspring + (1 - decimal)) : trunc(numOfOffspring);
     // return rounded number
