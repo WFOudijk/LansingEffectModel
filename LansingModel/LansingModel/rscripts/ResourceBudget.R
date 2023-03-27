@@ -53,7 +53,8 @@ colnames(parentalInvestment) <- c("ID", "age", "investmentInRepair", "mutationPr
 parentalInvestmentSub <- subset(parentalInvestment, parentalInvestment$ID >= 990)
 
 ggplot(data = parentalInvestmentSub, aes(age, investmentInRepair, group = ID, color = factor(ID))) +
-  geom_line() +
+  #geom_smooth(se = F) +
+ geom_line() +
   labs(title = "Looking at parental investment in repair per age class",
        #subtitle = "With differing mean mutation bias",
        x = "Age",
@@ -64,8 +65,6 @@ ggplot(data = parentalInvestmentSub, aes(age, investmentInRepair, group = ID, co
         axis.text.x = element_text(angle = 90, size = 7)) +
   scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
   ylim(0, 1)
-
-
 
 
 ######## TEST: TO REMOVE ##########

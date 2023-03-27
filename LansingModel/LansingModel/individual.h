@@ -329,9 +329,9 @@ unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
     
     // calculate numOfOffspring based on sigmoidal/logistic function
     // 10 is to scale the numbers between 0 and 100 and to make the graph less steep.
-    //float numOfOffspring = p.maxOffspring / (1 + std::exp(-10 * (averageInvestmentGenes[age] - p.pointOfHalfMaxOffspring))); // sigmoidal
+    //float numOfOffspring = p.maxOffspring / (1 + std::exp(-10 * (investmentInReproduction - p.pointOfHalfMaxOffspring))); // sigmoidal
     
-    float numOfOffspring = p.maxOffspring * averageInvestmentGenes[age] / (p.pointOfHalfMaxOffspring + averageInvestmentGenes[age]); // quickest?
+    float numOfOffspring = p.maxOffspring * investmentInReproduction / (p.pointOfHalfMaxOffspring + investmentInReproduction); // quickest?
     
     //float numOfOffspring = p.maxOffspring * pow(investmentInReproduction, (p.pointOfHalfMaxOffspring + investmentInReproduction)); max * x^(0.5+x)
     

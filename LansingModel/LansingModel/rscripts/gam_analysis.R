@@ -37,7 +37,7 @@ d <- d %>% mutate(y3 = car::logit(y2))
 
 # GAM analysis
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>12)
+d2 <- d %>% filter(na>6)
 
 ##########################
 #for damage-only scenario
@@ -54,13 +54,15 @@ summary(m1z)
 ## Model with interaction (ti term)
 m1zb <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) +
               s(mutationProbGametes, k = 5) +
-              ti(ageOfParent, mutationProbGametes, k = c(5,5)), 
-              #ti(ageOfParent, mutationProbSC, k = c(5,5)),
+              ti(ageOfParent, mutationProbGametes, k = c(5,5)) + 
+             # ti(ageOfParent, mutationProbSC, k = c(7,7)),
             #family=betar(link="logit"),
             data=d2,
             method = "REML")
 summary(m1zb)
 ## ti effect significant (barely)
+# ti between Sc and age of parent significant, but ti between gamete and age of parent 
+# not ... Why? They mutate at the same rate. 
 
 AIC(m1z,m1zb)
 ## Appears to be an interaction since m1zb better
@@ -97,7 +99,7 @@ length(unique(d2$mutationProbSC)) #10
 d.pred <- expand.grid(ageOfParent=seq(0,40,length=len),
                       ID=levels(d2$ID)[1],
                       mutationProbGametes=unique(d2$mutationProbGametes))
-                      #mutationProbSC=unique(d2$mutationProbSC)[c(1,4,7,10)])
+                      #mutationProbSC=unique(d2$mutationProbSC))
 
 # Compute all terms, excluding the one with ID
 z <- predict(m1zb,newdata = d.pred,
@@ -118,8 +120,9 @@ d.pred <- d.pred %>% mutate(mutationProbGametes=factor(mutationProbGametes))
 ggplot(d.pred,aes(x=ageOfParent,y=y4,color=mutationProbGametes)) +
   theme_cowplot() +
   geom_line() +
-  #facet_wrap(mutationProbSC) +
+  #facet_wrap(d.pred$mutationProbSC) +
   background_grid(major = "xy")
+
 
 
 ##########################
@@ -143,8 +146,8 @@ m1zb <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) +
              ti(ageOfParent,meanMutBias,k=c(5,5)) +
              ti(ageOfParent,sdMutEffectSize,k=c(5,5)) +
              ti(mutationProbAgeGenes,meanMutBias, k=c(5,5)) +
-             ti(mutationProbAgeGenes, sdMutEffectSize, k=c(5,5)),
-             #ti(meanMutBias, sdMutEffectSize, k=c(5,5)),
+             ti(mutationProbAgeGenes, sdMutEffectSize, k=c(5,5)) +
+             ti(meanMutBias, sdMutEffectSize, k=c(9,9)),
              #ti(meanMutBias, mutationProbAgeGenes, k=c(5,5)) + 
              #ti(sdMutEffectSize, mutationProbAgeGenes, k=c(5,5)),
              #ti(sdMutEffectSize, meanMutBias, k=c(5,5)), 
@@ -220,6 +223,19 @@ ggplot(d.pred,aes(x=ageOfParent,y=y4,color=mutationProbAgeGenes)) +
   geom_line() +
   facet_wrap(meanMutBias~sdMutEffectSize) +
   background_grid(major = "xy")
+
+# per parameter. 
+t <- subset(d.pred, d.pred$meanMutBias == -0.022 & d.pred$sdMutEffectSize == 0.024)
+ggplot(t, aes(x = ageOfParent, y = y4, color = mutationProbAgeGenes)) +
+  geom_line()
+t <- subset(d.pred, d.pred$mutationProbAgeGenes == 0.003 & d.pred$sdMutEffectSize == 0.024)
+ggplot(t, aes(x = ageOfParent, y = y4, color = meanMutBias)) +
+  geom_line()
+t <- subset(d.pred, d.pred$mutationProbAgeGenes == 0.003 & d.pred$meanMutBias == -0.022)
+ggplot(t, aes(x = ageOfParent, y = y4, color = sdMutEffectSize)) +
+  geom_line()
+# they resemble the ggplot geom_smooth a lot. 
+
 
 #######################
 ## Predict, only using the first term (i.e. without the "random" effect)
