@@ -13,4 +13,9 @@ inline void clip01(T& x){
     if (x<0.0) x=0.0; else if (x>1.0) x=1.0;
 }
 
+template<typename T>
+inline T sqr(T x){
+    return x*x;
+}
+
 #endif // UTILS_H

@@ -194,7 +194,8 @@ bool Individual::dies(Randomizer& rng,
     if (p.addQuality && !p.addAgeSpecific) survivalProbAgeSpec = 1;
     
     // set investment in repair based on their resource budget
-    float investmentInRepair = 1 - p.weightInvestment * (1 - averageInvestmentGenes[age]) * (1 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
+    float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
+    
     // if investment is off in the model. It should not play a part. 
     if (!p.addInvestmentInRepair) investmentInRepair = 1;
     // the survival prob based on both gene arrays
@@ -305,8 +306,7 @@ void Individual::calcAverageParentalQuality(){
     /** Function to calculate the array with the average for the age-specific parental quality genes **/
     
     for (size_t i = 0; i < ageSpecificGenes[0].size(); ++i){
-        float average = (ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5;
-        averageAgeSpecificGenes.push_back(average);
+        averageAgeSpecificGenes.emplace_back((ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5);
     }
 }
 
@@ -314,8 +314,7 @@ void Individual::calcAverageInvestmentGenes(){
     /** Function to calculate the array with the average for the age-specific repair/reproduction distribution genes **/
 
     for (size_t i = 0; i < ageSpecificInvestmentInRepair[0].size(); ++i){
-        float average = (ageSpecificInvestmentInRepair[0][i] + ageSpecificInvestmentInRepair[1][i]) * 0.5;
-        averageInvestmentGenes.push_back(average);
+        averageInvestmentGenes.emplace_back((ageSpecificInvestmentInRepair[0][i] + ageSpecificInvestmentInRepair[1][i]) * 0.5);
     }
 }
 

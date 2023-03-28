@@ -192,7 +192,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << " " // write as id of individual
             << i << " " // write age
-            << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental quality for this age class
+            << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
             << p.mutationProb << " "
             << p.mutationProbStemcell << " "    
             << p.meanMutationBias << " "

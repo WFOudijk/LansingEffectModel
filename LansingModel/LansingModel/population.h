@@ -32,7 +32,7 @@ void Population::makePopulation(const Parameters& p,
 				
     females.reserve(p.populationSize);
     males.reserve(p.populationSize);
-    offspring.reserve(p.populationSize * p.numOfOffspringPerFemale);
+    offspring.reserve(p.populationSize * (p.numOfOffspringPerFemale + 1));
 				
     for (size_t i = 0; i < p.populationSize; ++i) {
         males.emplace_back(p, rng, false);
@@ -47,7 +47,7 @@ void Population::reproduce(const Parameters& p,
 				
     offspring.clear(); // to make sure the vector is empty
     
-    for (auto j = 0u; j < females.size(); ++j){ // loop through every female
+    for (size_t j = 0; j < females.size(); ++j){ // loop through every female
         unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
         
         // checks if investment into repair/ reproduction is included in the model
@@ -61,12 +61,11 @@ void Population::reproduce(const Parameters& p,
         
         // start loop to generate offspring
         for (unsigned i = 0; i < numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
-            Individual newOffspring = Individual(females[j], males[male], rng, p);
-            offspring.push_back(newOffspring);
+            offspring.emplace_back(females[j], males[male], rng, p);
                 
             // keep track of offspring of the flagged individuals
-            if (males[male].tracked) males[male].offspring.push_back(newOffspring);
-            if (females[j].tracked) females[j].offspring.push_back(newOffspring);
+            if (males[male].tracked) males[male].offspring.push_back(offspring.back());
+            if (females[j].tracked) females[j].offspring.push_back(offspring.back());
         }
     }
 }
@@ -81,9 +80,9 @@ void Population::mortalityRound(const Parameters& p,
         bool die = males[male].dies(rng, p); // check if current male will die
         if (die){ // if this is the case, remove the male from the vector
             if (males[male].tracked) { // the individual is tracked
-                trackedIndividuals.push_back(males[male]);
+                trackedIndividuals.push_back(males[male]); // TODO: make move
             }
-            deadIndividualsVec.push_back(males[male]);
+            deadIndividualsVec.emplace_back(std::move(males[male]));
             males[male] = std::move(males.back());
             males.pop_back();
         } else { // else, continue loop
@@ -98,7 +97,7 @@ void Population::mortalityRound(const Parameters& p,
             if (females[female].tracked){
                 trackedIndividuals.push_back(females[female]);
             }
-            deadIndividualsVec.push_back(females[female]);
+            deadIndividualsVec.emplace_back(std::move(females[female]));
             females[female] = std::move(females.back()); 
             females.pop_back();
         } else { // else, continue loop
@@ -113,7 +112,7 @@ void Population::addOffspring(const Parameters& p,
 				
     while (males.size() < (p.populationSize)){
         int randIndex = rng.drawRandomNumber(offspring.size());
-        males.push_back(offspring[randIndex]); // add a random offspring to the males vector
+        males.emplace_back(std::move(offspring[randIndex])); // add a random offspring to the males vector
         males.back().makeStemcells(p); // new male has to make stem cells
         males.back().isFemaleSex = 0; // set sex bool to false to indicate this new individual is male
 								
@@ -125,7 +124,7 @@ void Population::addOffspring(const Parameters& p,
     // same for females
     while (females.size() < (p.populationSize)){
         int randIndex = rng.drawRandomNumber(offspring.size());
-        females.push_back(offspring[randIndex]); // add a random offspring to the females vector
+        females.emplace_back(std::move(offspring[randIndex])); // add a random offspring to the females vector
         females.back().makeSeveralGametes(p, rng); // new female has to make gametes
         females.back().isFemaleSex = 1; // set sex bool to true to indicate new individual is female
 								
