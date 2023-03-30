@@ -15,7 +15,7 @@ struct Parameters {
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(200000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -31,8 +31,8 @@ struct Parameters {
                    sdMutationalEffectInvestmentInRepair(0.1),
                    mutationProbInvestmentGenes(0.003),
                    weightInvestment(0.3),
-                   maxOffspring(4),
-                   pointOfHalfMaxOffspring(0.5),
+                   scalingParameterForNumOfOffspring(4),
+                   pointOfHalfScalingParam(0.5),
                    addBinary(false),
                    addAgeSpecific(false),
                    addQuality(false),
@@ -63,8 +63,8 @@ struct Parameters {
     float sdMutationalEffectInvestmentInRepair; // sd for normal distribution to draw mutation effect on investment in repair genes
     float mutationProbInvestmentGenes; // mutation rate of age-specific investment in repair genes
     float weightInvestment; // to weigh the investment in repair genes
-    unsigned int maxOffspring; // maximum number of offspring an individual could get in one time step
-    float pointOfHalfMaxOffspring; // value between 0 and 1 at which half of max offspring is defined
+    unsigned int scalingParameterForNumOfOffspring; // scaling value for determining number of offspring per individual
+    float pointOfHalfScalingParam; // value between 0 and 1 at which half of max offspring is defined
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
@@ -123,7 +123,10 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
             checkParam(parID, "populationSize", populationSize, ifs);
             checkParam(parID, "meanMutationBias", meanMutationBias, ifs);
-            checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);
+            checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);            
+            checkParam(parID, "mutationProbInvestmentGenes", mutationProbInvestmentGenes, ifs);
+            checkParam(parID, "sdMutationalEffectInvestmentInRepair", sdMutationalEffectInvestmentInRepair, ifs);
+
         }
         else break;
     }

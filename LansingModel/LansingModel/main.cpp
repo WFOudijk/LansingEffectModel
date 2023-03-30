@@ -35,9 +35,9 @@ int main(int argc, const char * argv[]) {
     }
     if (p.addInvestmentInRepair) {
         // reset number of gametes per female
-        p.numOfGametes = p.maximumAge * p.maxOffspring;
+        p.numOfGametes = p.maximumAge * p.scalingParameterForNumOfOffspring;
     }
-				    
+
     // read parameter file
     std::string parameterFile;
     if (argc > 1){
@@ -102,7 +102,7 @@ int main(int argc, const char * argv[]) {
     }
     std::ofstream ofs;
     ofs.open("outputAgeAlivePop.txt"); // the output file
-    for (int i =0 ; i < pop.males.size(); ++i) {
+    for (size_t i =0 ; i < pop.males.size(); ++i) {
         ofs << pop.males[i].age << " "
         << pop.females[i].age << std::endl;
     }

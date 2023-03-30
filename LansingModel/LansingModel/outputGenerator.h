@@ -55,7 +55,7 @@ void createOutputDeclineInGameteQuality(const int t,
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : i.averageAgeSpecificGenes[i.age];
         // set investment in repair based on their resource budget
-        float investmentInRepair = 1 - p.weightInvestment * (1 - i.averageInvestmentGenes[i.age]) * (1 - i.averageInvestmentGenes[i.age]); // 1 - c3 * (1 - a)^2
+        float investmentInRepair = 1 - p.weightInvestment * sqr(1 - i.averageInvestmentGenes[i.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
         if (!p.addInvestmentInRepair) investmentInRepair = 1;
         
@@ -67,7 +67,9 @@ void createOutputDeclineInGameteQuality(const int t,
         << i.ageOfFather << " "
         << (ageSpecSurvProb * i.survivalProb * investmentInRepair) << " "
         << p.mutationProbStemcell << " "
-        << p.mutationProb << std::endl;
+        << p.mutationProb << " "
+        << p.mutationProbInvestmentGenes << " "
+        << p.sdMutationalEffectInvestmentInRepair << std::endl;
     }
     ofs.close();
 }
@@ -85,7 +87,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageAgeSpecificGenes[male.age];
         // set investment in repair based on their resource budget
-        float investmentInRepair = 1 - p.weightInvestment * (1 - male.averageInvestmentGenes[male.age]) * (1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
+        float investmentInRepair = 1 - p.weightInvestment * sqr(1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
         if (!p.addInvestmentInRepair) investmentInRepair = 1;
         
@@ -126,7 +128,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : female.averageAgeSpecificGenes[female.age];
         // set investment in repair based on their resource budget
-        float investmentInRepair = 1 - p.weightInvestment * (1 - female.averageInvestmentGenes[female.age]) * (1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
+        float investmentInRepair = 1 - p.weightInvestment * sqr(1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
         if (!p.addInvestmentInRepair) investmentInRepair = 1;
         
@@ -197,7 +199,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.mutationProbStemcell << " "    
             << p.meanMutationBias << " "
             << p.sdMutationalEffectSize << " "
-            << p.mutationProbAgeSpecificGenes << std::endl;
+            << p.mutationProbAgeSpecificGenes << " "
+            << p.mutationProbInvestmentGenes << " "
+            << p.sdMutationalEffectInvestmentInRepair << std::endl;
         }
 								
         // write expected age at death of the offspring to a file
@@ -215,7 +219,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             float binarySurvProb = deadIndividuals[ind].offspring[i].survivalProb;
             
             // set investment in repair based on their resource budget
-            float investmentInRepair = 1 - p.weightInvestment * (1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]) * (1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
+            float investmentInRepair = 1 - p.weightInvestment * sqr(1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
             // if investment is off in the model. It should not play a part.
             if (!p.addInvestmentInRepair) investmentInRepair = 1;
             
@@ -236,7 +240,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.mutationProbStemcell << " "
             << p.meanMutationBias << " "
             << p.sdMutationalEffectSize << " "
-            << p.mutationProbAgeSpecificGenes << std::endl;
+            << p.mutationProbAgeSpecificGenes << " "
+            << p.mutationProbInvestmentGenes << " "
+            << p.sdMutationalEffectInvestmentInRepair << std::endl;
         }
     }
 		
