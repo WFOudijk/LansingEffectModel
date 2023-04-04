@@ -944,6 +944,63 @@ ggplot(myData, aes(x = value, fill = variable)) +
   xlim(0,40)
 
 ###############################################################################
-# END
+# DATA COMBINED
 ###############################################################################
+path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/CombiningDataForGam/"
+
+# AGE AT DEATH PLOT
+myData <- read.table(paste(path, "outputDeclineGameteQualityCombined.txt", sep = "")) # mut prob of age genes = 0.003
+colnames(myData) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete")
+myData <- myData[myData$time > 9000,]
+ggplot(myData, aes(ageAtDeath)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Histogram of age at death distribution",
+       subtitle = "At time > 9000. Damage-only scenario.", 
+       x = "Age at death") + 
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        title = element_text(size = 20))
+
+# AGE DISTRIBUTION PLOT
+myData <- read.table(paste(path, "outputAgeAlivePopCombined.txt", sep = ""))
+colnames(myData) <- c("maleAge", "femaleAge")
+# library(reshape2)
+myData <- melt(myData)
+ggplot(myData, aes(x = value, fill = variable)) + 
+  geom_density(alpha=.25) + 
+  labs(title = "Density plot of the age distribution at the final time point",
+       subtitle = "Damage-only scenario.",
+       x = "age") + 
+  theme_big + 
+  scale_fill_manual(values = c("darkblue", "pink")) +
+  xlim(0,40)
+
+# TRACKED INDIVIDUALS
+myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividualsCombined2.txt", sep = ""))
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "mean", "sd", "mutationProbAgeGenes")
+avgDF <- aggregate(myLongitudinalData$expectedAgeAtDeath, list(myLongitudinalData$ageOfParent), mean)
+colnames(avgDF) <- c("ageOfParent", "expectedAgeAtDeath")
+ggplot(avgDF, aes(ageOfParent, expectedAgeAtDeath)) + geom_point() + geom_line(alpha = 0.2)
+# decrease 
+# use this data for gam analysis 
+
+# PARENTAL QUALITY 
+dataWithQuality <- read.table(paste(path, "outputWithQualityCombined2.txt", sep = ""))
+colnames(dataWithQuality) <- c("ID", "age", "quality", "mutationProbGametes", "mutationProbStemCell", "meanMutationBias", "sdMutationalEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestmentGenes")
+dataWithQualitySub <- subset(dataWithQuality, dataWithQuality$ID %in% sample(dataWithQuality$ID, 10)) 
+
+# plot ten sampled IDs
+ggplot(data = dataWithQualitySub, aes(age, quality, group = ID, color = factor(ID))) +
+  #geom_smooth(se = F) +
+  geom_line() +
+  labs(title = "Looking at parental quality per age class",
+       #subtitle = "With differing mean mutation bias",
+       x = "Age",
+       y = "Age-specific investment in repair") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 7)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39)  +
+  ylim(0, 1)
 

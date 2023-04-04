@@ -10,7 +10,8 @@ library(mgcv)
 d <- sampled_data_tot 
 # damage-only. MutationProbGametes and mutationProbStemCells varied together. 
 d <- sampled_data
-d <- myLongitudinalData
+# investment-only. MutationProbInvestmentGenes varied. 
+d <- sampled_data_investment_tot
 
 # check number of parents.
 length(unique(d$ID))  
@@ -37,7 +38,7 @@ d <- d %>% mutate(y3 = car::logit(y2))
 
 # GAM analysis
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>20)
+d2 <- d %>% filter(na>6)
 
 ##########################
 #for damage-only scenario
@@ -67,12 +68,14 @@ summary(m1zb)
 # fit linear model to see if it is a better fit 
 # choose one mutation prob to perform both model analysis on 
 dat <- d2[d2$mutationProbGametes == 0.0004,]
-mlin <- lm(dat$y3 ~ dat$ageOfParent + dat$ID) # linear fit 
 m1zd <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
             data = dat,
             method = "REML") # bam analysis
+# use bam for linear model 
+# random slope model 
+mlin <- bam(y3 ~ ageOfParent + s(ageOfParent, ID, bs = "re"), data = dat, method = "REML")
 AIC(mlin, m1zd)
-# linear is better. Difference in AIC = 3.359.  
+# non - linear is better.  
 
 AIC(m1z,m1zb)
 ## Appears to be an interaction since m1zb better
@@ -263,7 +266,7 @@ x <- predict(m1f, d.pred.f, type = "terms",
 d.pred.f$y3 <- attr(x, "constant") + apply(x, 1, sum)
 d.pred.f$y4 <- 40*logist(d.pred.f$y3)
 
-ggplot(d.pred.f, aes(ageOfParent, y4)) + geom_point() 
+ggplot(d.pred.f, aes(ageOfParent, y4)) + geom_point() + geom_line(alpha = 0.5)
 # No bump. 
 
 # per parameter. 
@@ -371,7 +374,8 @@ perc_decr <- 100*(zl[1]-zl[2])/zl[1]
 perc_decr
 
 plot(m1a, trans = logist,
-     main = paste("Quality-only, % decrease =", perc_decr),
+     #main = paste("Quality-only, % decrease =", perc_decr),
+     main = paste("combining damage and quality. % decrease =", perc_decr),
      subtitle = "Mutation rate = 0.003; mean = -0.022; sd = 0.024",
      xlab = "Age of parent",
      ylab = "Expected age at death")
@@ -437,6 +441,74 @@ plot(m1a, trans = logist,
      xlab = "Age of parent",
      ylab = "Expected age at death")
 
+
+##########################
+#for investment-only scenario
+##########################
+# model without interaction
+m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) 
+           + s(mutationProbInvestmentGenes, k = 5) +
+             s(sdInvestmentGenes, k = 5),
+           data=d2, 
+           method="REML") 
+summary(m1z)
+
+# model with interaction
+m1zb <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) +
+              s(mutationProbInvestmentGenes, k = 5) +
+              ti(ageOfParent,mutationProbInvestmentGenes, k=c(5,5)) +
+              ti(ageOfParent, sdInvestmentGenes, k= c(5,5)),
+            data=d2, 
+            method="REML") 
+summary(m1zb)
+# For every smooth and interaction term p-val < 2e-16
+
+AIC(m1z,m1zb)
+
+# transforms the parameter model predictors to factors 
+#d2 <- d2 %>% mutate(ID = factor(ID))
+#d2 <- d2 %>% mutate(mutationProbInvestmentGenes = factor(mutationProbInvestmentGenes))
+# new predicted data for determining the percentage decrease 
+pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], 
+                        mutationProbAgeGenes = levels(d2$mutationProbAgeGenes)[1],
+                        meanMutBias = levels(d2$meanMutBias)[1],
+                        sdMutEffectSize = levels(d2$sdMutEffectSize)[1])
+
+### GENERATE NEW DATA FOR PLOT
+len <- 20
+length(unique(d2$mutationProbInvestmentGenes)) #10
+length(unique(d2$sdInvestmentGenes))#10
+
+# I'm using 20 age values, and 4 for each of the 3 other predictors.
+# Could use all of course, but then the plot becomes a bit messy.
+# A single ID value because we will ignore the term involving ID anyway.
+d.pred <- expand.grid(ageOfParent=seq(0,40,length=len),
+                      ID=levels(d2$ID)[1],
+                      mutationProbInvestmentGenes=unique(d2$mutationProbInvestmentGenes),
+                      sdInvestmentGenes = unique(d2$sdInvestmentGenes)[c(1,3,5,7,9)])
+
+# Compute all terms, excluding the one with ID
+z <- predict(m1zb,newdata = d.pred,
+             type = "terms",
+             exclude = c("s(ageOfParent,ID)"))
+str(z) # contains 9 terms (the s and ti terms, not including the intercept)
+attr(z,"constant") # here is the intercept
+
+# Add intercept and all terms, transform back
+d.pred$y3 <- attr(z,"constant") + apply(z,1,sum) 
+logist <- function(x) 1/(1+exp(-x))
+d.pred$y4 <- 40*logist(d.pred$y3)
+
+# Use predictors as factors for use in ggplot
+d.pred <- d.pred %>% mutate(mutationProbInvestmentGenes=factor(mutationProbInvestmentGenes))
+d.pred <- d.pred %>% mutate(sdInvestmentGenes=factor(sdInvestmentGenes))
+
+library(cowplot)
+ggplot(d.pred,aes(x=ageOfParent,y=y4,color=mutationProbInvestmentGenes)) +
+  theme_cowplot() +
+  geom_line() +
+  facet_wrap(d.pred$sdInvestmentGenes) +
+  background_grid(major = "xy")
 
 
 
