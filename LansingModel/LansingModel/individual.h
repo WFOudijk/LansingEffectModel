@@ -190,25 +190,26 @@ bool Individual::dies(Randomizer& rng,
     
     // get age-specific survival probability
     float survivalProbAgeSpec = averageAgeSpecificGenes[age];
-    // if quality is on but age-specific genetic effects is off, the age-specific genes do need to evolve (for quality determination)
+    // if quality is enabled but age-specific genetic effects are disabled, the age-specific genes do need to evolve (for quality determination)
     // but they should not be taken into account for determining survival probability of the individual
     if (p.addQuality && !p.addAgeSpecific) survivalProbAgeSpec = 1;
     
-    // set investment in repair based on their resource budget
+    // set investment in repair based on the individual's resource budget
     float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
-    // if investment is off in the model. It should not play a part. 
+    // if investment is disabled in the model. It should not play a part.
     if (!p.addInvestmentInRepair) investmentInRepair = 1;
-    // the survival prob based on both gene arrays
-    float survivalProbTot = survivalProbAgeSpec * survivalProb * investmentInRepair;
+
+    // Caclulate the survival prob based on both gene arrays
+    float totalSurvivalProb = survivalProbAgeSpec * survivalProb * investmentInRepair;
     // taking extrinsic mortality into account
-    float survivalProbIncExtrinsicRisk = survivalProbTot * (1 - p.extrinsicMortRisk);
+    float adjustedSurvivalProb = totalSurvivalProb * (1 - p.extrinsicMortRisk);
     
-    if (rng.bernoulli(survivalProbIncExtrinsicRisk)){ // bernoulli distribution with the bias of survival probability of the individual
+    if (rng.bernoulli(adjustedSurvivalProb)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
         parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
         if (age == p.maximumAge) dies = true;
     } else { // indidvidual dies
-        dies = true; // Individual will die
+        dies = true; // Individual will die.
     }
     return dies;
 }

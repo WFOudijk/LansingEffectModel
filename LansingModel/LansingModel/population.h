@@ -46,7 +46,6 @@ void Population::reproduce(const Parameters& p,
      number of offspring with random males. **/
 				
     offspring.clear(); // to make sure the vector is empty
-    
     for (size_t j = 0; j < females.size(); ++j){ // loop through every female
         unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
         

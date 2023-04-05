@@ -25,11 +25,11 @@ struct Parameters {
                    mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
-                   initInvestmentInRepair(0.5),
+                   initInvestmentInRepair(0.3),
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
-                   sdMutationalEffectInvestmentInRepair(0.1),
-                   mutationProbInvestmentGenes(0.003),
+                   sdMutationalEffectInvestmentInRepair(0.03),
+                   mutationProbInvestmentGenes(0.004),
                    weightInvestment(0.3),
                    scalingParameterForNumOfOffspring(4),
                    pointOfHalfScalingParam(0.5),
@@ -126,6 +126,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);            
             checkParam(parID, "mutationProbInvestmentGenes", mutationProbInvestmentGenes, ifs);
             checkParam(parID, "sdMutationalEffectInvestmentInRepair", sdMutationalEffectInvestmentInRepair, ifs);
+            checkParam(parID, "weightInvestment", weightInvestment, ifs);
 
         }
         else break;

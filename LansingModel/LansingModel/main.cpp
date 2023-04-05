@@ -21,7 +21,7 @@ int main(int argc, const char * argv[]) {
     std::chrono::high_resolution_clock::time_point tp =
         std::chrono::high_resolution_clock::now();
     unsigned seed = static_cast<unsigned>(tp.time_since_epoch().count());
-    std::cout << "The seed is: " << seed << std::endl;
+    std::cout << "The seed is: " << seed << "\n" ;
     // create and seed pseudo-random number generator
     Randomizer rng;
     rng.setSeed(seed);
@@ -67,7 +67,7 @@ int main(int argc, const char * argv[]) {
         pop.mutationRound(p, rng);
         // output
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
-            std::cout << t << std::endl;
+            std::cout << t << "\n";
             //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
             createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
         }
@@ -75,9 +75,9 @@ int main(int argc, const char * argv[]) {
   
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;
-    std::cout << "First time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;
+    std::cout << "First time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";
     t_start = t_now;
-    std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal." << std::endl;
+    std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal. \n";
     
     // track a certain number of individuals
     pop.setTrackedIndividuals(p, rng);
@@ -104,11 +104,11 @@ int main(int argc, const char * argv[]) {
     ofs.open("outputAgeAlivePop.txt"); // the output file
     for (size_t i =0 ; i < pop.males.size(); ++i) {
         ofs << pop.males[i].age << " "
-        << pop.females[i].age << std::endl;
+        << pop.females[i].age << "\n";
     }
     ofs.close();
 
-    std::cout << "Counter = " << count << std::endl;
+    std::cout << "Counter = " << count << "\n";
     // only create output of life expectancy for the remaining individuals
     //createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals
@@ -117,7 +117,7 @@ int main(int argc, const char * argv[]) {
     // to print the duration of the program to the terminal
     t_now = std::chrono::system_clock::now();
     diff_t = t_now - t_start;
-    std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes " << std::endl;
+    std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";
     t_start = t_now;
     return 0;
 }
