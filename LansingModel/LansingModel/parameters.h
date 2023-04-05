@@ -25,7 +25,7 @@ struct Parameters {
                    mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
-                   initInvestmentInRepair(0.3),
+                   initInvestmentInRepair(0.5),
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.03),
@@ -46,7 +46,7 @@ struct Parameters {
     float mutationProb; // probability a mutation will occur
     float extrinsicMortRisk; // the extrinsic mortality risk, equal for every adult
     int outputTime; // when to output info
-    int tEnd; // end of simulation
+    unsigned int tEnd; // end of simulation
     float strengthOfSelection; // this coefficient determines the strength of the effect of damage
     unsigned int maximumAge; // maximum age an individual can get to
     float mutationProbStemcell; // mutation probability of stemcell to mutate
