@@ -30,7 +30,7 @@ struct Parameters {
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.03),
                    mutationProbInvestmentGenes(0.004),
-                   weightInvestment(0.3),
+                   weightInvestment(0.9),
                    scalingParameterForNumOfOffspring(4),
                    pointOfHalfScalingParam(0.5),
                    addBinary(false),
@@ -127,7 +127,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "mutationProbInvestmentGenes", mutationProbInvestmentGenes, ifs);
             checkParam(parID, "sdMutationalEffectInvestmentInRepair", sdMutationalEffectInvestmentInRepair, ifs);
             checkParam(parID, "weightInvestment", weightInvestment, ifs);
-
+            checkParam(parID, "tEnd", tEnd, ifs);
         }
         else break;
     }
