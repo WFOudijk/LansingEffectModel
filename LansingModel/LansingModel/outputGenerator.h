@@ -193,7 +193,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
         for (unsigned i = 0; i < p.maximumAge; ++i){
             ofs << ind << "_" << p.mutationProb << "_" << p.mutationProbStemcell << "_"
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
-            << p.mutationProbAgeSpecificGenes << " " // write as id of individual
+            << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " " // write as id of individual
             << i << " " // write age
             << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
             ///<< deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality in repair for this age class
@@ -211,7 +211,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
         for (size_t i = 0; i < deadIndividuals[ind].offspring.size(); ++i){ // loop through the number of offspring this individual has
             ofs2 << ind << "_" << p.mutationProb << "_" << p.mutationProbStemcell << "_"
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
-            << p.mutationProbAgeSpecificGenes << " "; // use this index as identifier of the individual
+            << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " "; // use this index as identifier of the individual
             
             // calculate expected age at death for this offspring of the tracked individual
             // get the survival probability of the age-dependent genes
