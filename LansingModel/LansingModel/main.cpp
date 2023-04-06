@@ -59,7 +59,7 @@ int main(int argc, const char * argv[]) {
 
     auto t_start = std::chrono::system_clock::now();
     
-    for (int t = 0; t < p.tEnd; ++t){
+    for (unsigned t = 0; t < p.tEnd; ++t){
         std::vector<Individual> deadIndividualsVec; // to examine all dead individuals 
         pop.reproduce(p, rng); // reproduce to make offspring
         pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults

@@ -69,7 +69,8 @@ void createOutputDeclineInGameteQuality(const int t,
         << p.mutationProbStemcell << " "
         << p.mutationProb << " "
         << p.mutationProbInvestmentGenes << " "
-        << p.sdMutationalEffectInvestmentInRepair << std::endl;
+        << p.sdMutationalEffectInvestmentInRepair << " "
+        << i.averageInvestmentGenes[i.age] << std::endl;
     }
     ofs.close();
 }
