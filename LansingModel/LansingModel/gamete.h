@@ -73,7 +73,7 @@ void Gamete::mutate(const Parameters &p,
         }
     }
     
-    if (p.addInvestmentInRepair) { // if resrouce distribution is on, these genes will mutate
+    if (p.addInvestmentInRepair || p.addInvestmentAffectingOffspringQuality) { // if resrouce distribution is on, these genes will mutate
         // mutation of age-specific genes for investment in repair/ reproduction
         const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
         const unsigned numMut{rng.rpois(expectedNumMut)};

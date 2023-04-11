@@ -11,7 +11,7 @@ struct Parameters {
     // initialise the parameters
     Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
-                   numOfOffspringPerFemale(2),
+                   numOfOffspringPerFemale(3),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
@@ -30,13 +30,14 @@ struct Parameters {
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.03),
                    mutationProbInvestmentGenes(0.004),
-                   weightInvestment(0.9),
+                   weightInvestment(0.3),
                    scalingParameterForNumOfOffspring(4),
                    pointOfHalfScalingParam(0.5),
                    addBinary(false),
                    addAgeSpecific(false),
                    addQuality(false),
-                   addInvestmentInRepair(true){
+                   addInvestmentInRepair(false),
+                   addInvestmentAffectingOffspringQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                    }
     
@@ -69,6 +70,7 @@ struct Parameters {
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
     bool addInvestmentInRepair; // adds investment in repair to model
+    bool addInvestmentAffectingOffspringQuality; // the investment in repair genes only influence offspring quality
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,

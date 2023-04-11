@@ -139,6 +139,19 @@ Individual::Individual(Individual& mother,
     float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1 - p.weightMaternalEffect) * father.parentalQuality;
                                                                                                                                                                                     
     if (p.addQuality) survivalProb *= effectQuality; // multiply survival prob with the quality of the parents
+                                                  
+    // check if the investment genes affect the quality of the offspring
+    if (p.addInvestmentAffectingOffspringQuality) {
+    
+        // get females investment in reproduction
+        double investmentInReproduction = 1 - mother.averageInvestmentGenes[mother.age];
+        
+        // calculate the effect of the investment per offspring
+        double adjustedInvestmentInRepair = investmentInReproduction / p.numOfOffspringPerFemale; // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
+        
+        // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
+        survivalProb = survivalProb - ((0.5 - adjustedInvestmentInRepair) * 0.2);
+    }
 }
 
 Gamete Individual::makeGamete(Randomizer& rng,
@@ -329,9 +342,9 @@ unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
     
     // calculate numOfOffspring based on sigmoidal/logistic function
     // 10 is to scale the numbers between 0 and 100 and to make the graph less steep.
-    //float numOfOffspring = p.scalingParameterForNumOfOffspring / (1 + std::exp(-10 * (investmentInReproduction - p.pointOfHalfScalingParam))); // sigmoidal
+    float numOfOffspring = p.scalingParameterForNumOfOffspring / (1 + std::exp(-10 * (investmentInReproduction - p.pointOfHalfScalingParam))); // sigmoidal
     
-    float numOfOffspring = p.scalingParameterForNumOfOffspring * investmentInReproduction / (p.pointOfHalfScalingParam + investmentInReproduction); // quickest?
+    //float numOfOffspring = p.scalingParameterForNumOfOffspring * investmentInReproduction / (p.pointOfHalfScalingParam + investmentInReproduction); // quickest?
     
     //float numOfOffspring = p.scalingParameterForNumOfOffspring * pow(investmentInReproduction, (p.pointOfHalfScalingParam + investmentInReproduction)); max * x^(0.5+x)
     
