@@ -1,17 +1,27 @@
 ###############################################################################
 # Resource budget added. Investment in repair/ reproduction 
 # only mechanism 'on' in model 
+
+# INVESTMENT IN REPAIR 2.0 = investment only affects offspring quality.
 ###############################################################################
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/resourceBudget/"
 
 ##### AGE DISTRIBUTION ######
-ageDist <- read.table(paste(path, "outputAgeAlivePop.txt", sep = ""))
+ageDist <- read.table(paste(path, "outputAgeAlivePop.txt", sep = "")) # mut prob = 0.001
 ageDist <- read.table(paste(path, "0.2InitInvestment/outputAgeAlivePop.txt", sep = "")) # with init investment in repair = 0.2
 ageDist <- read.table(paste(path, "0.8InitInvestment/outputAgeAlivePop.txt", sep = "")) # with init investment in repair = 0.8
 ageDist <- read.table(paste(path, "resource-only0.004and0.02/outputAgeAlivePop.txt", sep = "")) # init = 0.5; sd = 0.02 mut prob = 0.004
+ageDist <- read.table(paste(path, "resource-only0.004and0.03/outputAgeAlivePop.txt", sep = "")) # init = 0.5; sd = 0.03 mut prob = 0.004
+ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop.txt", sep = "")) # run time = 200.000
+ageDist <- read.table(paste(path, "resource-only/outputAgeAlivePop.txt", sep = "")) # sd = 0.03 and init = 0.3 
+ageDist <- read.table(paste(path, "resource-only/outputAgeAlivePopWeight0.9.txt", sep = "")) # sd = 0.03 and init = 0.3 and weight = 0.9
+ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop2.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.4. tEnd = 100.000
+ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop3.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7. tEnd = 200.000
+ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop4.txt", sep = "")) #  tEnd = 200.000; weight = 0.3; init = 0.5 
+ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop5.txt", sep = "")) #  tEnd = 500.000; weight = 0.3; init = 0.5 
+#### INVESTMENT 2.0 #####
+ageDist <- read.table(paste(path, "investment2/outputAgeAlivePop.txt", sep = "")) 
 
-# run time = 200.000
-ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop.txt", sep = ""))
 colnames(ageDist) <- c("maleAge", "femaleAge")
 
 #library(reshape2)
@@ -19,7 +29,7 @@ ageDist <- melt(ageDist)
 ggplot(ageDist, aes(x = value, fill = variable)) + 
   geom_density(alpha=.25) + 
   labs(title = "Density plot of the age distribution at the final time point",
-       subtitle = "Quality-only scenario.",
+       #subtitle = "Quality-only scenario.",
        x = "age") + 
   theme_big + 
   scale_fill_manual(values = c("darkblue", "pink")) + 
@@ -31,7 +41,16 @@ deathPop <- read.table(paste(path, "outputDeclineGameteQuality.txt", sep = "")) 
 deathPop <- read.table(paste(path, "0.2InitInvestment/outputDeclineGameteQuality.txt", sep = "")) # init genes = 0.2
 deathPop <- read.table(paste(path, "0.8InitInvestment/outputDeclineGameteQuality.txt", sep = "")) # init genes = 0.8
 deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality.txt", sep = "")) # mut prob of investment genes = 0.001
-deathPop <- read.table(paste(path, "resource-only0.004and0.02/outputDeclineGameteQuality.txt", sep = ""))
+deathPop <- read.table(paste(path, "resource-only0.004and0.02/outputDeclineGameteQuality.txt", sep = "")) # sd = 0.02 
+deathPop <- read.table(paste(path, "resource-only0.004and0.03/outputDeclineGameteQuality.txt", sep = "")) # sd = 0.03
+deathPop <- read.table(paste(path, "resource-only/outputDeclineGameteQuality.txt", sep = "")) # sd = 0.03 and init = 0.3
+deathPop <- read.table(paste(path, "resource-only/outputDeclineGameteQualityWeight0.9.txt", sep = "")) # sd = 0.03, init = 0.3 and weight = 0.9
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality2.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.4, tEnd= 100.000
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality3.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.7, tEnd= 200.000
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality4.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 200.000
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality5.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
+### INVESTMENT 2.0 ###
+deathPop <- read.table(paste(path, "investment2/outputDeclineGameteQuality.txt", sep = ""))
 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete")
 
@@ -43,7 +62,7 @@ deathPop <- subset(deathPop, select = c(ageAtDeath, sex))
 deathPop <- melt(deathPop)
 
 ggplot(deathPop, aes(x = value, fill = sex)) +
-  geom_histogram(alpha=.25, position = "identity") +
+  geom_histogram(alpha=.25, position = "identity", binwidth = 1) +
   labs(title = "Histogram of age at death distribution",
        subtitle = "At time > 9000. Quality-only scenario.", 
        x = "Age at death") + 
@@ -57,17 +76,35 @@ myLongitudinalData <- read.table(paste(path, "outputLETrackedIndividuals.txt", s
 myLongitudinalData <- read.table(paste(path, "0.2InitInvestment/outputLETrackedIndividuals.txt", sep = ""))
 myLongitudinalData <- read.table(paste(path, "0.8InitInvestment/outputLETrackedIndividuals.txt", sep = ""))
 myLongitudinalData <- read.table(paste(path, "resource-only0.004and0.02/outputLETrackedIndividuals.txt", sep = ""))
+myLongitudinalData <- read.table(paste(path, "resource-only0.004and0.03/outputLETrackedIndividuals.txt", sep = ""))
+myLongitudinalData <- read.table(paste(path, "resource-only/outputLETrackedIndividuals.txt", sep = "")) # with sd = 0.03 and init = 0.3 
+myLongitudinalData <- read.table(paste(path, "resource-only/outputLETrackedIndividualsWeight0.9.txt", sep = "")) # with sd = 0.03 and init = 0.3 and weight = 0.9
+myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals2.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.4; tEnd= 100.000
+myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals3.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.7; tEnd= 200.000
+myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals4.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.3; tEnd= 200.000
+### INVESTMENT 2.0 ###
+myLongitudinalData <- read.table(paste(path, "investment2/outputLETrackedIndividuals.txt", sep = "")) 
+
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestment")
+colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestment", "weightInvestment")
+
 # use this for gam analysis in gam_analysis Rscript. 
 
 ##### RESOURCE DISTRIBUTION #####
 parentalInvestment <- read.table(paste(path, "outputWithInvestmentDistribution.txt", sep = "")) 
 parentalInvestment <- read.table(paste(path, "0.2InitInvestment/outputWithInvestment.txt", sep = "")) # with init investment in repair = 0.2 
 parentalInvestment <- read.table(paste(path, "0.8InitInvestment/outputWithInvestment.txt", sep = "")) # with init investment in repair = 0.8 
-parentalInvestment <- read.table(paste(path, "resource-only0.004and0.02/outputWithInvestment.txt", sep = "")) # 
+parentalInvestment <- read.table(paste(path, "resource-only0.004and0.02/outputWithInvestment.txt", sep = "")) # sd = 0.02
+parentalInvestment <- read.table(paste(path, "resource-only0.004and0.03/outputWithInvestment.txt", sep = "")) # sd = 0.03 
+parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestmentDistribution.txt", sep = "")) # a runtime of 200.000
+parentalInvestment <- read.table(paste(path, "resource-only/outputWithInvestment.txt", sep = "")) # sd = 0.03 and init = 0.3
+parentalInvestment <- read.table(paste(path, "resource-only/outputWithInvestmentWeight0.9.txt", sep = "")) # sd = 0.03 and init = 0.3 and weight = 0.9
+parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment2.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.4; tEnd = 100.000
+parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment3.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7; tEnd = 200.000
+parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment5.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7; tEnd = 500.000
+### INVESTMENT 2.0 ###
+parentalInvestment <- read.table(paste(path, "investment2/outputWithInvestment.txt", sep = "")) 
 
-# a runtime of 200.000
-parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestmentDistribution.txt", sep = "")) 
 colnames(parentalInvestment) <- c("ID", "age", "investmentInRepair", "mutationProbGametes", "mutationProbStemCell", "meanMutationBias", "sdMutationalEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestment")
 
 # get 10 IDs to examine
@@ -78,7 +115,7 @@ parentalInvestmentSub <- subset(parentalInvestment, parentalInvestment$ID %in% s
 ggplot(data = parentalInvestmentSub, aes(age, investmentInRepair, group = ID, color = factor(ID))) +
   #geom_smooth(se = F) +
   geom_line() +
-  labs(title = "Looking at parental investment in repair per age class with init = 0.8",
+  labs(title = "Looking at parental investment in repair per age class",
        #subtitle = "With differing mean mutation bias",
        x = "Age",
        y = "Age-specific investment in repair") +
@@ -142,7 +179,7 @@ for (x in unique(found$mutationProbInvestmentGenes)){
   # get subset of this mutation probability
   sub <- subset(found, found$mutationProbInvestmentGenes == x)
   # get 100 randomly sampled and unique IDs 
-  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 25)]
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 50)] 
   # subset the data of these 100 IDs
   tmp2 <- subset(sub, sub$ID %in% tmp)
   # add them to the dataframe 
@@ -181,7 +218,7 @@ for (x in unique(found$sdInvestmentGenes)){
   # get subset of this mutation probability
   sub <- subset(found, found$sdInvestmentGenes == x)
   # get 100 randomly sampled and unique IDs 
-  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 25)]
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 50)]
   # subset the data of these 100 IDs
   tmp2 <- subset(sub, sub$ID %in% tmp)
   # add them to the dataframe 
@@ -189,6 +226,46 @@ for (x in unique(found$sdInvestmentGenes)){
 }
 
 sampled_data_investment_tot <- rbind(sampled_data_investment, sampled_data_sd_investment)
+
+
+## varying the weight of the investment genes 
+parent_path <- paste(path, "resource-only/varyWeight/", sep = "")
+
+# look at tracked individuals data 
+f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
+found <- c()
+for (x in f) {
+  file_name <- paste0(parent_path, x)
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  found <- rbind(found, local_data)
+}
+colnames(found) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes", "mutationProbInvestmentGenes", "sdInvestmentGenes", "weightInvestment")
+
+# plot this data using geom_smooth function 
+ggplot(data = found, aes(x = ageOfParent, y = expectedAgeAtDeath, color = as.factor(weightInvestment))) +
+  geom_smooth() + 
+  labs(title = "Expected age at death of offspring over parental ages",
+       x = "Age of parent",
+       y = "Expected age of death offspring",
+       color = "weight investment genes") +
+  theme(axis.title = element_text(size = 20),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, size = 15)) +
+  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
+
+# sample from data 
+sampled_data_weight_investment <- c()
+for (x in unique(found$weightInvestment)){
+  # get subset of this mutation probability
+  sub <- subset(found, found$weightInvestment == x)
+  # get 100 randomly sampled and unique IDs 
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 50)]
+  # subset the data of these 100 IDs
+  tmp2 <- subset(sub, sub$ID %in% tmp)
+  # add them to the dataframe 
+  sampled_data_weight_investment <- rbind(sampled_data_weight_investment, tmp2)
+}
 
 
 ###############################################################################
@@ -411,6 +488,80 @@ ggplot(data = parentalInvestmentSubPopAvg, aes( x = age, y = investmentInRepair)
        x = "Age",
        y = "Investment in repair") +
   theme(text = element_text(size = 20))
+
+
+###############################################################################
+# INVESTMENT IN REPAIR OVER TIME 
+###############################################################################
+path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/resourceBudget/"
+
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality3.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.7, tEnd= 200.000
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality4.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 200.000
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality5.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
+
+colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete", "mutationProbInvestmentGenes", "sdInvestment", "investmentInRepair")
+
+deathPopSub <- deathPop[deathPop$ageAtDeath %in% c(0, 10, 20, 30, 32, 35, 37, 39),]
+deathPopSub <- deathPop[deathPop$ageAtDeath %in% c(25, 28, 30, 32, 35, 37),]
+
+deathPopSub <- deathPop[deathPop$ageAtDeath %in% c(0, 10, 20, 30, 39),]
+deathPopSub <- deathPopSub[deathPopSub$time %in% seq(0, 200000, 100),]
+deathPopSub <- deathPopSub[deathPopSub$time %in% seq(0, 500000, 500),]
+
+averageInvestmentPerTimeStep <- aggregate(deathPopSub$investmentInRepair, list(deathPopSub$ageAtDeath, deathPopSub$time), mean)
+colnames(averageInvestmentPerTimeStep) <- c("ageAtDeath", "time", "averageInvestmentInRepair")
+
+ggplot(data = averageInvestmentPerTimeStep, aes(time, averageInvestmentInRepair, colour = factor(ageAtDeath), group = factor(ageAtDeath))) + 
+  geom_point() + 
+  geom_smooth() + 
+  labs(title = "Average investment in repair over time") + 
+  theme(text = element_text(size = 20))
+
+ggplot(data = deathPopSub, aes(time, investmentInRepair, colour = factor(ageAtDeath), group = factor(ageAtDeath))) + 
+  #geom_point() + 
+  geom_smooth() + 
+  labs(title = "Investment in repair over time using smooth from ggplot") + 
+  theme(text = element_text(size = 20))
+
+# sampling 50 individuals of every age class. 
+subT <- deathPop[deathPop$ageAtDeath %in% c(0,10,20,30,39),]
+sampled_data <- c()
+for (x in unique(subT$ageAtDeath)){ 
+  # get subset of this age at death
+  sub <- subset(deathPopSub, deathPopSub$ageAtDeath == x)
+  # get 50 randomly sampled individuals
+  tmp <- sample(nrow(sub), 50)
+  # subset the data of these 50 individuals
+  tmp2 <- sub[tmp,]
+  # add them to the dataframe 
+  sampled_data <- rbind(sampled_data, tmp2)
+}
+
+# chatGPT suggestion for improved code: 
+ages_to_sample <- c(0, 10, 20, 30, 39)
+n_samples_per_age <- 50
+
+# Get subset of individuals with ages in `ages_to_sample`
+subT <- deathPop[deathPop$ageAtDeath %in% ages_to_sample, ]
+
+sampled_data <- do.call(rbind, lapply(ages_to_sample, function(age) {
+  # Get subset of individuals with age `age`
+  sub <- subset(subT, ageAtDeath == age)
+  # Sample `n_samples_per_age` individuals from `sub` without replacement
+  tmp <- sample(nrow(sub), n_samples_per_age, replace = FALSE)
+  # Subset the data of the sampled individuals
+  sub[tmp, ]
+}))
+
+ggplot(data = sampled_data, aes(time, investmentInRepair, group = factor(ageAtDeath), colour = factor(ageAtDeath))) + geom_point()  + geom_smooth()
+# not really representative in regards to time. Eg. time is not taken into account in this sampling, 
+# however, the plot is over time visualised. 
+
+
+###############################################################################
+  
+###############################################################################
+
 
 
 
