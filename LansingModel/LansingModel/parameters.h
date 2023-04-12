@@ -25,7 +25,7 @@ struct Parameters {
                    mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
-                   initInvestmentInRepair(0.2),
+                   initInvestmentInRepair(0.5),
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.02),
