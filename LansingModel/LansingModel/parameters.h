@@ -25,14 +25,16 @@ struct Parameters {
                    mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
-                   initInvestmentInRepair(0.5),
+                   initInvestmentInRepair(0.2),
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
-                   sdMutationalEffectInvestmentInRepair(0.03),
+                   sdMutationalEffectInvestmentInRepair(0.02),
                    mutationProbInvestmentGenes(0.004),
                    weightInvestment(0.3),
                    scalingParameterForNumOfOffspring(4),
                    pointOfHalfScalingParam(0.5),
+                   baselineSurvival(0.5),
+                   scalingStrengthOfAllocationToSurvival(0.2),
                    addBinary(false),
                    addAgeSpecific(false),
                    addQuality(false),
@@ -66,6 +68,8 @@ struct Parameters {
     float weightInvestment; // to weigh the investment in repair genes
     unsigned int scalingParameterForNumOfOffspring; // scaling value for determining number of offspring per individual
     float pointOfHalfScalingParam; // value between 0 and 1 at which half of max offspring is defined
+    float baselineSurvival; // baseline survival in the resource distribution when allocation to reproduction is zero
+    float scalingStrengthOfAllocationToSurvival; // to determine the strength of the allocative effect on survival
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model

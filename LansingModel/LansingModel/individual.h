@@ -150,7 +150,7 @@ Individual::Individual(Individual& mother,
         double adjustedInvestmentInRepair = investmentInReproduction / p.numOfOffspringPerFemale; // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
         
         // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
-        survivalProb = survivalProb - ((0.5 - adjustedInvestmentInRepair) * 0.2);
+        survivalProb = survivalProb - ((p.baselineSurvival - adjustedInvestmentInRepair) * p.scalingStrengthOfAllocationToSurvival);
     }
 }
 
