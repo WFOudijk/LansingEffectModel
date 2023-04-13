@@ -28,7 +28,7 @@ struct Parameters {
                    initInvestmentInRepair(0.5),
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
-                   sdMutationalEffectInvestmentInRepair(0.02),
+                   sdMutationalEffectInvestmentInRepair(0.04),
                    mutationProbInvestmentGenes(0.004),
                    weightInvestment(0.3),
                    scalingParameterForNumOfOffspring(4),

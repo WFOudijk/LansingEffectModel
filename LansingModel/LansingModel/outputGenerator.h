@@ -57,7 +57,7 @@ void createOutputDeclineInGameteQuality(const int t,
         // set investment in repair based on their resource budget
         float investmentInRepair = 1 - p.weightInvestment * sqr(1 - i.averageInvestmentGenes[i.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair) investmentInRepair = 1;
+        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
         
         char sex = i.isFemaleSex ? 'F' : 'M';
         ofs << t << " "
@@ -90,7 +90,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         // set investment in repair based on their resource budget
         float investmentInRepair = 1 - p.weightInvestment * sqr(1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair) investmentInRepair = 1;
+        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
         
         
         // calculates survival into the next year
@@ -131,7 +131,7 @@ void createOutputLifeExpectancy(const Parameters& p,
         // set investment in repair based on their resource budget
         float investmentInRepair = 1 - p.weightInvestment * sqr(1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair) investmentInRepair = 1;
+        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
         
         // calculates survival into the next year
         float s = ageSpecSurvProb * female.survivalProb * investmentInRepair * (1 - p.extrinsicMortRisk);
@@ -225,7 +225,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             // set investment in repair based on their resource budget
             float investmentInRepair = 1 - p.weightInvestment * sqr(1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
             // if investment is off in the model. It should not play a part.
-            if (!p.addInvestmentInRepair) investmentInRepair = 1;
+            if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
             
             // mulitply the above-mentioned three to get total survival probability
             float totSurvProb = ageDependentSurvProb * binarySurvProb * investmentInRepair;
@@ -233,7 +233,6 @@ void createOutputTrackedIndividuals(const Parameters& p,
             float s = totSurvProb * (1 - p.extrinsicMortRisk);
             // calculate expected age at death
             float expectedAgeAtDeath = deadIndividuals[ind].offspring[i].age + (s / (1 - s));
-												
             // if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
             (deadIndividuals[ind].isFemaleSex) ? ofs2 << deadIndividuals[ind].offspring[i].ageOfMother : ofs2 << deadIndividuals[ind].offspring[i].ageOfFather;
             ofs2 << " ";
