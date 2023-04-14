@@ -204,8 +204,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.sdMutationalEffectSize << " "
             << p.mutationProbAgeSpecificGenes << " "
             << p.mutationProbInvestmentGenes << " "
-            << p.sdMutationalEffectInvestmentInRepair << " "
-            << p.weightInvestment << std::endl;
+            << p.sdMutationalEffectInvestmentInRepair << std::endl;
         }
 								
         // write expected age at death of the offspring to a file
@@ -245,8 +244,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.sdMutationalEffectSize << " "
             << p.mutationProbAgeSpecificGenes << " "
             << p.mutationProbInvestmentGenes << " "
-            << p.sdMutationalEffectInvestmentInRepair << " "
-            << p.weightInvestment << std::endl;
+            << p.sdMutationalEffectInvestmentInRepair << std::endl;
         }
     }
 		
