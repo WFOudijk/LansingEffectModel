@@ -279,7 +279,8 @@ for (x in rangeMutProb) {
 }
 
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>2)
+d2 <- d %>% filter(na>12)
+d3 <- d2 %>% filter(na<18)
 
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
@@ -313,7 +314,7 @@ summary(m1z)
 plot(m1z, trans = logist, 
      xlab = "Parental age",
      ylab = "Expected age at death of offspring",
-     main = paste("Resource + quality, % decrease = ", perc_decr)
+     main = paste("Resource-only, % decrease = ", perc_decr)
      )
 
 ##########################################################################

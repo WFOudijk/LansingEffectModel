@@ -12,6 +12,8 @@ d <- sampled_data_tot
 d <- sampled_data
 # investment-only. MutationProbInvestmentGenes varied. 
 d <- sampled_data_investment_tot
+# weight investment varied
+d <- sampled_data_weight_investment
 
 # check number of parents.
 length(unique(d$ID))  
@@ -38,7 +40,7 @@ d <- d %>% mutate(y3 = car::logit(y2))
 
 # GAM analysis
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>6)
+d2 <- d %>% filter(na>15)
 
 ##########################
 #for damage-only scenario
@@ -456,36 +458,28 @@ summary(m1z)
 # model with interaction
 m1zb <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) +
               s(mutationProbInvestmentGenes, k = 5) +
+              s(sdInvestmentGenes, k = 5) +
               ti(ageOfParent,mutationProbInvestmentGenes, k=c(5,5)) +
               ti(ageOfParent, sdInvestmentGenes, k= c(5,5)),
             data=d2, 
             method="REML") 
 summary(m1zb)
-# For every smooth and interaction term p-val < 2e-16
 
 AIC(m1z,m1zb)
-
-# transforms the parameter model predictors to factors 
-#d2 <- d2 %>% mutate(ID = factor(ID))
-#d2 <- d2 %>% mutate(mutationProbInvestmentGenes = factor(mutationProbInvestmentGenes))
-# new predicted data for determining the percentage decrease 
-pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], 
-                        mutationProbAgeGenes = levels(d2$mutationProbAgeGenes)[1],
-                        meanMutBias = levels(d2$meanMutBias)[1],
-                        sdMutEffectSize = levels(d2$sdMutEffectSize)[1])
+# m1zb has lower value so better fit 
 
 ### GENERATE NEW DATA FOR PLOT
 len <- 20
 length(unique(d2$mutationProbInvestmentGenes)) #10
 length(unique(d2$sdInvestmentGenes))#10
 
-# I'm using 20 age values, and 4 for each of the 3 other predictors.
+# I'm using 20 age values, and 4 for each of the 2 other predictors.
 # Could use all of course, but then the plot becomes a bit messy.
 # A single ID value because we will ignore the term involving ID anyway.
 d.pred <- expand.grid(ageOfParent=seq(0,40,length=len),
                       ID=levels(d2$ID)[1],
                       mutationProbInvestmentGenes=unique(d2$mutationProbInvestmentGenes),
-                      sdInvestmentGenes = unique(d2$sdInvestmentGenes)[c(1,3,5,7,9)])
+                      sdInvestmentGenes = unique(d2$sdInvestmentGenes)[c(1,2,3,5,7,9)])
 
 # Compute all terms, excluding the one with ID
 z <- predict(m1zb,newdata = d.pred,
@@ -503,12 +497,14 @@ d.pred$y4 <- 40*logist(d.pred$y3)
 d.pred <- d.pred %>% mutate(mutationProbInvestmentGenes=factor(mutationProbInvestmentGenes))
 d.pred <- d.pred %>% mutate(sdInvestmentGenes=factor(sdInvestmentGenes))
 
-library(cowplot)
+#library(cowplot)
 ggplot(d.pred,aes(x=ageOfParent,y=y4,color=mutationProbInvestmentGenes)) +
+  labs(title = "resource-only scenario",
+       subtitle = "where every panel shows a different sd",
+       y = "expected age at death offspring") +
   theme_cowplot() +
   geom_line() +
   facet_wrap(d.pred$sdInvestmentGenes) +
   background_grid(major = "xy")
-
 
 

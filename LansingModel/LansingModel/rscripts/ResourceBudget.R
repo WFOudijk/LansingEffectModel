@@ -19,8 +19,13 @@ ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop2.txt", sep = "")) #
 ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop3.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7. tEnd = 200.000
 ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop4.txt", sep = "")) #  tEnd = 200.000; weight = 0.3; init = 0.5 
 ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop5.txt", sep = "")) #  tEnd = 500.000; weight = 0.3; init = 0.5 
+ageDist <- read.table(paste(path, "longrun/outputAgeAlivePop6.txt", sep = "")) #  tEnd = 500.000; weight = 0.3; init = 0.5. Again same thing
+
 #### INVESTMENT 2.0 #####
 ageDist <- read.table(paste(path, "investment2/outputAgeAlivePop.txt", sep = "")) 
+ageDist <- read.table(paste(path, "investment2/outputAgeAlivePop2.txt", sep = "")) # init = 0.2; sd = 0.02; mut rate = 0.004
+ageDist <- read.table(paste(path, "investment2/outputAgeAlivePop3.txt", sep = "")) # init = 0.8; sd = 0.02; mut rate = 0.004
+ageDist <- read.table(paste(path, "investment2/longrun/outputAgeAlivePop2.txt", sep = "")) # init = 0.5; sd = 0.04; mut rate = 0.004 and tEnd = 200.000
 
 colnames(ageDist) <- c("maleAge", "femaleAge")
 
@@ -49,8 +54,13 @@ deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality2.txt", se
 deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality3.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.7, tEnd= 200.000
 deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality4.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 200.000
 deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality5.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
+deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality6.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
+
 ### INVESTMENT 2.0 ###
-deathPop <- read.table(paste(path, "investment2/outputDeclineGameteQuality.txt", sep = ""))
+deathPop <- read.table(paste(path, "investment2/outputDeclineGameteQuality.txt", sep = "")) # init = 0.5; sd = 0.02; rate = 0.004
+deathPop <- read.table(paste(path, "investment2/outputDeclineGameteQuality2.txt", sep = "")) # init = 0.2; sd = 0.02; rate = 0.004
+deathPop <- read.table(paste(path, "investment2/outputDeclineGameteQuality3.txt", sep = "")) # init = 0.8; sd = 0.02; rate = 0.004
+deathPop <- read.table(paste(path, "investment2/longrun/outputDeclineGameteQuality2.txt", sep = "")) # init = 0.5; sd = 0.04; rate = 0.004. tEnd = 200.000
 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete")
 
@@ -82,8 +92,14 @@ myLongitudinalData <- read.table(paste(path, "resource-only/outputLETrackedIndiv
 myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals2.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.4; tEnd= 100.000
 myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals3.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.7; tEnd= 200.000
 myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals4.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.3; tEnd= 200.000
+myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals5.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.3; tEnd= 500.000
+myLongitudinalData <- read.table(paste(path, "longrun/outputLETrackedIndividuals6.txt", sep = "")) # with sd = 0.03 and init = 0.5 and weight = 0.3; tEnd= 500.000
+
 ### INVESTMENT 2.0 ###
 myLongitudinalData <- read.table(paste(path, "investment2/outputLETrackedIndividuals.txt", sep = "")) 
+myLongitudinalData <- read.table(paste(path, "investment2/outputLETrackedIndividuals2.txt", sep = "")) # init = 0.2; sd = 0.02; rate = 0.004 
+myLongitudinalData <- read.table(paste(path, "investment2/outputLETrackedIndividuals3.txt", sep = "")) # init = 0.8; sd = 0.02; rate = 0.004 
+myLongitudinalData <- read.table(paste(path, "investment2/longrun/outputLETrackedIndividuals2.txt", sep = "")) # init = 0.5; sd = 0.04; rate = 0.004; tEnd = 200.000
 
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestment")
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestment", "weightInvestment")
@@ -102,8 +118,13 @@ parentalInvestment <- read.table(paste(path, "resource-only/outputWithInvestment
 parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment2.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.4; tEnd = 100.000
 parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment3.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7; tEnd = 200.000
 parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment5.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7; tEnd = 500.000
+parentalInvestment <- read.table(paste(path, "longrun/outputWithInvestment6.txt", sep = "")) # sd = 0.03 and init = 0.5 and weight = 0.7; tEnd = 500.000
+
 ### INVESTMENT 2.0 ###
 parentalInvestment <- read.table(paste(path, "investment2/outputWithInvestment.txt", sep = "")) 
+parentalInvestment <- read.table(paste(path, "investment2/outputWithInvestment2.txt", sep = "")) # init = 0.2; sd = 0.02; rate = 0.004
+parentalInvestment <- read.table(paste(path, "investment2/outputWithInvestment3.txt", sep = "")) # init = 0.8; sd = 0.02; rate = 0.004
+parentalInvestment <- read.table(paste(path, "investment2/longrun/outputWithInvestment2.txt", sep = "")) # init = 0.5; sd = 0.04; rate = 0.004; tEnd = 200.000
 
 colnames(parentalInvestment) <- c("ID", "age", "investmentInRepair", "mutationProbGametes", "mutationProbStemCell", "meanMutationBias", "sdMutationalEffectSize", "mutationProbAgeGenes", "mutationProbInvestment", "sdInvestment")
 
@@ -116,7 +137,7 @@ ggplot(data = parentalInvestmentSub, aes(age, investmentInRepair, group = ID, co
   #geom_smooth(se = F) +
   geom_line() +
   labs(title = "Looking at parental investment in repair per age class",
-       #subtitle = "With differing mean mutation bias",
+       #subtitle = "with tEnd = 50.000 and init = 0.2",
        x = "Age",
        y = "Age-specific investment in repair") +
   theme(axis.title = element_text(size = 20),
@@ -149,6 +170,10 @@ ggplot(data = parentalInvestmentSubPopAvg, aes( x = age, y = investmentInRepair)
 ###############################################################################
 # mutation probability 
 parent_path <- paste(path, "mutationProbVary/", sep = "")
+##### varying mutation probability with the resource 2.0 #####
+parent_path <- paste(path, "investment2/mutProb/", sep = "")
+##### varying mutation probability with the resource 2.0 for a longer time. tEnd = 30.000 #####
+parent_path <- paste(path, "investment2/mutProb30/", sep = "")
 
 # look at tracked individuals data 
 f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
@@ -179,15 +204,17 @@ for (x in unique(found$mutationProbInvestmentGenes)){
   # get subset of this mutation probability
   sub <- subset(found, found$mutationProbInvestmentGenes == x)
   # get 100 randomly sampled and unique IDs 
-  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 50)] 
+  tmp <- unique(sub$ID)[sample(length(unique(sub$ID)), 40)] 
   # subset the data of these 100 IDs
   tmp2 <- subset(sub, sub$ID %in% tmp)
   # add them to the dataframe 
   sampled_data_investment <- rbind(sampled_data_investment, tmp2)
 }
 
-# standard deviation 
+# standard deviation for resource 
 parent_path <- paste(path, "sdVary/", sep = "")
+# standard deviation for resource 2.0
+parent_path <- paste(path, "investment2/sd/", sep = "")
 
 # look at tracked individuals data 
 f <- list.files(path = parent_path, pattern = "outputLETrackedIndividuals.txt", recursive = T)
@@ -266,6 +293,9 @@ for (x in unique(found$weightInvestment)){
   # add them to the dataframe 
   sampled_data_weight_investment <- rbind(sampled_data_weight_investment, tmp2)
 }
+
+
+
 
 
 ###############################################################################
@@ -495,9 +525,10 @@ ggplot(data = parentalInvestmentSubPopAvg, aes( x = age, y = investmentInRepair)
 ###############################################################################
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/resourceBudget/"
 
-deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality3.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.7, tEnd= 200.000
-deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality4.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 200.000
-deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality5.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
+deathPop <- read.table(paste(path, "investment2/longrun/outputDeclineGameteQuality2.txt", sep = "")) # sd = 0.04, init = 0.5, rate= 0.004, tEnd= 200.000
+#deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality4.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 200.000
+#deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality5.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
+#deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality6.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete", "mutationProbInvestmentGenes", "sdInvestment", "investmentInRepair")
 
