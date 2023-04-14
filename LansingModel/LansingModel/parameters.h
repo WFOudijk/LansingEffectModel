@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(10000),
+    Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
-                   numOfOffspringPerFemale(4),
+                   numOfOffspringPerFemale(3),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(30000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -23,10 +23,10 @@ struct Parameters {
                    sdMutationalEffectSize(0.024),
                    initAgeSpecificGenes(0.99),
                    mutationProbAgeSpecificGenes(0.003), // 0.003 based on param simulations
-                   numOfIndividualsToFollow(1000),
+                   numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
                    initInvestmentInRepair(0.5),
-                   numOfStemCells(70),
+                   numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.02),
                    mutationProbInvestmentGenes(0.004),
