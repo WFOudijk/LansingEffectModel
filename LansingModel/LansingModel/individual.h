@@ -147,10 +147,10 @@ Individual::Individual(Individual& mother,
         double investmentInReproduction = 1 - mother.averageInvestmentGenes[mother.age];
         
         // calculate the effect of the investment per offspring
-        double adjustedInvestmentInRepair = investmentInReproduction / p.numOfOffspringPerFemale; // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
+        double adjustedInvestmentInReproduction = investmentInReproduction / p.numOfOffspringPerFemale; // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
         
         // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
-        survivalProb = survivalProb - ((p.baselineSurvival - adjustedInvestmentInRepair) * p.scalingStrengthOfAllocationToSurvival);
+        survivalProb = survivalProb - ((p.baselineSurvival - adjustedInvestmentInReproduction) * p.scalingStrengthOfAllocationToSurvival);
     }
 }
 
