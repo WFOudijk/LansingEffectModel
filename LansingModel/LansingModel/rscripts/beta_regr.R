@@ -279,23 +279,27 @@ for (x in rangeMutProb) {
 }
 
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>12)
-d3 <- d2 %>% filter(na<18)
+d2 <- d %>% filter(na>3)
+#d3 <- d2 %>% filter(na<18)
 
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
-m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5),
+Sys.time()
+m1z <- bam(y3 ~ s(ageOfParent, k = 20) + s(ageOfParent, ID, bs = "fs", k = 10),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
-# interaction term. use k = 5. One-by-one? 
+# interaction term. 
+Sys.time()
+
+# perform gam check
+gam.check(m1z)
 
 d2 <- d2 %>% mutate(ID = factor(ID)) 
-d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes)) 
+#d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes)) 
 
-pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1])
-pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], mutationProbGametes = levels(d2$mutationProbGametes)[1])
-
+pred_data = expand.grid(ageOfParent = c(0,22), ID = levels(d2$ID)[1])
+#pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], mutationProbGametes = levels(d2$mutationProbGametes)[1])
 
 ## Predict, only using the first term (i.e. without the "random" effect)
 z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(ageOfParent)"))
@@ -310,12 +314,24 @@ perc_decr
 
 summary(m1z)
 
-#gratia::draw(m1z, fun = logist, main = "test")
+logist <- function(x) 40/(1+exp(-x))
+
+# using this the y-axis is correct 
+test <- predict(m1z)
+d2$test <- test
+tmp <- aggregate(d2$test, list(d2$ageOfParent), mean)
+colnames(tmp) <- c("ageOfParent", "meanExpectedAgeAtDeath")
+ggplot(tmp, aes(ageOfParent, logist(meanExpectedAgeAtDeath)))  + geom_point() + geom_line()
+#### 
+
+gratia::draw(m1z, fun = logist, main = "test")
 plot(m1z, trans = logist, 
-     xlab = "Parental age",
-     ylab = "Expected age at death of offspring",
-     main = paste("Resource-only, % decrease = ", perc_decr)
+     #xlab = "Parental age",
+     #ylab = "Expected age at death of offspring",
+     main = paste(mechanisms, ", % decrease = ", perc_decr),
+     xlim = c(0,22)
      )
+# the y-axis is incorrect. What does it plot from the model? 
 
 ##########################################################################
 
