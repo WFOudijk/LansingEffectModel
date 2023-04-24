@@ -211,6 +211,7 @@ bool Individual::dies(Randomizer& rng,
     float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
     // if investment is disabled in the model. It should not play a part.
     if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
+    //if (!p.addInvestmentInRepair) investmentInRepair = 1;
 
     // Caclulate the survival prob based on both gene arrays
     float totalSurvivalProb = survivalProbAgeSpec * survivalProb * investmentInRepair;
