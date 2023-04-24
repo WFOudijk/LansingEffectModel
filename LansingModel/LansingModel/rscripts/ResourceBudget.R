@@ -442,6 +442,7 @@ mechanisms <- "resource-only"
 alivePop <- read.table(paste(path, "resource_damage/outputAgeAlivePop.txt", sep = ""))
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop.txt", sep = "")) # resource 2.0
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop2.txt", sep = "")) # resource 2.0 and tEnd = 200.000
+alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop3.txt", sep = "")) # resource 2.0 with higher mutation rate for damage accumulation (0.004)
 mechanisms <- "resource + damage"
 
 # resource and quality
@@ -454,6 +455,7 @@ mechanisms <- "resource + quality"
 alivePop <- read.table(paste(path, "resource-damage-quality/outputAgeAlivePop.txt", sep = ""))
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-quality-damage/outputAgeAlivePop.txt", sep = "")) # resource 2.0 
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-quality-damage/outputAgeAlivePop2.txt", sep = "")) # resource 2.0 with tEnd = 200.000
+alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-quality-damage/outputAgeAlivePop3.txt", sep = "")) # resource 2.0
 mechanisms <- "resource + quality + damage"
 
 colnames(alivePop) <- c("maleAge", "femaleAge")
@@ -478,6 +480,7 @@ mechanisms <- "resource"
 deathPop <- read.table(paste(path, "resource_damage/outputDeclineGameteQuality.txt", sep = "")) 
 deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality.txt", sep = "")) # resource 2.0
 deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality2.txt", sep = "")) # resource 2.0 with tEnd = 200.000
+deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality3.txt", sep = "")) # resource 2.0; mut rate gametes/SCs = 0.004
 mechanisms <- "resource + damage"
 
 deathPop <- read.table(paste(path, "resource-quality/outputDeclineGameteQuality.txt", sep = "")) 
@@ -516,6 +519,7 @@ myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/reso
 myLongitudinalData <- read.table(paste(path, "resource_damage/outputLETrackedIndividuals.txt", sep = "")) # resource + damage
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals.txt", sep = "")) # resource 2.0 + damage
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals2.txt", sep = "")) # resource 2.0 + damage with tEnd = 200.000
+myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals3.txt", sep = "")) # resource 2.0 + damage; mut rate gametes/SCs = 0.004
 
 myLongitudinalData <- read.table(paste(path, "resource-quality/outputLETrackedIndividuals.txt", sep = "")) # resource + quality 
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-quality/outputLETrackedIndividuals.txt", sep = "")) # resource 2.0 + quality 
@@ -538,6 +542,7 @@ mechanisms <- "resource"
 parentalInvestment <- read.table(paste(path, "resource_damage/outputWithInvestment.txt", sep = "")) # resource + damage
 parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment.txt", sep = "")) # resource 2.0 + damage
 parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment2.txt", sep = "")) # resource 2.0 + damage with tEnd = 200.000
+parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment3.txt", sep = "")) # resource 2.0 + damage; mut rate gametes/SCs = 0.004
 mechanisms <- "resource + damage" 
 
 parentalInvestment <- read.table(paste(path, "resource-quality/outputWithInvestment.txt", sep = "")) # resource + quality
@@ -597,7 +602,6 @@ path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/
 deathPop <- read.table(paste(path, "investment2/longrun/outputDeclineGameteQuality2.txt", sep = "")) # sd = 0.04, init = 0.5, rate= 0.004, tEnd= 200.000
 deathPop <- read.table(paste(path, "investment2/longrun/outputDeclineGameteQuality3.txt", sep = "")) # sd = 0.01; mut rate = 0.002 and tEnd = 30.000; pop size = 10.000
 deathPop <- read.table(paste(path, "investment2/longrun/outputDeclineGameteQuality4.txt", sep = "")) # sd = 0.02; mut rate = 0.004 and tEnd = 30.000; pop.size = 10.000; num of offspring per female = 4; num of individuals to follow = 1000; num of SC = 70.
-#deathPop <- read.table(paste(path, "longrun/outputDeclineGameteQuality6.txt", sep = "")) # sd = 0.03, init = 0.5 and weight = 0.3, tEnd= 500.000
 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb", "mutationProbSC", "mutationProbGamete", "mutationProbInvestmentGenes", "sdInvestment", "investmentInRepair")
 
@@ -606,146 +610,37 @@ deathPopSub <- deathPop[deathPop$ageAtDeath %in% c(25, 28, 30, 32, 35, 37),]
 
 deathPopSub <- deathPop[deathPop$ageAtDeath %in% c(0, 10, 20, 30, 39),]
 deathPopSub <- deathPopSub[deathPopSub$time %in% seq(0, 200000, 100),]
-#deathPopSub <- deathPopSub[deathPopSub$time %in% seq(0, 500000, 500),]
 
-averageInvestmentPerTimeStep <- aggregate(deathPopSub$investmentInRepair, list(deathPopSub$ageAtDeath, deathPopSub$time), mean)
-colnames(averageInvestmentPerTimeStep) <- c("ageAtDeath", "time", "averageInvestmentInRepair")
-
-ggplot(data = averageInvestmentPerTimeStep, aes(time, averageInvestmentInRepair, colour = factor(ageAtDeath), group = factor(ageAtDeath))) + 
-  geom_point() + 
-  geom_smooth() + 
-  labs(title = "Average investment in repair over time") + 
-  theme(text = element_text(size = 20))
-
-#### INTERMEZZO #####
-
-# fit gam model with this dataset 
-mod <- bam(investmentInRepair ~ s(time, k = 15)
-           + s(ageAtDeath, k = 3, bs = "cs"),
-           data = deathPopSub)
-
-mod <- bam(investmentInRepair ~ s(time, k = 9),
-           data = deathPopSub[deathPopSub$ageAtDeath == 39,])
-
-mod <- bam(investmentInRepair ~ s(time, by = ageAtDeath),
-           data = deathPopSub)
-
-z <- predict(mod)
-averageInvestmentPerTimeStep$z <- z
-deathPopSub$z <- z
-deathPopSub$t <- mod$fitted.values
-deathPopSub[deathPopSub$ageAtDeath == 39,]$z <- z
-
-averageInvestmentPerTimeStep$t <- mod$fitted.values
-
-#library(cowplot)
-ggplot(deathPopSub,aes(x=time,y=t,color=as.factor(ageAtDeath))) +
-  labs(title = "resource-only scenario",
-       subtitle = "where every panel shows a different sd") +
-       #y = "expected age at death offspring") +
-  theme_cowplot() +
-  geom_line() +
-  facet_wrap(d.pred$sdInvestmentGenes) +
-  background_grid(major = "xy")
-
-ggplot(deathPopSub[deathPopSub$ageAtDeath == 39,], aes(time, z)) + geom_line()
-
-#### end intermezzo ####
-
+# use geom_smooth
 ggplot(data = deathPopSub, aes(time, investmentInRepair, colour = factor(ageAtDeath), group = factor(ageAtDeath))) + 
   #geom_point() + 
   geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs")) + 
   labs(title = "Investment in repair over time using smooth from ggplot") + 
   theme(text = element_text(size = 20))
 
-# sampling 50 individuals of every age class. 
-subT <- deathPop[deathPop$ageAtDeath %in% c(0,10,20,30,39),]
-sampled_data <- c()
-for (x in unique(subT$ageAtDeath)){ 
-  # get subset of this age at death
-  sub <- subset(deathPopSub, deathPopSub$ageAtDeath == x)
-  # get 50 randomly sampled individuals
-  tmp <- sample(nrow(sub), 50)
-  # subset the data of these 50 individuals
-  tmp2 <- sub[tmp,]
-  # add them to the dataframe 
-  sampled_data <- rbind(sampled_data, tmp2)
-}
+# fit gam model and plot this
+mod <- bam(investmentInRepair ~ s(time, k = 10, by = as.factor(ageAtDeath)),
+           data = deathPopSub)
+z <- predict(mod)
+deathPopSub$z <- z
 
-# chatGPT suggestion for improved code: 
-ages_to_sample <- c(0, 10, 20, 30, 39)
-n_samples_per_age <- 50
+#library(cowplot)
+ggplot(deathPopSub,aes(x=time,y=z,color=as.factor(ageAtDeath))) +
+  labs(title = "resource-only scenario") +
+  theme_cowplot() +
+  geom_line() +
+  background_grid(major = "xy")
 
-# Get subset of individuals with ages in `ages_to_sample`
-subT <- deathPop[deathPop$ageAtDeath %in% ages_to_sample, ]
-
-sampled_data <- do.call(rbind, lapply(ages_to_sample, function(age) {
-  # Get subset of individuals with age `age`
-  sub <- subset(subT, ageAtDeath == age)
-  # Sample `n_samples_per_age` individuals from `sub` without replacement
-  tmp <- sample(nrow(sub), n_samples_per_age, replace = FALSE)
-  # Subset the data of the sampled individuals
-  sub[tmp, ]
-}))
-
-ggplot(data = sampled_data, aes(time, investmentInRepair, group = factor(ageAtDeath), colour = factor(ageAtDeath))) + geom_point()  + geom_smooth()
-# not really representative in regards to time. Eg. time is not taken into account in this sampling, 
-# however, the plot is over time visualised. 
+# calculate average investment per age class and plot
+averageInvestmentPerTimeStep <- aggregate(deathPopSub$investmentInRepair, list(deathPopSub$ageAtDeath, deathPopSub$time), mean)
+colnames(averageInvestmentPerTimeStep) <- c("ageAtDeath", "time", "averageInvestmentInRepair")
+ggplot(data = averageInvestmentPerTimeStep, aes(time, averageInvestmentInRepair, colour = factor(ageAtDeath), group = factor(ageAtDeath))) + 
+  geom_point() + 
+  geom_smooth() + 
+  labs(title = "Average investment in repair over time") + 
+  theme(text = element_text(size = 20))
 
 
 ###############################################################################
   
 ###############################################################################
-
-
-
-
-######## TEST: TO REMOVE ##########
-
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLifeExpectancy.txt")
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLifeExpectancy.txt")
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputWithParentalQuality.txt")
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLETrackedIndividuals.txt")
-
-
-colnames(test) <-  c("age", "expectedAgeAtDeath", "ageOfParent", "sexOfParent", "survivalProb", "mutationProb")
-colnames(test) <- c("ID", "age", "survivalProb", "mutationProb") 
-colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProb")
-colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath", "mutationProbGametes", "mutationProbSC", "meanMutBias", "sdMutEffectSize", "mutationProbAgeGenes")
-
-
-
-survivingPop <- test
-
-avgDataframe <- aggregate(survivingPop$expectedAgeAtDeath, list(survivingPop$ageOfParent), median) 
-colnames(avgDataframe) <- c("ageOfParent", "medianAgeAtDeath")
-avgDataframe$minAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, min)
-avgDataframe$maxAge <- tapply(survivingPop$expectedAgeAtDeath, survivingPop$ageOfParent, max)
-
-# look at data  
-ggplot(data = avgDataframe, aes(x = ageOfParent, y = medianAgeAtDeath, group = ageOfParent)) +
-  geom_point() + 
-  geom_linerange(aes(ymin = minAge, ymax = maxAge), 
-                 linetype = 2) +
-  labs(title = "Median expected age at death of offspring over parental ages after the final generation",
-       subtitle = "Dashed lines point to min and max expected age",
-       x = "Age of parent",
-       y = "Expected age of death") +
-  theme(axis.title = element_text(size = 20),
-        title = element_text(size = 20),
-        axis.text = element_text(size = 20),
-        axis.text.x = element_text(angle = 90, size = 15)) +
-  scale_x_continuous(labels = as.character(0:39), breaks = 0:39) 
-
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Release/outputLETrackedIndividuals.txt")
-test <- read.table("/Users/willemijnoudijk/Library/Developer/Xcode/DerivedData/LansingModel-bfhrejexgadtgjexzmzzbuoxivtr/Build/Products/Debug/outputLETrackedIndividuals.txt")
-
-colnames(test) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
-myLongitudinalData <- test
-
-# geom_smooth for smooth. Use group and color as differing parameter values. Method = gam. 
-plot(funct(seq(0,1,0.01)), x = seq(0,1,0.01), ylab = "number of offspring", xlab = "investment in reproduction", main = expression(paste("Number of offspring calculated by y = 5", italic(x)^(0.5+italic(x)))))
-
-a <- seq(0,1,0.1) # a = investment in repair 
-c3 <- 0.3
-1 - c3 * (1-a)^2
