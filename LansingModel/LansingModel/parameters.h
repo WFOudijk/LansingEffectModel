@@ -37,9 +37,9 @@ struct Parameters {
                    scalingStrengthOfAllocationToSurvival(0.2),
                    addBinary(false),
                    addAgeSpecific(true),
-                   addQuality(true),
+                   addQuality(false),
                    addInvestmentInRepair(false),
-                   addInvestmentAffectingOffspringQuality(false){
+                   addInvestmentAffectingOffspringQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                    }
     
