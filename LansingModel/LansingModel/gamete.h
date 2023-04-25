@@ -38,10 +38,10 @@ struct Gamete{
         }
 
         // sets age-specific array to length maximum age and filled with intial value
-        ageSpecificGenesOfGamete.resize(p.maximumAge, p.initAgeSpecificGenes);
+        ageSpecificGenesOfGamete.resize((p.maximumAge + 1), p.initAgeSpecificGenes);
 
         // set age-specific invstment in repair to maximum age and fill with initial value
-        ageSpecificInvestmentInRepair.resize(p.maximumAge, p.initInvestmentInRepair);
+        ageSpecificInvestmentInRepair.resize((p.maximumAge + 1), p.initInvestmentInRepair);
     }
 
     void mutate(const Parameters& p, Randomizer& rng, const bool isStemcell);

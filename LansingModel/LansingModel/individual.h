@@ -169,16 +169,16 @@ Gamete Individual::makeGamete(Randomizer& rng,
     }
 				
     // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
-    const std::bitset<40> y{rng.rui64()};
+    const std::bitset<41> y{rng.rui64()};
 				
-    for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
+    for (size_t i = 0; i <= p.maximumAge; ++i){ // fill for every age class
         gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[y[i]][i]);
     }
     
     // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
-    const std::bitset<40> z{rng.rui64()};
+    const std::bitset<41> z{rng.rui64()};
 
-    for (size_t i = 0; i < p.maximumAge; ++i){ // fill for every age class
+    for (size_t i = 0; i <= p.maximumAge; ++i){ // fill for every age class
         gamete.ageSpecificInvestmentInRepair.push_back(ageSpecificInvestmentInRepair[z[i]][i]);
     }
 				
@@ -287,17 +287,17 @@ Gamete Individual::makeGameteFromStemCell(const Parameters& p,
     }
 				
     // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
-    const std::bitset<40> y{rng.rui64()};
+    const std::bitset<41> y{rng.rui64()};
 				
-    for (size_t i = 0; i < p.maximumAge; ++i){
+    for (size_t i = 0; i <= p.maximumAge; ++i){
         // for every age-specific gene of new gamete, determine which gene is inherited
         gamete.ageSpecificGenesOfGamete.push_back(stemCell[y[i]].ageSpecificGenesOfGamete[i]);
     }
     
     // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
-    const std::bitset<40> z{rng.rui64()};
+    const std::bitset<41> z{rng.rui64()};
 
-    for (size_t i = 0; i < p.maximumAge; ++i){
+    for (size_t i = 0; i <= p.maximumAge; ++i){
         // for every age-specific gene of new gamete, determine which gene is inherited
         gamete.ageSpecificInvestmentInRepair.push_back(stemCell[z[i]].ageSpecificInvestmentInRepair[i]);
     }
