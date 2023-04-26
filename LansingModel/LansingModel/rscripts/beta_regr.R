@@ -279,13 +279,13 @@ for (x in rangeMutProb) {
 }
 
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>3)
+d2 <- d %>% filter(na>22)
 #d3 <- d2 %>% filter(na<18)
 
 ## Use faster bam on logit transformed y
 ## bs="fs" means separate spline for each ID, same wigliness
 Sys.time()
-m1z <- bam(y3 ~ s(ageOfParent, k = 20) + s(ageOfParent, ID, bs = "fs", k = 10),
+m1z <- bam(y3 ~ s(ageOfParent, k = 10) + s(ageOfParent, ID, bs = "fs", k = 10),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
@@ -298,7 +298,21 @@ gam.check(m1z)
 d2 <- d2 %>% mutate(ID = factor(ID)) 
 #d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes)) 
 
-pred_data = expand.grid(ageOfParent = c(0,22), ID = levels(d2$ID)[1])
+# get maximum parental age 
+maxi <- max(d2$ageOfParent)
+max_iterations <- maxi
+index <- 0
+while ((nrow(d2[d2$ageOfParent == maxi,]) / nrow(d2) * 100) <= 3 && index < max_iterations) {
+  maxi <- maxi - 1 
+  index = index + 1
+  if (index == max_iterations) { 
+    print("no age class has enough data.. Setting to the maximum age class")
+    maxi = max_iterations
+    }
+}
+pred_data = expand.grid(ageOfParent = c(0,maxi), ID = levels(d2$ID)[1])
+
+pred_data = expand.grid(ageOfParent = c(0,38), ID = levels(d2$ID)[1])
 #pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], mutationProbGametes = levels(d2$mutationProbGametes)[1])
 
 ## Predict, only using the first term (i.e. without the "random" effect)
@@ -316,22 +330,17 @@ summary(m1z)
 
 logist <- function(x) 40/(1+exp(-x))
 
-# using this the y-axis is correct 
-test <- predict(m1z)
-d2$test <- test
-tmp <- aggregate(d2$test, list(d2$ageOfParent), mean)
-colnames(tmp) <- c("ageOfParent", "meanExpectedAgeAtDeath")
-ggplot(tmp, aes(ageOfParent, logist(meanExpectedAgeAtDeath)))  + geom_point() + geom_line()
-#### 
-
-gratia::draw(m1z, fun = logist, main = "test")
+#gratia::draw(m1z, fun = logist, main = "test")
 plot(m1z, trans = logist, 
-     #xlab = "Parental age",
-     #ylab = "Expected age at death of offspring",
-     main = paste(mechanisms, ", % decrease = ", perc_decr),
-     xlim = c(0,22)
+     xlab = "Parental age",
+     ylab = "Expected age at death of offspring",
+     #main = paste(mechanisms, ", % decrease = ", perc_decr),
+    # pages = 1,
+     shade = TRUE, 
+     shade.col = "lightgrey",
+     shift = coef(m1z)[1] # adjust for intercept,
      )
-# the y-axis is incorrect. What does it plot from the model? 
+#
 
 ##########################################################################
 

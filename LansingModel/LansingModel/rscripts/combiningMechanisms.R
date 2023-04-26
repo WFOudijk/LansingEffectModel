@@ -2,14 +2,25 @@
 # COMBINING OF THE MECHANISMS 
 ###############################################################################
 library(cowplot)
+library(tidyverse)
+library(mgcv)
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/"
 
-#### NULL SCENARIO - ONLY AGE-SPECIFIC EFFECTS #####
 # 1. evolutionary consequences 
 deathPop <- read.table(paste(path, "null/outputDeclineGameteQuality.txt", sep = "")) # mut rate = 0.001; mean = -0.02; sd = 0.01
 plotText <- "Mut rate = 0.001; mean = -0.02; sd = 0.01"
 deathPop <- read.table(paste(path, "null/outputDeclineGameteQuality2.txt", sep = "")) # mut rate = 0.001; mean = -0.01; sd = 0.01
 plotText <- "Mut rate = 0.001; mean = -0.01; sd = 0.01"
+deathPop <- read.table(paste(path, "null/outputDeclineGameteQuality3.txt", sep = "")) # mut rate = 0.001; mean = -0.01; sd = 0.01. Pop size = 10.000 and tEnd = 100.000
+plotText <- "Mut rate = 0.001; mean = -0.01; sd = 0.01"
+deathPop <- read.table(paste(path, "null/outputDeclineGameteQuality4.txt", sep = "")) # Null. Pop size = 10.000 and tEnd = 10.000
+plotText <- "Mut rate = 0.001; mean = -0.01; sd = 0.01. tEnd = 10.000"
+deathPop <- read.table(paste(path, "nullDamage/outputDeclineGameteQuality.txt", sep = "")) # Null + damage 
+plotText <- "Null + damage"
+deathPop <- read.table(paste(path, "nullQuality/outputDeclineGameteQuality.txt", sep = "")) # Null + quality 
+plotText <- "Null + quality"
+deathPop <- read.table(paste(path, "nullResource/outputDeclineGameteQuality.txt", sep = "")) # Null + resource 
+plotText <- "Null + resource distribution"
 
 deathPop <- deathPop[, 1:6] # select only the columns that are useful 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb")
@@ -26,7 +37,8 @@ ggplot(averageData, aes(time, meanAgeAtDeath)) +
   geom_line(alpha = 0.2) + 
   geom_point() + 
   theme_cowplot() + 
-  labs(title = "Evolutionary consequences", 
+  labs(title = "Evolutionary consequences",
+       subtitle = plotText,
        y = "average age at death") 
  # ylim(0, 15)
 
@@ -35,7 +47,7 @@ ggplot(deathPop, aes(time, ageAtDeath)) +
   geom_smooth() + 
   theme_cowplot() +
   labs(title = "Evolutionary consequences",
-       subtitle = "Using ggplot gam model to smoothen",
+       subtitle = paste("Using ggplot gam model to smoothen. ", plotText),
        y = "age at death") 
  # coord_cartesian(ylim = c(0, 15))
 
@@ -65,6 +77,16 @@ myLongitudinalData <- read.table(paste(path, "null/outputLETrackedIndividuals.tx
 plotText <- "Mut rate = 0.001; mean = -0.02; sd = 0.01"
 myLongitudinalData <- read.table(paste(path, "null/outputLETrackedIndividuals2.txt", sep = "")) # mut rate = 0.001; mean = -0.01; sd = 0.01
 plotText <- "Mut rate = 0.001; mean = -0.01; sd = 0.01"
+myLongitudinalData <- read.table(paste(path, "null/outputLETrackedIndividuals3.txt", sep = "")) # mut rate = 0.001; mean = -0.01; sd = 0.01; pop size = 10.000 and tEnd = 100.000
+plotText <- "Mut rate = 0.001; mean = -0.01; sd = 0.01"
+myLongitudinalData <- read.table(paste(path, "null/outputLETrackedIndividuals4.txt", sep = "")) # null; pop size = 10.000 and tEnd = 10.000
+plotText <- "Null. tEnd = 10.000; pop size = 10.000"
+myLongitudinalData <- read.table(paste(path, "nullDamage/outputLETrackedIndividuals.txt", sep = "")) # null + damage
+plotText <- "Null + damage"
+myLongitudinalData <- read.table(paste(path, "nullQuality/outputLETrackedIndividuals.txt", sep = "")) # null + quality
+plotText <- "Null + quality"
+myLongitudinalData <- read.table(paste(path, "nullResource/outputLETrackedIndividuals.txt", sep = "")) # null + resource distribution
+plotText <- "Null + resource distribution"
 
 myLongitudinalData <- myLongitudinalData[, 1:5] # subset only the useful columns
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
@@ -100,7 +122,7 @@ d <- d %>% mutate(y2 = y1/40)
 d <- d %>% mutate(y3 = car::logit(y2))
 
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>12)
+d2 <- d %>% filter(na>6)
 
 Sys.time()
 m1z <- bam(y3 ~ s(ageOfParent, k = 10) + s(ageOfParent, ID, bs = "fs", k = 10),
@@ -110,7 +132,6 @@ m1z <- bam(y3 ~ s(ageOfParent, k = 10) + s(ageOfParent, ID, bs = "fs", k = 10),
 # interaction term. 
 Sys.time()
 
-# perform gam check
 gam.check(m1z)
 
 d2 <- d2 %>% mutate(ID = factor(ID)) 
@@ -128,8 +149,7 @@ while ((nrow(d2[d2$ageOfParent == maxi,]) / nrow(d2) * 100) <= 3 && index < max_
   }
 }
 pred_data = expand.grid(ageOfParent = c(0,maxi), ID = levels(d2$ID)[1])
-
-#pred_data = expand.grid(ageOfParent = c(0,38), ID = levels(d2$ID)[1])
+pred_data = expand.grid(ageOfParent = c(0,max(d2$ageOfParent)), ID = levels(d2$ID)[1])
 
 ## Predict, only using the first term (i.e. without the "random" effect)
 z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(ageOfParent)"))
@@ -149,7 +169,8 @@ logist <- function(x) 40/(1+exp(-x))
 plot(m1z, trans = logist, 
      xlab = "Parental age",
      ylab = "Expected age at death of offspring",
-     main = paste("Expected age at death over parental age. ", plotText),
+     main = paste("Expected age at death over parental age. 
+                  ", plotText, "% decrease = ", perc_decr),
      # pages = 1,
      shade = TRUE, 
      shade.col = "lightgrey",

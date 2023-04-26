@@ -449,8 +449,8 @@ plot(m1a, trans = logist,
 ##########################
 # model without interaction
 m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k = 5) 
-           + s(mutationProbInvestmentGenes, k = 5) +
-             s(sdInvestmentGenes, k = 5),
+           + s(mutationProbInvestment, k = 5) +
+             s(sdInvestment, k = 5),
            data=d2, 
            method="REML") 
 summary(m1z)
