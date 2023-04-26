@@ -35,7 +35,7 @@ struct Parameters {
                    pointOfHalfScalingParam(0.5),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
-                   addBinary(false),
+                   addBinary(true),
                    addAgeSpecific(true),
                    addQuality(false),
                    addInvestmentInRepair(false),
