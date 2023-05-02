@@ -35,9 +35,9 @@ struct Parameters {
                    pointOfHalfScalingParam(0.5),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
-                   addBinary(false),
+                   addBinary(true),
                    addAgeSpecific(false),
-                   addQuality(true),
+                   addQuality(false),
                    addInvestmentInRepair(false),
                    addInvestmentAffectingOffspringQuality(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
