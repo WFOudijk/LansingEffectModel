@@ -174,7 +174,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
     // open file to write output for the
     std::ofstream ofs;
     //ofs.open("outputWithInvestmentDistribution.txt"); // the output file
-    ofs.open("outputWithInvestment.txt");
+    ofs.open("outputWithAgeSpecificGenes.txt");
     if (!ofs.is_open()){
         std::cerr << "Error. Unable to open output file.\n";
         exit(EXIT_FAILURE);
@@ -196,8 +196,8 @@ void createOutputTrackedIndividuals(const Parameters& p,
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " " // write as id of individual
             << i << " " // write age
-            << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
-            ///<< deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality in repair for this age class
+            ///<< deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
+            << deadIndividuals[ind].averageAgeSpecificGenes[i] << " " // write parental quality in repair for this age class
             << p.mutationProb << " "
             << p.mutationProbStemcell << " "    
             << p.meanMutationBias << " "
