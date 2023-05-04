@@ -15,7 +15,7 @@ struct Parameters {
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(500000), // 10.000
+                   tEnd(100000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -36,10 +36,10 @@ struct Parameters {
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
                    addBinary(false),
-                   addAgeSpecific(true),
-                   addQuality(false),
+                   addAgeSpecific(false),
+                   addQuality(true),
                    addInvestmentInRepair(false),
-                   addInvestmentAffectingOffspringQuality(false){
+                   addInvestmentAffectingOffspringQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                    }
     
