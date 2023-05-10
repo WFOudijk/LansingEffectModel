@@ -279,7 +279,7 @@ for (x in rangeMutProb) {
 }
 
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>22)
+d2 <- d %>% filter(na>2)
 #d3 <- d2 %>% filter(na<18)
 
 ## Use faster bam on logit transformed y

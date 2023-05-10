@@ -443,6 +443,7 @@ alivePop <- read.table(paste(path, "resource_damage/outputAgeAlivePop.txt", sep 
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop.txt", sep = "")) # resource 2.0
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop2.txt", sep = "")) # resource 2.0 and tEnd = 200.000
 alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop3.txt", sep = "")) # resource 2.0 with higher mutation rate for damage accumulation (0.004)
+alivePop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputAgeAlivePop4.txt", sep = "")) # resource 2.0 with higher mutation rate for damage accumulation (0.005)
 mechanisms <- "resource + damage"
 
 # resource and quality
@@ -481,6 +482,7 @@ deathPop <- read.table(paste(path, "resource_damage/outputDeclineGameteQuality.t
 deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality.txt", sep = "")) # resource 2.0
 deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality2.txt", sep = "")) # resource 2.0 with tEnd = 200.000
 deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality3.txt", sep = "")) # resource 2.0; mut rate gametes/SCs = 0.004
+deathPop <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputDeclineGameteQuality4.txt", sep = "")) # resource 2.0; mut rate gametes/SCs = 0.005
 mechanisms <- "resource + damage"
 
 deathPop <- read.table(paste(path, "resource-quality/outputDeclineGameteQuality.txt", sep = "")) 
@@ -520,6 +522,7 @@ myLongitudinalData <- read.table(paste(path, "resource_damage/outputLETrackedInd
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals.txt", sep = "")) # resource 2.0 + damage
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals2.txt", sep = "")) # resource 2.0 + damage with tEnd = 200.000
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals3.txt", sep = "")) # resource 2.0 + damage; mut rate gametes/SCs = 0.004
+myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputLETrackedIndividuals4.txt", sep = "")) # resource 2.0 + damage; mut rate gametes/SCs = 0.005
 
 myLongitudinalData <- read.table(paste(path, "resource-quality/outputLETrackedIndividuals.txt", sep = "")) # resource + quality 
 myLongitudinalData <- read.table(paste(path, "investment2/CombiningResource/resource-quality/outputLETrackedIndividuals.txt", sep = "")) # resource 2.0 + quality 
@@ -543,6 +546,7 @@ parentalInvestment <- read.table(paste(path, "resource_damage/outputWithInvestme
 parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment.txt", sep = "")) # resource 2.0 + damage
 parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment2.txt", sep = "")) # resource 2.0 + damage with tEnd = 200.000
 parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment3.txt", sep = "")) # resource 2.0 + damage; mut rate gametes/SCs = 0.004
+parentalInvestment <- read.table(paste(path, "investment2/CombiningResource/resource-damage/outputWithInvestment4.txt", sep = "")) # resource 2.0 + damage; mut rate gametes/SCs = 0.005
 mechanisms <- "resource + damage" 
 
 parentalInvestment <- read.table(paste(path, "resource-quality/outputWithInvestment.txt", sep = "")) # resource + quality
