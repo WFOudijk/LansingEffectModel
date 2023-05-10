@@ -7,7 +7,10 @@
 #pragma once
 #include <iostream>
 #include "individual.h"
-#include <execution> // for parallelization
+#include <oneapi/dpl/execution> // for parallelization
+#include <oneapi/dpl/algorithm>
+//#include <algorithm>
+//#include <boost/algorithm/algorithm>
 
 using indVec = std::vector<Individual>;
 
@@ -78,7 +81,14 @@ void Population::mortalityRound(const Parameters& p,
                                 indVec& trackedIndividuals){
     /**This function kills off adults.**/
 				
-    std::for_each(std::execution::par, begin(females), end(females), [&](auto& f){ f.dies(rng,p); });
+    std::for_each(
+                  std::execution::par,
+                  females.begin(),
+                  females.end(),
+                  [&](auto& f){
+                      f.dies(rng,p);
+                      
+                  });
     std::for_each(std::execution::par, begin(males), end(males), [&](auto& m){ m.dies(rng,p); });
     
     for (size_t m = 0; m < males.size();){
