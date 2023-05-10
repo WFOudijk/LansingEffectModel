@@ -88,15 +88,15 @@ void createOutputLifeExpectancy(const Parameters& p,
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageAgeSpecificGenes[male.age];
         // set investment in repair based on their resource budget
-        float investmentInRepair = 1 - p.weightInvestment * sqr(1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
+        float investmentInRepair = 1.0 - p.weightInvestment * sqr(1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
+        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
         
         
         // calculates survival into the next year
-        float s = ageSpecSurvProb * male.survivalProb * investmentInRepair * (1 - p.extrinsicMortRisk);
+        float s = ageSpecSurvProb * male.survivalProb * investmentInRepair * p.survivalProbExtrinsicMort;
         // calculate expected age at death
-        float expectedAgeAtDeath = male.age + (s / (1 - s));
+        float expectedAgeAtDeath = male.age + (s / (1.0 - s));
         
         // write maternal information
         ofs << male.age << " "
@@ -127,16 +127,16 @@ void createOutputLifeExpectancy(const Parameters& p,
     for (Individual female : females){
         float ageSpecSurvProb; // female survival probability based on age-specific gene
         // if age-specific gene effect should not be taken into account, this will be set to 1.
-        ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : female.averageAgeSpecificGenes[female.age];
+        ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1.0 : female.averageAgeSpecificGenes[female.age];
         // set investment in repair based on their resource budget
-        float investmentInRepair = 1 - p.weightInvestment * sqr(1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
+        float investmentInRepair = 1.0 - p.weightInvestment * sqr(1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
         // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
+        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
         
         // calculates survival into the next year
-        float s = ageSpecSurvProb * female.survivalProb * investmentInRepair * (1 - p.extrinsicMortRisk);
+        float s = ageSpecSurvProb * female.survivalProb * investmentInRepair * p.survivalProbExtrinsicMort;
         // calculate expected age at death
-        float expectedAgeAtDeath = female.age + (s / (1 - s));
+        float expectedAgeAtDeath = female.age + (s / (1.0 - s));
         
         // write maternal information
         ofs << female.age << " "
@@ -216,22 +216,22 @@ void createOutputTrackedIndividuals(const Parameters& p,
             // calculate expected age at death for this offspring of the tracked individual
             // get the survival probability of the age-dependent genes
             float ageDependentSurvProb = deadIndividuals[ind].offspring[i].averageAgeSpecificGenes[deadIndividuals[ind].offspring[i].age];
-            if (p.addQuality && !p.addAgeSpecific) ageDependentSurvProb = 1; // if
+            if (p.addQuality && !p.addAgeSpecific) ageDependentSurvProb = 1.0; // if
             
             // get the survival probability of the binary genes
             float binarySurvProb = deadIndividuals[ind].offspring[i].survivalProb;
             
             // set investment in repair based on their resource budget
-            float investmentInRepair = 1 - p.weightInvestment * sqr(1 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
+            float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
             // if investment is off in the model. It should not play a part.
-            if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
+            if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
             
             // mulitply the above-mentioned three to get total survival probability
             float totSurvProb = ageDependentSurvProb * binarySurvProb * investmentInRepair;
             // calculate s = yearly probability of survival to the next year
-            float s = totSurvProb * (1 - p.extrinsicMortRisk);
+            float s = totSurvProb * p.survivalProbExtrinsicMort;
             // calculate expected age at death
-            float expectedAgeAtDeath = deadIndividuals[ind].offspring[i].age + (s / (1 - s));
+            float expectedAgeAtDeath = deadIndividuals[ind].offspring[i].age + (s / (1.0 - s));
             // if this flagged individual is male, the age of the father needs to be documented, if female > age of mother will be documented
             (deadIndividuals[ind].isFemaleSex) ? ofs2 << deadIndividuals[ind].offspring[i].ageOfMother : ofs2 << deadIndividuals[ind].offspring[i].ageOfFather;
             ofs2 << " ";

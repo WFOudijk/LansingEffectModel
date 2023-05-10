@@ -22,6 +22,7 @@ struct Individual {
     float survivalProb; // based on the binary genes
     float parentalQuality; // parental quality
     bool tracked; // the flagged individuals will be true
+    bool isDead{false}; // track dead individuals
 			
     // array with genes - binary
     std::array<arrayOfGenes, 2> geneticsBinary;
@@ -55,7 +56,7 @@ struct Individual {
 				
     Gamete makeGamete(Randomizer& rng, const Parameters& p);
     void makeSeveralGametes(const Parameters &p, Randomizer& rng);
-    bool dies(Randomizer& rng, const Parameters& p);
+    void dies(Randomizer& rng, const Parameters& p);
     void mutateGametes(const Parameters& p, Randomizer& rng);
     void makeStemcells(const Parameters& p);
     void mutateStemCells(const Parameters& p, Randomizer& rng);
@@ -70,7 +71,7 @@ struct Individual {
 Individual::Individual(const Parameters& p, // initializing constructor
                        Randomizer& rng,
                        bool isFemale) : age(0),
-                                        ageOfMother(0),
+                                        ageOfMother(0), // should this not be >0 (for consistency)
                                         ageOfFather(0),
                                         tracked(0){
     // initialise two gametes for this individual
@@ -100,7 +101,7 @@ Individual::Individual(const Parameters& p, // initializing constructor
 
     // if the individual is female she should make gametes, otherwise the male should make stem cells.
     (isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p);
-    isFemaleSex = (isFemale) ? 1 : 0;
+    isFemaleSex = isFemale;
 }
 
 Individual::Individual(Individual& mother,
@@ -136,7 +137,7 @@ Individual::Individual(Individual& mother,
     parentalQuality = averageAgeSpecificGenes[0]; // get new individual its quality
                                                                                                                                                                                         
     // calculate effect of quality from both parents
-    float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1 - p.weightMaternalEffect) * father.parentalQuality;
+    float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1.0 - p.weightMaternalEffect) * father.parentalQuality;
                                                                                                                                                                                     
     if (p.addQuality) survivalProb *= effectQuality; // multiply survival prob with the quality of the parents
                                                   
@@ -144,13 +145,15 @@ Individual::Individual(Individual& mother,
     if (p.addInvestmentAffectingOffspringQuality) {
     
         // get females investment in reproduction
-        double investmentInReproduction = 1 - mother.averageInvestmentGenes[mother.age];
+        double investmentInReproduction = 1.0 - mother.averageInvestmentGenes[mother.age];
         
         // calculate the effect of the investment per offspring
-        double adjustedInvestmentInReproduction = investmentInReproduction / p.numOfOffspringPerFemale; // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
+        double adjustedInvestmentInReproduction = investmentInReproduction / p.numOfOffspringPerFemale;
+        // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
         
         // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
-        survivalProb = survivalProb - ((p.baselineSurvival - adjustedInvestmentInReproduction) * p.scalingStrengthOfAllocationToSurvival);
+        survivalProb = survivalProb -
+                ((p.baselineSurvival - adjustedInvestmentInReproduction) * p.scalingStrengthOfAllocationToSurvival);
         if (survivalProb < 0) survivalProb = 0; // to prevent the survival probability becoming negative
     }
 }
@@ -192,49 +195,47 @@ void Individual::makeSeveralGametes(const Parameters &p,
 				
     for (unsigned i = 0; i < p.numOfGametes; ++i){
         Gamete gamete = makeGamete(rng, p);
-        gametes.push_back(gamete);
+        gametes.emplace_back(gamete);
     }
 }
 
-bool Individual::dies(Randomizer& rng,
+void Individual::dies(Randomizer& rng,
                       const Parameters& p){
     /**Function to determine which individuals will die.**/
 				
-    bool dies = false;
-    
     // get age-specific survival probability
     float survivalProbAgeSpec = averageAgeSpecificGenes[age];
     // if quality is enabled but age-specific genetic effects are disabled, the age-specific genes do need to evolve (for quality determination)
     // but they should not be taken into account for determining survival probability of the individual
-    if (p.addQuality && !p.addAgeSpecific) survivalProbAgeSpec = 1;
+    if (p.addQuality && !p.addAgeSpecific) survivalProbAgeSpec = 1.0;
     
     // set investment in repair based on the individual's resource budget
     float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
     // if investment is disabled in the model. It should not play a part.
-    if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
+    if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
     //if (!p.addInvestmentInRepair) investmentInRepair = 1;
 
     // Caclulate the survival prob based on both gene arrays
     float totalSurvivalProb = survivalProbAgeSpec * survivalProb * investmentInRepair;
     // taking extrinsic mortality into account
-    float adjustedSurvivalProb = totalSurvivalProb * (1 - p.extrinsicMortRisk);
+    float adjustedSurvivalProb = totalSurvivalProb * p.survivalProbExtrinsicMort;
     
     if (rng.bernoulli(adjustedSurvivalProb)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
         parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
-        if (age == p.maximumAge) dies = true;
+        
+        if (age == p.maximumAge) isDead = true;
     } else { // indidvidual dies
-        dies = true; // Individual will die.
+        isDead = true; // Individual will die.
     }
-    return dies;
 }
 
 void Individual::mutateGametes(const Parameters &p,
                                Randomizer &rng){
     /**Function to mutate the gametes of a female. **/
 				
-    for (size_t i = 0; i < gametes.size(); ++i){
-        gametes[i].mutate(p, rng, false); // false refers to being a stem cell
+    for (auto& gamete : gametes){
+        gamete.mutate(p, rng, false); // false refers to being a stem cell
     }
     
 }
@@ -251,21 +252,26 @@ void Individual::makeStemcells(const Parameters& p){
     gamete2.genesOfGamete = geneticsBinary[1];
     gamete2.ageSpecificGenesOfGamete = ageSpecificGenes[1];
     gamete2.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[1];
+    
     std::array<Gamete, 2> genetics = {gamete, gamete2};
-				
-    for (unsigned i = 0; i < p.numOfStemCells; ++i){
-        stemCells.push_back(genetics);
-    }
+    
+    stemCells.reserve(p.numOfStemCells);
+    
+    stemCells.resize(p.numOfStemCells, genetics);
+//
+//    for (unsigned i = 0; i < p.numOfStemCells; ++i){
+//        stemCells.push_back(genetics);
+//    }
 }
 
 void Individual::mutateStemCells(const Parameters& p,
                                  Randomizer& rng){
     /**Function to mutate the male stem cells. Occurs every time step. **/
 				
-    for (size_t i = 0; i < stemCells.size(); ++i){
+    for (auto& stemCell : stemCells){
         // true refers to them being stem cells 
-        stemCells[i][0].mutate(p, rng, true);
-        stemCells[i][1].mutate(p, rng, true);
+        stemCell[0].mutate(p, rng, true);
+        stemCell[1].mutate(p, rng, true);
     }
 }
 
@@ -307,22 +313,26 @@ Gamete Individual::makeGameteFromStemCell(const Parameters& p,
 }
 
 void Individual::calcSurvivalProb(const Parameters& p){
-    /**Function to calculate the survival probability of the individual. Based on the number of damaged genes in the binary array. */
+    /**Function to calculate the survival probability of the individual.
+     Based on the number of damaged genes in the binary array. */
     
     // calculate the survival probability based on the binary represented gene array
     // sum number of ones to calculate the survival probability
-    int sumOfDamage1 = std::accumulate(geneticsBinary[0].begin(), geneticsBinary[0].end(), 0);
-    int sumOfDamage2 = std::accumulate(geneticsBinary[1].begin(), geneticsBinary[1].end(), 0);
+    auto sumOfDamage = std::accumulate(geneticsBinary[0].begin(), geneticsBinary[0].end(), 0) +
+        std::accumulate(geneticsBinary[1].begin(), geneticsBinary[1].end(), 0);
 				
     // calculate survival probability based on number of ones
-    survivalProb = exp(p.strengthOfSelection * (sumOfDamage1 + sumOfDamage2));
+    survivalProb = exp(p.strengthOfSelection * sumOfDamage);
 }
 
 void Individual::calcAverageParentalQuality(){
     /** Function to calculate the array with the average for the age-specific parental quality genes **/
     
-    for (size_t i = 0; i < ageSpecificGenes[0].size(); ++i){
-        averageAgeSpecificGenes.emplace_back((ageSpecificGenes[0][i] + ageSpecificGenes[1][i]) * 0.5);
+    const auto& ageGenes1 = ageSpecificGenes[0];
+    const auto& ageGenes2 = ageSpecificGenes[1];
+    for (size_t i = 0; i < ageGenes1.size(); ++i){
+        double averageGene = (ageGenes1[i] + ageGenes2[i]) * 0.5;
+        averageAgeSpecificGenes.push_back(averageGene);
     }
 }
 
@@ -330,7 +340,7 @@ void Individual::calcAverageInvestmentGenes(){
     /** Function to calculate the array with the average for the age-specific repair/reproduction distribution genes **/
 
     for (size_t i = 0; i < ageSpecificInvestmentInRepair[0].size(); ++i){
-        averageInvestmentGenes.emplace_back((ageSpecificInvestmentInRepair[0][i] + ageSpecificInvestmentInRepair[1][i]) * 0.5);
+        averageInvestmentGenes.push_back((ageSpecificInvestmentInRepair[0][i] + ageSpecificInvestmentInRepair[1][i]) * 0.5);
     }
 }
 
@@ -340,20 +350,18 @@ unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
      The function uses stochastic rounding to determine the actual number of offspring. **/
     
     // determine investment in reproduction based on investment in repair genes.
-    float investmentInReproduction = (1 - averageInvestmentGenes[age]);
+    float investmentInReproduction = (1.0 - averageInvestmentGenes[age]);
     
     // calculate numOfOffspring based on sigmoidal/logistic function
     // 10 is to scale the numbers between 0 and 100 and to make the graph less steep.
-    float numOfOffspring = p.scalingParameterForNumOfOffspring / (1 + std::exp(-10 * (investmentInReproduction - p.pointOfHalfScalingParam))); // sigmoidal
-    
-    //float numOfOffspring = p.scalingParameterForNumOfOffspring * investmentInReproduction / (p.pointOfHalfScalingParam + investmentInReproduction); // quickest?
-    
-    //float numOfOffspring = p.scalingParameterForNumOfOffspring * pow(investmentInReproduction, (p.pointOfHalfScalingParam + investmentInReproduction)); max * x^(0.5+x)
+    float numOfOffspring = p.scalingParameterForNumOfOffspring / (1.0 + exp(-p.scaleInvestmentValuesForCalc * (investmentInReproduction - p.pointOfHalfScalingParam))); // sigmoidal
     
     // stochastic rounding
-    float decimal = numOfOffspring - trunc(numOfOffspring); // get decimal
-    // draw bernoulli based on decimal, if true: round up, if false: round down
-    unsigned int numOfOffspringRounded = (rng.bernoulli(decimal)) ? (numOfOffspring + (1 - decimal)) : trunc(numOfOffspring);
-    // return rounded number
-    return numOfOffspringRounded;
+    return stochasticRound(numOfOffspring, rng);
+//
+//    float decimal = numOfOffspring - trunc(numOfOffspring); // get decimal
+//    // draw bernoulli based on decimal, if true: round up, if false: round down
+//    unsigned int numOfOffspringRounded = (rng.bernoulli(decimal)) ? (numOfOffspring + (1 - decimal)) : trunc(numOfOffspring);
+//    // return rounded number
+//    return numOfOffspringRounded;
 }

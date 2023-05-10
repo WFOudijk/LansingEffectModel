@@ -83,27 +83,16 @@ void Gamete::mutate(const Parameters &p,
             clip01(ageSpecificInvestmentInRepair[geneToMutate]);
         }
     }
-
+    
     // mutation of binary genes
-    if (isStemcell) { // if the stemcell will mutate
-        // draw number of mutations to occur based on Poisson distribution
-        const double expectedNumMut{genesOfGamete.size() * p.mutationProbStemcell};
-        const unsigned numMut{rng.rpois(expectedNumMut)};
-
-        // mutate
-        for (size_t i=0; i < numMut; ++i){
-            genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
-        }
-
-    } else { // else a gamete will mutate
-        // draw number of mutations to occur based on Poisson distribution
-        const double expectedNumMut{genesOfGamete.size() * p.mutationProb};
-        const unsigned numMut{rng.rpois(expectedNumMut)};
-
-        // mutate
-        for (size_t i = 0; i < numMut; ++i){
-            genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
-        }
-				
+    // get mutation probability depending on if it is a stem cell or gamete mutating
+    double mutationProb = isStemcell ? p.mutationProbStemcell : p.mutationProb;
+    
+    // get number of mutation based on poisson distribution
+    unsigned numMut{rng.rpois(genesOfGamete.size() * mutationProb)};
+    
+    // mutate
+    for (size_t i = 0; i < numMut; ++i){
+        genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
     }
 }

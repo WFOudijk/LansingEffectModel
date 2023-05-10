@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(10000),
+    Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(3),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(100000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -33,14 +33,16 @@ struct Parameters {
                    weightInvestment(0.3),
                    scalingParameterForNumOfOffspring(4),
                    pointOfHalfScalingParam(0.5),
+                   scaleInvestmentValuesForCalc(10),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
                    addBinary(false),
-                   addAgeSpecific(false),
-                   addQuality(true),
+                   addAgeSpecific(true),
+                   addQuality(false),
                    addInvestmentInRepair(false),
-                   addInvestmentAffectingOffspringQuality(true){
+                   addInvestmentAffectingOffspringQuality(false){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
+                       survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
                    }
     
     unsigned int populationSize; // total population size
@@ -68,8 +70,10 @@ struct Parameters {
     float weightInvestment; // to weigh the investment in repair genes
     unsigned int scalingParameterForNumOfOffspring; // scaling value for determining number of offspring per individual
     float pointOfHalfScalingParam; // value between 0 and 1 at which half of max offspring is defined
+    float scaleInvestmentValuesForCalc; // to scale the investment values for the sigmoidal calculations, from 0-1 to 0-100 and to reduce steepness
     float baselineSurvival; // baseline survival in the resource distribution when allocation to reproduction is zero
     float scalingStrengthOfAllocationToSurvival; // to determine the strength of the allocative effect on survival
+    float survivalProbExtrinsicMort; // the survival probability based on extrinsic mortality
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
