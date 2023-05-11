@@ -6,9 +6,11 @@
 //
 #pragma once
 #include <iostream>
-#include "individual.h"
-#include <oneapi/dpl/execution> // for parallelization
 #include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/execution> // for parallelization
+
+#include "individual.h"
+
 //#include <algorithm>
 //#include <boost/algorithm/algorithm>
 
