@@ -20,7 +20,7 @@ struct Individual {
     unsigned int ageOfMother;
     unsigned int ageOfFather;
     float survivalProb; // based on the binary genes
-    float parentalQuality; // parental quality
+    //float parentalQuality; // parental quality
     bool tracked; // the flagged individuals will be true
     bool isDead{false}; // track dead individuals
 			
@@ -65,6 +65,7 @@ struct Individual {
     void calcAverageParentalQuality();
     void calcAverageInvestmentGenes();
     unsigned int calcNumberOfOffspring(const Parameters& p, Randomizer& rng);
+    void reproduce(const Parameters& p, Randomizer& rng, Individual& male);
     
 };
 
@@ -97,7 +98,7 @@ Individual::Individual(const Parameters& p, // initializing constructor
     // fills average averageInvestmentGenes
     calcAverageInvestmentGenes();
     // get initial quality
-   parentalQuality = p.initAgeSpecificGenes;
+   //parentalQuality = p.initAgeSpecificGenes;
 
     // if the individual is female she should make gametes, otherwise the male should make stem cells.
     (isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p);
@@ -134,11 +135,16 @@ Individual::Individual(Individual& mother,
     calcAverageParentalQuality(); // averages the age-specific gene arrays
     calcAverageInvestmentGenes(); // average the age-specific investment gene arrays;
                                                                                                                                                                                         
-    parentalQuality = averageAgeSpecificGenes[0]; // get new individual its quality
+    //parentalQuality = averageAgeSpecificGenes[0]; // get new individual its quality
                                                                                                                                                                                         
     // calculate effect of quality from both parents
-    float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1.0 - p.weightMaternalEffect) * father.parentalQuality;
-                                                                                                                                                                                    
+    //float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1.0 - p.weightMaternalEffect) * father.parentalQuality;
+    float effectQuality = p.weightMaternalEffect *
+                            mother.averageAgeSpecificGenes[mother.age] +
+                            (1.0 - p.weightMaternalEffect) *
+                            father.averageAgeSpecificGenes[father.age];
+
+                                                  
     if (p.addQuality) survivalProb *= effectQuality; // multiply survival prob with the quality of the parents
                                                   
     // check if the investment genes affect the quality of the offspring
@@ -222,7 +228,7 @@ void Individual::dies(Randomizer& rng,
     
     if (rng.bernoulli(adjustedSurvivalProb)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
-        parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
+        //parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
         
         if (age == p.maximumAge) isDead = true;
     } else { // indidvidual dies
@@ -258,10 +264,8 @@ void Individual::makeStemcells(const Parameters& p){
     stemCells.reserve(p.numOfStemCells);
     
     stemCells.resize(p.numOfStemCells, genetics);
-//
-//    for (unsigned i = 0; i < p.numOfStemCells; ++i){
-//        stemCells.push_back(genetics);
-//    }
+
+    
 }
 
 void Individual::mutateStemCells(const Parameters& p,
@@ -272,6 +276,7 @@ void Individual::mutateStemCells(const Parameters& p,
         // true refers to them being stem cells 
         stemCell[0].mutate(p, rng, true);
         stemCell[1].mutate(p, rng, true);
+        // TODO: parallel?
     }
 }
 
@@ -364,4 +369,28 @@ unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
 //    unsigned int numOfOffspringRounded = (rng.bernoulli(decimal)) ? (numOfOffspring + (1 - decimal)) : trunc(numOfOffspring);
 //    // return rounded number
 //    return numOfOffspringRounded;
+}
+
+void Individual::reproduce(const Parameters& p,
+                           Randomizer& rng,
+                           Individual& male){
+//
+//    unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
+//
+//    // checks if investment into repair/ reproduction is included in the model
+//    if (p.addInvestmentInRepair) numOfOffspringPerFemale = calcNumberOfOffspring(p, rng);
+//
+//    // choose the male to mate with
+//    //auto& mate = males[rng.drawRandomNumber(males.size())];
+//
+//
+//
+//    // start loop to generate offspring
+//    for (unsigned i = 0; i < numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
+//        offspring.emplace_back(this, male, rng, p);
+//
+//        // keep track of offspring of the flagged individuals
+//        if (male.tracked) male.offspring.push_back(offspring.back());
+//        //if (this.tracked) this.offspring.push_back(offspring.back());
+//    }
 }

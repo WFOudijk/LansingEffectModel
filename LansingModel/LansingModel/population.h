@@ -54,19 +54,21 @@ void Population::reproduce(const Parameters& p,
 				
     offspring.clear(); // to make sure the vector is empty
     
+    //std::for_each(std::execution::par, begin(females), end(females), [&](Individual& f){f.reproduce(p, rng, males[rng.drawRandomNumber(males.size())]);});
+    
     for (auto& f : females){ // loop through every female
         unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
-        
+
         // checks if investment into repair/ reproduction is included in the model
         if (p.addInvestmentInRepair) numOfOffspringPerFemale = f.calcNumberOfOffspring(p, rng);
 
         // choose the male to mate with
         auto& mate = males[rng.drawRandomNumber(males.size())];
-        
+
         // start loop to generate offspring
         for (unsigned i = 0; i < numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
             offspring.emplace_back(f, mate, rng, p);
-                
+
             // keep track of offspring of the flagged individuals
             if (mate.tracked) mate.offspring.push_back(offspring.back());
             if (f.tracked) f.offspring.push_back(offspring.back());
