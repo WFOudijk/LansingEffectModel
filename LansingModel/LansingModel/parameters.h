@@ -22,7 +22,7 @@ struct Parameters {
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.015),
                    initAgeSpecificGenes(0.99),
-                   mutationProbAgeSpecificGenes(0.02), // 0.003 based on quality param simulations
+                   mutationProbAgeSpecificGenes(0.001), // 0.003 based on quality param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
                    initInvestmentInRepair(0.5),
