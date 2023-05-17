@@ -19,10 +19,10 @@ struct Parameters {
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
-                   meanMutationBias(-0.02),
+                   meanMutationBias(-0.03),
                    sdMutationalEffectSize(0.015),
                    initAgeSpecificGenes(0.99),
-                   mutationProbAgeSpecificGenes(0.002), // 0.003 based on quality param simulations
+                   mutationProbAgeSpecificGenes(0.02), // 0.003 based on quality param simulations
                    numOfIndividualsToFollow(500),
                    weightMaternalEffect(0.5),
                    initInvestmentInRepair(0.5),
