@@ -273,10 +273,9 @@ void Individual::mutateStemCells(const Parameters& p,
     /**Function to mutate the male stem cells. Occurs every time step. **/
 				
     for (auto& stemCell : stemCells){
-        // true refers to them being stem cells 
+        // true refers to them being stem cells
         stemCell[0].mutate(p, rng, true);
         stemCell[1].mutate(p, rng, true);
-        // TODO: parallel?
     }
 }
 
