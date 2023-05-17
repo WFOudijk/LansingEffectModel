@@ -38,9 +38,9 @@ struct Parameters {
                    scalingStrengthOfAllocationToSurvival(0.2),
                    addBinary(true),
                    addAgeSpecific(true),
-                   addQuality(true),
+                   addQuality(false),
                    addInvestmentInRepair(false),
-                   addInvestmentAffectingOffspringQuality(false){
+                   addInvestmentAffectingOffspringQuality(true){
                        numOfGametes = maximumAge * numOfOffspringPerFemale;
                        survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
                    }
