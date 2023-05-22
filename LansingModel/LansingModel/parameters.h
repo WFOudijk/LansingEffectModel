@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(10000),
+    Parameters() : populationSize(1000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(3),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(100000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -36,12 +36,12 @@ struct Parameters {
                    scaleInvestmentValuesForCalc(10),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
-                   addBinary(true),
+                   addBinary(false),
                    addAgeSpecific(false),
                    addQuality(true),
                    addInvestmentInRepair(false),
-                   addInvestmentAffectingOffspringQuality(true){
-                       numOfGametes = maximumAge * numOfOffspringPerFemale;
+                   addInvestmentAffectingOffspringQuality(false){
+                       numOfGametes = maximumAge * numOfOffspringPerFemale * 5;
                        survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
                    }
     

@@ -27,6 +27,8 @@ struct Population{
     void addOffspring(const Parameters& p, Randomizer& rng);
     void mutationRound(const Parameters& p, Randomizer& rng);
     void setTrackedIndividuals(const Parameters& p, Randomizer& rng);
+    void simulateExpectedAgeAtDeath(Parameters& p, Randomizer& rng);
+    void mortalityRoundOffspring(const Parameters& p, Randomizer& rng, indVec& deadIndividuals);
 };
 
 void Population::makePopulation(const Parameters& p,
@@ -88,7 +90,6 @@ void Population::mortalityRound(const Parameters& p,
                   [&](auto& m){ m.dies(rng,p); });
     
     for (size_t m = 0; m < males.size();){
-        //bool die = males[male].dies(rng, p); // check if current male will die
         if (males[m].isDead){ // if this is the case, remove the male from the vector
             if (males[m].tracked) { // the individual is tracked
                 trackedIndividuals.push_back(males[m]); // TODO: make move
@@ -165,3 +166,44 @@ void Population::setTrackedIndividuals(const Parameters &p, Randomizer &rng){
     }
 }
 
+void Population::simulateExpectedAgeAtDeath(Parameters& p, Randomizer& rng){
+    /**Function to simulate expected age at death from offspring **/
+    
+    // reset the number of offspring per female
+    p.numOfOffspringPerFemale = 10;
+    
+    // have the individuals make offspring
+    reproduce(p, rng);
+    
+    // make new vector to keep track of the dead individuals
+    indVec deadIndividuals;
+    
+    // have offspring go through mortality until they are all dead
+    while (!offspring.empty()) {
+        // offspring go through mortality round
+        mortalityRoundOffspring(p, rng, deadIndividuals);
+    }
+    
+    // make output of the dead individuals
+    outputForSimulatedLifeExp(deadIndividuals);
+}
+
+void Population::mortalityRoundOffspring(const Parameters& p,
+                                         Randomizer& rng,
+                                         indVec& deadIndividuals){
+    /**Function to have the simulated offspring go through a mortality round. **/
+    
+    std::for_each(std::execution::par, begin(offspring), end(offspring),
+                  [&](auto& ind){ind.dies(rng,p);});
+    
+    // loop through the offspring
+    for (size_t indiv = 0; indiv < offspring.size();){
+        if (offspring[indiv].isDead){ // if the individual is dead, remove the individual from the vector
+            deadIndividuals.emplace_back(std::move(offspring[indiv]));
+            offspring[indiv] = std::move(offspring.back());
+            offspring.pop_back();
+        } else { // else, continue loop
+            ++indiv;
+        }
+    }
+}

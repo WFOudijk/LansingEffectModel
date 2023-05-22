@@ -251,3 +251,25 @@ void createOutputTrackedIndividuals(const Parameters& p,
     ofs.close();
     ofs2.close();
 }
+
+void outputForSimulatedLifeExp(const indVec& deadIndividuals){
+    /**Function to write relevant output of the offspring to determine life expectancy. **/
+
+    // open file to write output for the
+    std::ofstream ofs;
+    ofs.open("outputLifeExp.txt");
+    if (!ofs.is_open()){
+        std::cerr << "Error. Unable to open output file.\n";
+        exit(EXIT_FAILURE);
+    }
+    
+    // loop through the dead offspring
+    for (size_t ind = 0; ind < deadIndividuals.size(); ++ind){
+        ofs << ind << " " // use index as ID
+        << deadIndividuals[ind].age << " " // age at death of individual
+        << deadIndividuals[ind].ageOfMother << " " // write maternal age at birth
+        << deadIndividuals[ind].ageOfFather << "\n"; // write paternal age at birth
+    }
+
+    ofs.close();
+}

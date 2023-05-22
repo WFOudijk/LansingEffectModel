@@ -362,34 +362,6 @@ unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
     
     // stochastic rounding
     return stochasticRound(numOfOffspring, rng);
-//
-//    float decimal = numOfOffspring - trunc(numOfOffspring); // get decimal
-//    // draw bernoulli based on decimal, if true: round up, if false: round down
-//    unsigned int numOfOffspringRounded = (rng.bernoulli(decimal)) ? (numOfOffspring + (1 - decimal)) : trunc(numOfOffspring);
-//    // return rounded number
-//    return numOfOffspringRounded;
+
 }
 
-void Individual::reproduce(const Parameters& p,
-                           Randomizer& rng,
-                           Individual& male){
-//
-//    unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
-//
-//    // checks if investment into repair/ reproduction is included in the model
-//    if (p.addInvestmentInRepair) numOfOffspringPerFemale = calcNumberOfOffspring(p, rng);
-//
-//    // choose the male to mate with
-//    //auto& mate = males[rng.drawRandomNumber(males.size())];
-//
-//
-//
-//    // start loop to generate offspring
-//    for (unsigned i = 0; i < numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
-//        offspring.emplace_back(this, male, rng, p);
-//
-//        // keep track of offspring of the flagged individuals
-//        if (male.tracked) male.offspring.push_back(offspring.back());
-//        //if (this.tracked) this.offspring.push_back(offspring.back());
-//    }
-}

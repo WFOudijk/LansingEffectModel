@@ -58,9 +58,9 @@ int main(int argc, const char * argv[]) {
     indVec deadTrackedIndividuals;
 
     auto t_start = std::chrono::system_clock::now();
-    
+        
     for (unsigned t = 0; t < p.tEnd; ++t){
-        std::vector<Individual> deadIndividualsVec; // to examine all dead individuals 
+        indVec deadIndividualsVec; // to examine all dead individuals
         pop.reproduce(p, rng); // reproduce to make offspring
         pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
         pop.addOffspring(p, rng); // adding offspring to the adults
@@ -76,6 +76,8 @@ int main(int argc, const char * argv[]) {
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;
     std::cout << "First time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";
+    
+    
     t_start = t_now;
     std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal. \n";
     
@@ -100,6 +102,9 @@ int main(int argc, const char * argv[]) {
         numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
 				
     }
+    
+    pop.simulateExpectedAgeAtDeath(p, rng);
+
     std::ofstream ofs;
     ofs.open("outputAgeAlivePop.txt"); // the output file
     for (size_t i =0 ; i < pop.males.size(); ++i) {
