@@ -252,7 +252,7 @@ void createOutputTrackedIndividuals(const Parameters& p,
     ofs2.close();
 }
 
-void outputForSimulatedLifeExp(const indVec& deadIndividuals){
+void outputForSimulatedLifespan(const indVec& deadIndividuals){
     /**Function to write relevant output of the offspring to determine life expectancy. **/
 
     // open file to write output for the

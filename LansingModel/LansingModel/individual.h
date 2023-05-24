@@ -174,7 +174,7 @@ Gamete Individual::makeGamete(Randomizer& rng,
     const std::bitset<numOfGenes> x{rng.rui32()};
 				
     for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        // based on the random bit sequence, determine whether the genes of the gamete come from the mother or from the father
+        // based on the random bit sequence, determine which gene the gamete gets
         gamete.genesOfGamete[i] = geneticsBinary[x[i]][i];
     }
 				

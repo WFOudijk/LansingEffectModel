@@ -103,7 +103,7 @@ int main(int argc, const char * argv[]) {
 				
     }
     
-    pop.simulateExpectedAgeAtDeath(p, rng);
+    pop.simulateAgeAtDeath(p, rng);
 
     std::ofstream ofs;
     ofs.open("outputAgeAlivePop.txt"); // the output file

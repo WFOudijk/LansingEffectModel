@@ -41,7 +41,7 @@ struct Parameters {
                    addQuality(true),
                    addInvestmentInRepair(false),
                    addInvestmentAffectingOffspringQuality(false){
-                       numOfGametes = maximumAge * numOfOffspringPerFemale * 5;
+                       numOfGametes = maximumAge * numOfOffspringPerFemale;
                        survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
                    }
     

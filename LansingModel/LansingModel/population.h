@@ -27,7 +27,7 @@ struct Population{
     void addOffspring(const Parameters& p, Randomizer& rng);
     void mutationRound(const Parameters& p, Randomizer& rng);
     void setTrackedIndividuals(const Parameters& p, Randomizer& rng);
-    void simulateExpectedAgeAtDeath(Parameters& p, Randomizer& rng);
+    void simulateAgeAtDeath(Parameters& p, Randomizer& rng);
     void mortalityRoundOffspring(const Parameters& p, Randomizer& rng, indVec& deadIndividuals);
 };
 
@@ -45,19 +45,13 @@ void Population::makePopulation(const Parameters& p,
     }
 }
 
-//void Population::reproduce(){
-//    std::for_each(std::execution::par, begin(pop), end(pop), [](auto& col){ col.reproduce(); });
-//}
-
 void Population::reproduce(const Parameters& p,
                            Randomizer& rng){
     /**This function is the reproducing step of the population.  Every female reproduces a numOfOffspringPerFemale
      number of offspring with random males. **/
 				
     offspring.clear(); // to make sure the vector is empty
-    
-    //std::for_each(std::execution::par, begin(females), end(females), [&](Individual& f){f.reproduce(p, rng, males[rng.drawRandomNumber(males.size())]);});
-    
+        
     for (auto& f : females){ // loop through every female
         unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
 
@@ -166,17 +160,31 @@ void Population::setTrackedIndividuals(const Parameters &p, Randomizer &rng){
     }
 }
 
-void Population::simulateExpectedAgeAtDeath(Parameters& p, Randomizer& rng){
-    /**Function to simulate expected age at death from offspring **/
+void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
+    /**Function to simulate age at death from offspring to determine offspring lifespan. **/
     
     // reset the number of offspring per female
     p.numOfOffspringPerFemale = 10;
     
+    // female needs more gametes to be able to get more offspring
+    for (auto &female : females){
+        // while the female gametes size is not enough the gametes need to be duplicated.
+        while(female.gametes.size() < (p.numOfOffspringPerFemale * p.maximumAge)){
+            // copy the gametes into the same vector.
+            female.gametes.insert(female.gametes.end(),female.gametes.begin(), female.gametes.end());
+        }
+    }
+    
+    // reserve some more memory for the offspring vector
+    offspring.reserve(p.populationSize * (p.numOfOffspringPerFemale + 1));
+
     // have the individuals make offspring
     reproduce(p, rng);
     
     // make new vector to keep track of the dead individuals
     indVec deadIndividuals;
+    // reserve memory space for the dead individuals
+    deadIndividuals.reserve(offspring.size());
     
     // have offspring go through mortality until they are all dead
     while (!offspring.empty()) {
@@ -185,7 +193,7 @@ void Population::simulateExpectedAgeAtDeath(Parameters& p, Randomizer& rng){
     }
     
     // make output of the dead individuals
-    outputForSimulatedLifeExp(deadIndividuals);
+    outputForSimulatedLifespan(deadIndividuals);
 }
 
 void Population::mortalityRoundOffspring(const Parameters& p,
