@@ -89,6 +89,10 @@ struct Parameters {
                     const std::string focal_parametername,
                     unsigned int& parameter,
                     std::ifstream& ifs);
+    void checkParam(const std::string parID,
+                    const std::string focal_parametername,
+                    bool& parameter,
+                    std::ifstream& ifs);
 };
 
 void Parameters::checkParam(const std::string parID,
@@ -105,6 +109,17 @@ void Parameters::checkParam(const std::string parID,
 void Parameters::checkParam(const std::string parID,
                             const std::string focal_parametername,
                             unsigned int& parameter,
+                            std::ifstream& ifs) {
+    // set parameter from file to parameter in object parameter
+    if (parID == focal_parametername) {
+        ifs >> parameter;
+        std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
+    }
+}
+
+void Parameters::checkParam(const std::string parID,
+                            const std::string focal_parametername,
+                            bool& parameter,
                             std::ifstream& ifs) {
     // set parameter from file to parameter in object parameter
     if (parID == focal_parametername) {
@@ -138,6 +153,10 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "sdMutationalEffectInvestmentInRepair", sdMutationalEffectInvestmentInRepair, ifs);
             checkParam(parID, "weightInvestment", weightInvestment, ifs);
             checkParam(parID, "tEnd", tEnd, ifs);
+            checkParam(parID, "addBinary", addBinary, ifs);
+            checkParam(parID, "addAgeSpecific", addAgeSpecific, ifs);
+            checkParam(parID, "addQuality", addQuality, ifs);
+            checkParam(parID, "addInvestmentAffectingOffspringQuality", addInvestmentAffectingOffspringQuality, ifs);
         }
         else break;
     }
