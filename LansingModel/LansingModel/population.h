@@ -168,10 +168,10 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     
     // female needs more gametes to be able to get more offspring
     for (auto &female : females){
-        // while the female gametes size is not enough the gametes need to be duplicated.
-        while(female.gametes.size() < (p.numOfOffspringPerFemale * p.maximumAge)){
+        // every female needs to have enough gametes to produce 10 offspring to track.
+        while(female.gametes.size() < p.numOfOffspringPerFemale){
             // copy the gametes into the same vector.
-            female.gametes.insert(female.gametes.end(),female.gametes.begin(), female.gametes.end());
+            female.gametes.insert(female.gametes.end(), female.gametes.begin(), female.gametes.end());
         }
     }
     
@@ -216,6 +216,11 @@ void Population::mortalityRoundOffspring(const Parameters& p,
     
     std::for_each(std::execution::par, begin(offspring), end(offspring),
                   [&](auto& ind){ind.dies(rng,p);});
+    
+    std::ofstream ofs;
+    ofs.open("testFileMort.txt");
+    ofs << "looping through individuals in dies function is finished. \n";
+    ofs.close();
     
     // loop through the offspring
     for (size_t indiv = 0; indiv < offspring.size();){
