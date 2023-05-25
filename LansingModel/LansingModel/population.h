@@ -8,6 +8,7 @@
 #include <iostream>
 //#include <oneapi/dpl/algorithm>
 //#include <oneapi/dpl/execution> // for parallelization
+#include <algorithm>
 #include <execution>
 #include "individual.h"
 
@@ -188,7 +189,7 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     // make new vector to keep track of the dead individuals
     indVec deadIndividuals;
     // reserve memory space for the dead individuals
-    deadIndividuals.reserve(offspring.size());
+    deadIndividuals.reserve(offspring.size() + 1);
     
     // have offspring go through mortality until they are all dead
     while (!offspring.empty()) {
