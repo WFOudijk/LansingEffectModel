@@ -61,7 +61,7 @@ void createOutputDeclineInGameteQuality(const int t,
         
         char sex = i.isFemaleSex ? 'F' : 'M';
         ofs << t << " "
-        << i.age << " "
+        << i.age << " " // is the age at death of individual
         << sex << " "
         << i.ageOfMother << " "
         << i.ageOfFather << " "
