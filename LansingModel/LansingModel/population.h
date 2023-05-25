@@ -216,12 +216,7 @@ void Population::mortalityRoundOffspring(const Parameters& p,
     
     std::for_each(std::execution::par, begin(offspring), end(offspring),
                   [&](auto& ind){ind.dies(rng,p);});
-    
-    std::ofstream ofs;
-    ofs.open("testFileMort.txt");
-    ofs << "looping through individuals in dies function is finished. \n";
-    ofs.close();
-    
+       
     // loop through the offspring
     for (size_t indiv = 0; indiv < offspring.size();){
         if (offspring[indiv].isDead){ // if the individual is dead, remove the individual from the vector
