@@ -27,22 +27,21 @@ int main(int argc, const char * argv[]) {
     rng.setSeed(seed);
     
     Parameters p; // make parameters object
-				
-    if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
-    if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
-        //p.mutationProbAgeSpecificGenes = 0;
-        p.initAgeSpecificGenes = 1;
-    }
-    if (p.addInvestmentInRepair) {
-        // reset number of gametes per female
-        p.numOfGametes = p.maximumAge * p.scalingParameterForNumOfOffspring;
-    }
-
+    
     // read parameter file
     std::string parameterFile;
     if (argc > 1){
         parameterFile = argv[1];
         p.readParameters(parameterFile); // sets parameters from file
+    }
+				
+    if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
+    if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
+        p.initAgeSpecificGenes = 1;
+    }
+    if (p.addInvestmentInRepair) {
+        // reset number of gametes per female
+        p.numOfGametes = p.maximumAge * p.scalingParameterForNumOfOffspring;
     }
 
     // set the mutationEffect distribution with mean and sd of mutation
