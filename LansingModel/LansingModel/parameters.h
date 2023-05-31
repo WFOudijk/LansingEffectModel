@@ -99,9 +99,10 @@ void Parameters::checkParam(const std::string parID,
                             const std::string focal_parametername,
                             float& parameter,
                             std::ifstream& ifs) {
+    bool ifs2 = static_cast<bool>(ifs);
     // set parameter from file to parameter in object parameter
     if (parID == focal_parametername) {
-        ifs >> parameter;
+        parameter = ifs2;
         std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
     }
 }
@@ -148,7 +149,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "numOfIndividualsToFollow", numOfIndividualsToFollow, ifs);
             checkParam(parID, "populationSize", populationSize, ifs);
             checkParam(parID, "meanMutationBias", meanMutationBias, ifs);
-            checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);            
+            checkParam(parID, "sdMutationalEffectSize", sdMutationalEffectSize, ifs);
             checkParam(parID, "mutationProbInvestmentGenes", mutationProbInvestmentGenes, ifs);
             checkParam(parID, "sdMutationalEffectInvestmentInRepair", sdMutationalEffectInvestmentInRepair, ifs);
             checkParam(parID, "weightInvestment", weightInvestment, ifs);
