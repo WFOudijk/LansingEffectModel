@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(10000),
                    initDamageProportion(0.5),
                    numOfOffspringPerFemale(3),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
                    outputTime(10),
-                   tEnd(10000), // 10.000
+                   tEnd(70000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -121,10 +121,10 @@ void Parameters::checkParam(const std::string parID,
                             const std::string focal_parametername,
                             bool& parameter,
                             std::ifstream& ifs) {
-    bool ifs2 = static_cast<bool>(ifs);
+    //bool ifs2 = (ifs == 0 ? false : true);
     // set parameter from file to parameter in object parameter
     if (parID == focal_parametername) {
-        parameter = ifs2;
+        ifs >> parameter;
         std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
     }
 }
