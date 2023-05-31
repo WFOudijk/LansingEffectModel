@@ -36,7 +36,7 @@ struct Parameters {
                    scaleInvestmentValuesForCalc(10),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
-                   addBinary(true),
+                   addBinary(false),
                    addAgeSpecific(false),
                    addQuality(false),
                    addInvestmentInRepair(false),
