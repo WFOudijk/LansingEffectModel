@@ -99,10 +99,9 @@ void Parameters::checkParam(const std::string parID,
                             const std::string focal_parametername,
                             float& parameter,
                             std::ifstream& ifs) {
-    bool ifs2 = static_cast<bool>(ifs);
     // set parameter from file to parameter in object parameter
     if (parID == focal_parametername) {
-        parameter = ifs2;
+        ifs >> parameter;
         std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
     }
 }
@@ -122,9 +121,10 @@ void Parameters::checkParam(const std::string parID,
                             const std::string focal_parametername,
                             bool& parameter,
                             std::ifstream& ifs) {
+    bool ifs2 = static_cast<bool>(ifs);
     // set parameter from file to parameter in object parameter
     if (parID == focal_parametername) {
-        ifs >> parameter;
+        parameter = ifs2;
         std::clog << "Parameter " << parID << " is set to " << parameter << std::endl;
     }
 }
