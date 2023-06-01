@@ -36,12 +36,16 @@ struct Parameters {
                    scaleInvestmentValuesForCalc(10),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
-                   addBinary(false),
+                   numOfOffspringForOffspringLifespanSim(10),
+                   addBinary(true),
                    addAgeSpecific(false),
                    addQuality(false),
                    addInvestmentInRepair(false),
                    addInvestmentAffectingOffspringQuality(false){
-                       numOfGametes = maximumAge * numOfOffspringPerFemale;
+                       // every female can get, at most, maximumAge * numOfOffspringPerFemale number of offspring for the time loop
+                       // for the offspring lifespan simulation every female gets numOfOffspringForOffspringLifespanSim number of
+                       // offspring. Total number of gametes necessary is thus the following:
+                       numOfGametes = maximumAge * numOfOffspringPerFemale + numOfOffspringForOffspringLifespanSim;
                        survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
                    }
     
@@ -73,6 +77,7 @@ struct Parameters {
     float scaleInvestmentValuesForCalc; // to scale the investment values for the sigmoidal calculations, from 0-1 to 0-100 and to reduce steepness
     float baselineSurvival; // baseline survival in the resource distribution when allocation to reproduction is zero
     float scalingStrengthOfAllocationToSurvival; // to determine the strength of the allocative effect on survival
+    int numOfOffspringForOffspringLifespanSim; // the number of offspring per female to track to determine offspring lifespan
     float survivalProbExtrinsicMort; // the survival probability based on extrinsic mortality
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model

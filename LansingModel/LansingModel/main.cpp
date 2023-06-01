@@ -43,6 +43,7 @@ int main(int argc, const char * argv[]) {
         // reset number of gametes per female
         p.numOfGametes = p.maximumAge * p.scalingParameterForNumOfOffspring;
     }
+    
 
     // set the mutationEffect distribution with mean and sd of mutation
     rng.setMutationEffect(p.meanMutationBias, p.sdMutationalEffectSize);

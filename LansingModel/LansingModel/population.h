@@ -87,7 +87,7 @@ void Population::mortalityRound(const Parameters& p,
     for (size_t m = 0; m < males.size();){
         if (males[m].isDead){ // if this is the case, remove the male from the vector
             if (males[m].tracked) { // the individual is tracked
-                trackedIndividuals.push_back(males[m]); // TODO: make move
+                trackedIndividuals.push_back(males[m]);
             }
             deadIndividualsVec.emplace_back(std::move(males[m]));
             males[m] = std::move(males.back());
@@ -145,7 +145,7 @@ void Population::mutationRound(const Parameters& p,
     /**Function to mutate the gametes from the females and the stem cells from the males. */
 				
     std::for_each(std::execution::par,begin(females),end(females),[&](auto& f){ f.mutateGametes(p,rng);});
-    std::for_each(std::execution::par,begin(males),end(males),[&](auto& m){ m.mutateGametes(p,rng);});
+    std::for_each(std::execution::par,begin(males),end(males),[&](auto& m){ m.mutateStemCells(p,rng);});
 }
 
 void Population::setTrackedIndividuals(const Parameters &p, Randomizer &rng){
@@ -165,16 +165,16 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     /**Function to simulate age at death from offspring to determine offspring lifespan. **/
     
     // reset the number of offspring per female
-    p.numOfOffspringPerFemale = 10;
+    p.numOfOffspringPerFemale = p.numOfOffspringForOffspringLifespanSim;
     
-    // female needs more gametes to be able to get more offspring
-    for (auto &female : females){
-        // every female needs to have enough gametes to produce 10 offspring to track.
-        while(female.gametes.size() < p.numOfOffspringPerFemale){
-            // copy the gametes into the same vector.
-            female.gametes.insert(female.gametes.end(), female.gametes.begin(), female.gametes.end());
-        }
-    }
+//    // female needs to be checked for enough gametes to produce 10 more offspring
+//    for (auto &female : females){
+//        // every female needs to have enough gametes to produce 10 offspring to track.
+//        while(female.gametes.size() < p.numOfOffspringPerFemale){
+//            // copy the gametes into the same vector.
+//            female.gametes.insert(female.gametes.end(), female.gametes.begin(), female.gametes.end());
+//        }
+//    }
     
     // reserve some more memory for the offspring vector
     offspring.reserve(p.populationSize * (p.numOfOffspringPerFemale + 1));
