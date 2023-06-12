@@ -130,16 +130,18 @@ Individual::Individual(Individual& mother,
     calcSurvivalProb(p); // to set the survival probability of the new individual
     calcAverageParentalQuality(); // averages the age-specific gene arrays
     calcAverageInvestmentGenes(); // average the age-specific investment gene arrays;
-                                                                                                                                                                                                                                                                                                                                                                            
-    // calculate effect of quality from both parents
-    float effectQuality = p.weightMaternalEffect *
-                            mother.averageAgeSpecificGenes[mother.age] +
-                            (1.0 - p.weightMaternalEffect) *
-                            father.averageAgeSpecificGenes[father.age];
-
-                                                  
-    if (p.addQuality) survivalProb *= effectQuality; // multiply survival prob with the quality of the parents
-                                                  
+    
+    if (p.addQuality) { // if quality is enabled in the model ..
+        // .. calculate effect of quality from both parents
+        float effectQuality = p.weightMaternalEffect *
+                                mother.averageAgeSpecificGenes[mother.age] +
+                                (1.0 - p.weightMaternalEffect) *
+                                father.averageAgeSpecificGenes[father.age];
+        
+        // multiply survival prob with the quality of the parents
+        survivalProb *= effectQuality;
+    }
+    
     // check if the investment genes affect the quality of the offspring
     if (p.addInvestmentInRepair) {
     
