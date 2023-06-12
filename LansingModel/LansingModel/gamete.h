@@ -12,6 +12,8 @@
 #include <array>
 
 const int numOfGenes = 20; // the number of genes every individual contains
+using arrayOfGenes = std::array<bool, numOfGenes>;
+using vectorOfAgeSpecificGenes = std::vector<float>;
 
 struct Gamete{
 
@@ -73,7 +75,7 @@ void Gamete::mutate(const Parameters &p,
         }
     }
     
-    if (p.addInvestmentInRepair || p.addInvestmentAffectingOffspringQuality) { // if resrouce distribution is on, these genes will mutate
+    if (p.addInvestmentInRepair) { // if resrouce distribution is on, these genes will mutate
         // mutation of age-specific genes for investment in repair/ reproduction
         const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
         const unsigned numMut{rng.rpois(expectedNumMut)};
@@ -93,6 +95,7 @@ void Gamete::mutate(const Parameters &p,
     
     // mutate
     for (size_t i = 0; i < numMut; ++i){
-        genesOfGamete[rng.rn(genesOfGamete.size())] = 1;
+        auto test = rng.rn(genesOfGamete.size());
+        genesOfGamete[test] = 1;
     }
 }

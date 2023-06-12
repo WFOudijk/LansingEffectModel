@@ -31,23 +31,13 @@ struct Parameters {
                    sdMutationalEffectInvestmentInRepair(0.02),
                    mutationProbInvestmentGenes(0.004),
                    weightInvestment(0.3),
-                   scalingParameterForNumOfOffspring(4),
-                   pointOfHalfScalingParam(0.5),
-                   scaleInvestmentValuesForCalc(10),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
                    numOfOffspringForOffspringLifespanSim(10),
                    addBinary(true),
                    addAgeSpecific(false),
-                   addQuality(false),
-                   addInvestmentInRepair(false),
-                   addInvestmentAffectingOffspringQuality(false){
-                       // every female can get, at most, maximumAge * numOfOffspringPerFemale number of offspring for the time loop
-                       // for the offspring lifespan simulation every female gets numOfOffspringForOffspringLifespanSim number of
-                       // offspring. Total number of gametes necessary is thus the following:
-                       numOfGametes = maximumAge * numOfOffspringPerFemale + numOfOffspringForOffspringLifespanSim;
-                       survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
-                   }
+                   addQuality(true),
+                   addInvestmentInRepair(false){}
     
     unsigned int populationSize; // total population size
     float initDamageProportion; // the proportion of initial damage in the binary genes
@@ -72,9 +62,6 @@ struct Parameters {
     float sdMutationalEffectInvestmentInRepair; // sd for normal distribution to draw mutation effect on investment in repair genes
     float mutationProbInvestmentGenes; // mutation rate of age-specific investment in repair genes
     float weightInvestment; // to weigh the investment in repair genes
-    unsigned int scalingParameterForNumOfOffspring; // scaling value for determining number of offspring per individual
-    float pointOfHalfScalingParam; // value between 0 and 1 at which half of max offspring is defined
-    float scaleInvestmentValuesForCalc; // to scale the investment values for the sigmoidal calculations, from 0-1 to 0-100 and to reduce steepness
     float baselineSurvival; // baseline survival in the resource distribution when allocation to reproduction is zero
     float scalingStrengthOfAllocationToSurvival; // to determine the strength of the allocative effect on survival
     int numOfOffspringForOffspringLifespanSim; // the number of offspring per female to track to determine offspring lifespan
@@ -83,7 +70,6 @@ struct Parameters {
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
     bool addInvestmentInRepair; // adds investment in repair to model
-    bool addInvestmentAffectingOffspringQuality; // the investment in repair genes only influence offspring quality
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
@@ -98,6 +84,7 @@ struct Parameters {
                     const std::string focal_parametername,
                     bool& parameter,
                     std::ifstream& ifs);
+    void setAdditionalParams();
 };
 
 void Parameters::checkParam(const std::string parID,
@@ -168,5 +155,17 @@ void Parameters::readParameters(const std::string& parameterFile){
         }
         else break;
     }
+}
+
+void Parameters::setAdditionalParams(){
+    /**Function to set some additional parameters. This is done after the parameter file is read. **/
+    
+    // every female can get, at most, maximumAge * numOfOffspringPerFemale number of offspring for the time loop
+    // for the offspring lifespan simulation every female gets numOfOffspringForOffspringLifespanSim number of
+    // offspring. Total number of gametes necessary is thus the following:
+    numOfGametes = maximumAge * numOfOffspringPerFemale + numOfOffspringForOffspringLifespanSim;
+    
+    // set the survival probability based on the extrinsic mortality risk
+    survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
 }
 

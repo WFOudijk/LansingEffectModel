@@ -34,7 +34,9 @@ int main(int argc, const char * argv[]) {
         parameterFile = argv[1];
         p.readParameters(parameterFile); // sets parameters from file
     }
-				
+    
+    p.setAdditionalParams();
+    				
     if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
     if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
         p.initAgeSpecificGenes = 1;

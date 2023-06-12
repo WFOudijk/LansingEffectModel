@@ -54,16 +54,12 @@ void Population::reproduce(const Parameters& p,
     offspring.clear(); // to make sure the vector is empty
         
     for (auto& f : females){ // loop through every female
-        unsigned numOfOffspringPerFemale = p.numOfOffspringPerFemale; // default number of offspring per female
-
-        // checks if investment into repair/ reproduction is included in the model
-        if (p.addInvestmentInRepair) numOfOffspringPerFemale = f.calcNumberOfOffspring(p, rng);
-
+        
         // choose the male to mate with
         auto& mate = males[rng.drawRandomNumber(males.size())];
 
         // start loop to generate offspring
-        for (unsigned i = 0; i < numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
+        for (unsigned i = 0; i < p.numOfOffspringPerFemale; ++i){ // loop through number of offspring to produce
             offspring.emplace_back(f, mate, rng, p);
 
             // keep track of offspring of the flagged individuals

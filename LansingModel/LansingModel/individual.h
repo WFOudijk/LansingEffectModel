@@ -12,9 +12,6 @@
 #include <bitset>
 #include <cassert>
 
-using arrayOfGenes = std::array<bool, numOfGenes>;
-using vectorOfAgeSpecificGenes = std::vector<float>;
-
 struct Individual {
     unsigned int age;
     unsigned int ageOfMother;
@@ -64,7 +61,6 @@ struct Individual {
     void calcSurvivalProb(const Parameters& p);
     void calcAverageParentalQuality();
     void calcAverageInvestmentGenes();
-    unsigned int calcNumberOfOffspring(const Parameters& p, Randomizer& rng);
     void reproduce(const Parameters& p, Randomizer& rng, Individual& male);
     
 };
@@ -134,11 +130,8 @@ Individual::Individual(Individual& mother,
     calcSurvivalProb(p); // to set the survival probability of the new individual
     calcAverageParentalQuality(); // averages the age-specific gene arrays
     calcAverageInvestmentGenes(); // average the age-specific investment gene arrays;
-                                                                                                                                                                                        
-    //parentalQuality = averageAgeSpecificGenes[0]; // get new individual its quality
-                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                            
     // calculate effect of quality from both parents
-    //float effectQuality = p.weightMaternalEffect * mother.parentalQuality + (1.0 - p.weightMaternalEffect) * father.parentalQuality;
     float effectQuality = p.weightMaternalEffect *
                             mother.averageAgeSpecificGenes[mother.age] +
                             (1.0 - p.weightMaternalEffect) *
@@ -148,14 +141,13 @@ Individual::Individual(Individual& mother,
     if (p.addQuality) survivalProb *= effectQuality; // multiply survival prob with the quality of the parents
                                                   
     // check if the investment genes affect the quality of the offspring
-    if (p.addInvestmentAffectingOffspringQuality) {
+    if (p.addInvestmentInRepair) {
     
         // get females investment in reproduction
         double investmentInReproduction = 1.0 - mother.averageInvestmentGenes[mother.age];
         
         // calculate the effect of the investment per offspring
         double adjustedInvestmentInReproduction = investmentInReproduction / p.numOfOffspringPerFemale;
-        // TODO: is both investment effects are on, it should be divided by the number of offspring determined by the allocation effect
         
         // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
         survivalProb = survivalProb -
@@ -209,17 +201,15 @@ void Individual::dies(Randomizer& rng,
                       const Parameters& p){
     /**Function to determine which individuals will die.**/
 				
-    // get age-specific survival probability
-    float survivalProbAgeSpec = averageAgeSpecificGenes[age];
-    // if quality is enabled but age-specific genetic effects are disabled, the age-specific genes do need to evolve (for quality determination)
-    // but they should not be taken into account for determining survival probability of the individual
-    if (p.addQuality && !p.addAgeSpecific) survivalProbAgeSpec = 1.0;
+    // set age-specific survival probability to 1
+    float survivalProbAgeSpec = 1.0;
+    // if age-specific genetic effect is enabled, the age-specific genes determine survival
+    if (p.addAgeSpecific) survivalProbAgeSpec = averageAgeSpecificGenes[age];
     
-    // set investment in repair based on the individual's resource budget
-    float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
-    // if investment is disabled in the model. It should not play a part.
-    if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
-    //if (!p.addInvestmentInRepair) investmentInRepair = 1;
+    // set investment in repair to 1, so disable it
+    float investmentInRepair = 1.0;
+    // if investment is enabled in the model. It should be recalculated based on the genes
+    if (p.addInvestmentInRepair) investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - averageInvestmentGenes[age]); // 1 - c3 * (1 - a)^2
 
     // Caclulate the survival prob based on both gene arrays
     float totalSurvivalProb = survivalProbAgeSpec * survivalProb * investmentInRepair;
@@ -228,8 +218,6 @@ void Individual::dies(Randomizer& rng,
     
     if (rng.bernoulli(adjustedSurvivalProb)){ // bernoulli distribution with the bias of survival probability of the individual
         age += 1; // increment age if individual survives the mortality round
-        //parentalQuality = averageAgeSpecificGenes[age]; // every time an individual ages, the parental quality is recalculated
-        
         if (age == p.maximumAge) isDead = true;
     } else { // indidvidual dies
         isDead = true; // Individual will die.
@@ -346,22 +334,5 @@ void Individual::calcAverageInvestmentGenes(){
     for (size_t i = 0; i < ageSpecificInvestmentInRepair[0].size(); ++i){
         averageInvestmentGenes.push_back((ageSpecificInvestmentInRepair[0][i] + ageSpecificInvestmentInRepair[1][i]) * 0.5);
     }
-}
-
-unsigned int Individual::calcNumberOfOffspring(const Parameters& p,
-                                               Randomizer& rng){
-    /**Function to calculate the number of offspring an individual wil get based on their investment in repair/reproduction distribution.
-     The function uses stochastic rounding to determine the actual number of offspring. **/
-    
-    // determine investment in reproduction based on investment in repair genes.
-    float investmentInReproduction = (1.0 - averageInvestmentGenes[age]);
-    
-    // calculate numOfOffspring based on sigmoidal/logistic function
-    // 10 is to scale the numbers between 0 and 100 and to make the graph less steep.
-    float numOfOffspring = p.scalingParameterForNumOfOffspring / (1.0 + exp(-p.scaleInvestmentValuesForCalc * (investmentInReproduction - p.pointOfHalfScalingParam))); // sigmoidal
-    
-    // stochastic rounding
-    return stochasticRound(numOfOffspring, rng);
-
 }
 

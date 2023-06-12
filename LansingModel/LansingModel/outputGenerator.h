@@ -54,10 +54,10 @@ void createOutputDeclineInGameteQuality(const int t,
     for (auto i : deadIndividualsVec){
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : i.averageAgeSpecificGenes[i.age];
-        // set investment in repair based on their resource budget
-        float investmentInRepair = 1 - p.weightInvestment * sqr(1 - i.averageInvestmentGenes[i.age]); // 1 - c3 * (1 - a)^2
-        // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1;
+        // set investment in repair to 1
+        float investmentInRepair = 1.0;
+        // if investment is enabled in the model. It should play a part.
+        if (p.addInvestmentInRepair) investmentInRepair = 1 - p.weightInvestment * sqr(1 - i.averageInvestmentGenes[i.age]); // 1 - c3 * (1 - a)^2
         
         char sex = i.isFemaleSex ? 'F' : 'M';
         ofs << t << " "
@@ -87,12 +87,11 @@ void createOutputLifeExpectancy(const Parameters& p,
     for (Individual male : males){
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : male.averageAgeSpecificGenes[male.age];
-        // set investment in repair based on their resource budget
-        float investmentInRepair = 1.0 - p.weightInvestment * sqr(1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2
-        // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
-        
-        
+        // set investment in repair to 1
+        float investmentInRepair = 1.0;
+        // if investment is enabled in the model. It should play a part.
+        if (p.addInvestmentInRepair) investmentInRepair = 1.0 - p.weightInvestment * sqr(1 - male.averageInvestmentGenes[male.age]); // 1 - c3 * (1 - a)^2;
+                
         // calculates survival into the next year
         float s = ageSpecSurvProb * male.survivalProb * investmentInRepair * p.survivalProbExtrinsicMort;
         // calculate expected age at death
@@ -128,10 +127,10 @@ void createOutputLifeExpectancy(const Parameters& p,
         float ageSpecSurvProb; // female survival probability based on age-specific gene
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1.0 : female.averageAgeSpecificGenes[female.age];
-        // set investment in repair based on their resource budget
-        float investmentInRepair = 1.0 - p.weightInvestment * sqr(1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
-        // if investment is off in the model. It should not play a part.
-        if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
+        // set investment in repair to 1
+        float investmentInRepair = 1.0;
+        // if investment is enabled in the model. It should play a part.
+        if (p.addInvestmentInRepair) investmentInRepair = 1.0 - p.weightInvestment * sqr(1 - female.averageInvestmentGenes[female.age]); // 1 - c3 * (1 - a)^2
         
         // calculates survival into the next year
         float s = ageSpecSurvProb * female.survivalProb * investmentInRepair * p.survivalProbExtrinsicMort;
@@ -222,9 +221,9 @@ void createOutputTrackedIndividuals(const Parameters& p,
             float binarySurvProb = deadIndividuals[ind].offspring[i].survivalProb;
             
             // set investment in repair based on their resource budget
-            float investmentInRepair = 1.0 - p.weightInvestment * sqr(1.0 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
+            float investmentInRepair = 1.0;
             // if investment is off in the model. It should not play a part.
-            if (!p.addInvestmentInRepair & !p.addInvestmentAffectingOffspringQuality) investmentInRepair = 1.0;
+            if (p.addInvestmentInRepair) investmentInRepair =  1.0 - p.weightInvestment * sqr(1.0 - deadIndividuals[ind].offspring[i].averageInvestmentGenes[deadIndividuals[ind].offspring[i].age]); // 1 - c3 * (1 - a)^2
             
             // mulitply the above-mentioned three to get total survival probability
             float totSurvProb = ageDependentSurvProb * binarySurvProb * investmentInRepair;
