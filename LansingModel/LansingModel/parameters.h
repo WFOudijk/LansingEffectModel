@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(10000),
                    initDamageProportion(0.5),
-                   numOfOffspringPerFemale(3),
+                   numOfOffspringPerFemale(1),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
-                   outputTime(10),
-                   tEnd(10000), // 10.000
+                   outputTime(100),
+                   tEnd(100000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
@@ -23,7 +23,7 @@ struct Parameters {
                    sdMutationalEffectSize(0.015),
                    initAgeSpecificGenes(0.99),
                    mutationProbAgeSpecificGenes(0.002), // 0.003 based on quality param simulations
-                   numOfIndividualsToFollow(500),
+                   numOfIndividualsToFollow(5),
                    weightMaternalEffect(0.5),
                    initInvestmentInRepair(0.5),
                    numOfStemCells(30),
@@ -34,10 +34,10 @@ struct Parameters {
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
                    numOfOffspringForOffspringLifespanSim(10),
-                   addBinary(true),
+                   addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(true),
-                   addInvestmentInRepair(false){}
+                   addQuality(false),
+                   addInvestmentInRepair(true){}
     
     unsigned int populationSize; // total population size
     float initDamageProportion; // the proportion of initial damage in the binary genes
