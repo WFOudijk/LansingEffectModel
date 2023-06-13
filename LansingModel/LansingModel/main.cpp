@@ -76,29 +76,31 @@ int main(int argc, const char * argv[]) {
     t_start = t_now;
     std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal. \n";
     
-    // track a certain number of individuals
-    pop.setTrackedIndividuals(p, rng);
-
-    // to keep track of the followed individuals. If everyone has died, the simulation can stop
-    int numOfIndividualsToFollow = p.numOfIndividualsToFollow * 2;
+    pop.simulateOffspringLifespan(p, rng);
     
-    int count = 0;
-    while (numOfIndividualsToFollow > 0) {
-        count += 1;
-        indVec deadIndividualsVec;
-        
-        pop.reproduce(p, rng); // reproduce to make offspring
-        pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
-
-        pop.addOffspring(p, rng); // adding offspring to the adults
-        pop.mutationRound(p, rng);
-								
-        numOfIndividualsToFollow = (int) std::count_if(pop.males.begin(), pop.males.end(), [](auto& m) { return m.tracked==1; });
-        numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
-				
-    }
+//    // track a certain number of individuals
+//    pop.setTrackedIndividuals(p, rng);
+//
+//    // to keep track of the followed individuals. If everyone has died, the simulation can stop
+//    int numOfIndividualsToFollow = p.numOfIndividualsToFollow * 2;
+//
+//    int count = 0;
+//    while (numOfIndividualsToFollow > 0) {
+//        count += 1;
+//        indVec deadIndividualsVec;
+//
+//        pop.reproduce(p, rng); // reproduce to make offspring
+//        pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
+//
+//        pop.addOffspring(p, rng); // adding offspring to the adults
+//        pop.mutationRound(p, rng);
+//
+//        numOfIndividualsToFollow = (int) std::count_if(pop.males.begin(), pop.males.end(), [](auto& m) { return m.tracked==1; });
+//        numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
+//
+//    }
     
-    pop.simulateAgeAtDeath(p, rng);
+    //pop.simulateAgeAtDeath(p, rng);
 
     std::ofstream ofs;
     ofs.open("outputAgeAlivePop.txt"); // the output file
@@ -108,7 +110,7 @@ int main(int argc, const char * argv[]) {
     }
     ofs.close();
 
-    std::cout << "Counter = " << count << "\n";
+    //std::cout << "Counter = " << count << "\n";
     // only create output of life expectancy for the remaining individuals
     //createOutputLifeExpectancy(p, pop.males, pop.females);
     // create output for the tracked individuals

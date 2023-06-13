@@ -272,3 +272,27 @@ void outputForSimulatedLifespan(const indVec& deadIndividuals){
 
     ofs.close();
 }
+
+void outputOffspringLifespanLongitudinal(const Parameters& p,
+                                         Randomizer& rng,
+                                         indVec deadTrackedIndividuals){
+    /**Function to write output of the longitudinal offspring lifespan simulation. **/
+    
+    // open file to write output for the longitudinal offspring lifespan simulation
+    std::ofstream ofs;
+    ofs.open("outputLifeExpLong.txt");
+    if (!ofs.is_open()){
+        std::cerr << "Error. Unable to open output file.\n";
+        exit(EXIT_FAILURE);
+    }
+    
+    for (size_t ind = 0; ind < deadTrackedIndividuals.size(); ++ind){
+        for (Individual offspring : deadTrackedIndividuals[ind].offspring){
+            ofs << ind << " " // use this as ID of the parent
+            << offspring.age << " " // the age at death of this individual
+            << offspring.ageOfMother << " " // write maternal age to file
+            << offspring.ageOfFather << "\n"; // write paternal age to file
+        }
+    }
+    ofs.close();
+}

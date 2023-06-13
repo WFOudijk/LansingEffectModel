@@ -30,6 +30,7 @@ struct Population{
     void setTrackedIndividuals(const Parameters& p, Randomizer& rng);
     void simulateAgeAtDeath(Parameters& p, Randomizer& rng);
     void mortalityRoundOffspring(const Parameters& p, Randomizer& rng, indVec& deadIndividuals);
+    void simulateOffspringLifespan(const Parameters& p, Randomizer& rng);
 };
 
 void Population::makePopulation(const Parameters& p,
@@ -162,16 +163,7 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     
     // reset the number of offspring per female
     p.numOfOffspringPerFemale = p.numOfOffspringForOffspringLifespanSim;
-    
-//    // female needs to be checked for enough gametes to produce 10 more offspring
-//    for (auto &female : females){
-//        // every female needs to have enough gametes to produce 10 offspring to track.
-//        while(female.gametes.size() < p.numOfOffspringPerFemale){
-//            // copy the gametes into the same vector.
-//            female.gametes.insert(female.gametes.end(), female.gametes.begin(), female.gametes.end());
-//        }
-//    }
-    
+        
     // reserve some more memory for the offspring vector
     offspring.reserve(p.populationSize * (p.numOfOffspringPerFemale + 1));
 
@@ -224,4 +216,74 @@ void Population::mortalityRoundOffspring(const Parameters& p,
             ++indiv;
         }
     }
+}
+
+void Population::simulateOffspringLifespan(const Parameters& p,
+                                           Randomizer& rng){
+    /**Function to look at the individuals longitudinally to determine offspring lifespan. **/
+    
+    // final population reproduces
+    reproduce(p, rng);
+    
+    // the new individuals need to be tracked to record the offspring
+    std::for_each(std::execution::par, begin(offspring), end(offspring),
+                  [&](auto& ind){ind.tracked = 1;});
+    
+    auto tmp = offspring.size() * 0.5; // get the half value
+    
+    // make the offspring the new population
+    males = {offspring.begin(), offspring.end() - tmp};  // first half
+    females = {offspring.begin() + tmp, offspring.end()}; // second half
+
+    // have males make stem cells
+    std::for_each(std::execution::par, begin(males), end(males),
+                  [&](auto& ind){
+        ind.makeStemcells(p);
+        ind.isFemaleSex = 0;
+    });
+
+    // have females make gametes
+    std::for_each(std::execution::par, begin(females), end(females),
+                  [&](auto& ind){
+        ind.makeSeveralGametes(p, rng);
+        ind.isFemaleSex = 1;
+    });
+    
+    // needed for the mortality function - not used in this case
+    indVec deadIndividualsVec;
+    indVec deadTrackedIndividuals;
+    
+    // loop until maximum age.
+    for (size_t i = 0; i < p.maximumAge; ++i){
+        
+        // only reproduce if they are both not empty
+        if (!males.empty() && !females.empty()) reproduce(p, rng); // reproduce to make offspring
+        
+        // mortality round of the adults
+        mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals);
+        
+        // mutation round of the gametes/ stem cells
+        mutationRound(p, rng);
+    }
+    
+    // loop through the offspring of the tracked individuals and let them live out their life
+    for (Individual& ind : deadTrackedIndividuals){
+        // use the counter to track which of the offspring are already dead
+        size_t counter = 0;
+        // while the counter is not equal to the offspring vector size, there are still offspring alive.
+        while (counter != ind.offspring.size()){
+            counter = 0;
+            for (Individual& offs : ind.offspring){
+                // checks if the offspring is already dead
+                if (!offs.isDead){
+                    // if not, go through mortality round, it either dies or ages one year.
+                    offs.dies(rng, p);
+                } else {
+                    counter += 1;
+                }
+            }
+        }
+    }
+    
+    outputOffspringLifespanLongitudinal(p, rng, deadTrackedIndividuals);
 }
