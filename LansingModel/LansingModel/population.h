@@ -170,10 +170,6 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     // have the individuals make offspring
     reproduce(p, rng);
     
-    std::ofstream ofs;
-    ofs.open("testFile.txt");
-    ofs << "Reproduce is finished. \n";
-    ofs.close();
     // make new vector to keep track of the dead individuals
     indVec deadIndividuals;
     // reserve memory space for the dead individuals
@@ -184,17 +180,9 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
         // offspring go through mortality round
         mortalityRoundOffspring(p, rng, deadIndividuals);
     }
-    
-    std::ofstream ofs2;
-    ofs2.open("testFile2.txt");
-    ofs2 << "mortality is finished. \n";
-    
+
     // make output of the dead individuals
     outputForSimulatedLifespan(deadIndividuals);
-    
-    std::ofstream ofs3;
-    ofs3.open("testFile3.txt");
-    ofs3 << "output is finished. \n";
     
 }
 

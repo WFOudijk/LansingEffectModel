@@ -65,43 +65,14 @@ int main(int argc, const char * argv[]) {
         // output
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << "\n";
-            //createOutputAgeDeath(t, p, ageAtDeath); // generate data for average death age
-            createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
+            //createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
         }
     }
   
     auto t_now = std::chrono::system_clock::now();
     std::chrono::duration<double> diff_t = t_now - t_start;
-    std::cout << "First time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";   
-    t_start = t_now;
-    std::cout << "Choosing " << p.numOfIndividualsToFollow << " number of males and females to research longitudinal. \n";
+    std::cout << "Time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";
     
-    pop.simulateOffspringLifespan(p, rng);
-    
-//    // track a certain number of individuals
-//    pop.setTrackedIndividuals(p, rng);
-//
-//    // to keep track of the followed individuals. If everyone has died, the simulation can stop
-//    int numOfIndividualsToFollow = p.numOfIndividualsToFollow * 2;
-//
-//    int count = 0;
-//    while (numOfIndividualsToFollow > 0) {
-//        count += 1;
-//        indVec deadIndividualsVec;
-//
-//        pop.reproduce(p, rng); // reproduce to make offspring
-//        pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
-//
-//        pop.addOffspring(p, rng); // adding offspring to the adults
-//        pop.mutationRound(p, rng);
-//
-//        numOfIndividualsToFollow = (int) std::count_if(pop.males.begin(), pop.males.end(), [](auto& m) { return m.tracked==1; });
-//        numOfIndividualsToFollow += std::count_if(pop.females.begin(), pop.females.end(), [](auto& f) { return f.tracked==1; });
-//
-//    }
-    
-    //pop.simulateAgeAtDeath(p, rng);
-
     std::ofstream ofs;
     ofs.open("outputAgeAlivePop.txt"); // the output file
     for (size_t i =0 ; i < pop.males.size(); ++i) {
@@ -109,17 +80,12 @@ int main(int argc, const char * argv[]) {
         << pop.females[i].age << "\n";
     }
     ofs.close();
-
-    //std::cout << "Counter = " << count << "\n";
-    // only create output of life expectancy for the remaining individuals
-    //createOutputLifeExpectancy(p, pop.males, pop.females);
-    // create output for the tracked individuals
-    createOutputTrackedIndividuals(p, deadTrackedIndividuals);
+    
+    // simulate offspring lifespan over parental age
+    pop.simulateOffspringLifespan(p, rng);
+    
+    // create output for with age-specific gene values
+    createOutputAgeSpecificGenes(p, deadTrackedIndividuals);
 				
-    // to print the duration of the program to the terminal
-    t_now = std::chrono::system_clock::now();
-    diff_t = t_now - t_start;
-    std::cout << "Finished. The program took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";
-    t_start = t_now;
     return 0;
 }
