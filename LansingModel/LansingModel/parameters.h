@@ -10,7 +10,7 @@
 struct Parameters {
     // initialise the parameters
     Parameters() : populationSize(1000),
-                   initDamageProportion(0),
+                   initDamageProportion(0.1),
                    numOfOffspringPerFemale(1),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0),
@@ -34,10 +34,10 @@ struct Parameters {
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
                    numOfOffspringForOffspringLifespanSim(10),
-                   addBinary(false),
+                   addBinary(true),
                    addAgeSpecific(false),
                    addQuality(false),
-                   addInvestmentInRepair(true){}
+                   addInvestmentInRepair(false){}
     
     unsigned int populationSize; // total population size
     float initDamageProportion; // the proportion of initial damage in the binary genes
