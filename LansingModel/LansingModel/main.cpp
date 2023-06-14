@@ -65,7 +65,7 @@ int main(int argc, const char * argv[]) {
         // output
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << "\n";
-            //createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
+            createOutputDeclineInGameteQuality(t, p, deadIndividualsVec);
         }
     }
   
