@@ -151,6 +151,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addBinary", addBinary, ifs);
             checkParam(parID, "addAgeSpecific", addAgeSpecific, ifs);
             checkParam(parID, "addQuality", addQuality, ifs);
+            checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
         }
         else break;
     }
