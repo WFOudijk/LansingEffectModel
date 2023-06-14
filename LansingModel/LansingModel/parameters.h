@@ -152,6 +152,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addAgeSpecific", addAgeSpecific, ifs);
             checkParam(parID, "addQuality", addQuality, ifs);
             checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
+            checkParam(parID, "numOfOffspringPerFemale", numOfOffspringPerFemale, ifs);
         }
         else break;
     }
