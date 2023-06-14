@@ -14,7 +14,7 @@ struct Parameters {
                    numOfOffspringPerFemale(1),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0),
-                   outputTime(100),
+                   outputTime(1),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
@@ -34,9 +34,9 @@ struct Parameters {
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
                    numOfOffspringForOffspringLifespanSim(10),
-                   addBinary(true),
+                   addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(false),
+                   addQuality(true),
                    addInvestmentInRepair(false){}
     
     unsigned int populationSize; // total population size
