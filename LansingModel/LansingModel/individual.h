@@ -93,8 +93,9 @@ Individual::Individual(const Parameters& p, // initializing constructor
     calcAverageParentalQuality();
     // fills average averageInvestmentGenes
     calcAverageInvestmentGenes();
-    // get initial quality
-   //parentalQuality = p.initAgeSpecificGenes;
+    // simulate parental quality effect
+    survivalProb *= averageAgeSpecificGenes[0];
+   
 
     // if the individual is female she should make gametes, otherwise the male should make stem cells.
     (isFemale) ? makeSeveralGametes(p, rng) : makeStemcells(p);
