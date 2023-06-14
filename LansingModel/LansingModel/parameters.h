@@ -9,18 +9,18 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(10000),
-                   initDamageProportion(0.5),
+    Parameters() : populationSize(1000),
+                   initDamageProportion(0),
                    numOfOffspringPerFemale(1),
                    mutationProb(0.0024),
-                   extrinsicMortRisk(0.05), // maximum added number of years to live will be 19
+                   extrinsicMortRisk(0),
                    outputTime(100),
-                   tEnd(100000), // 10.000
+                   tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),
                    mutationProbStemcell(0.0024),
                    meanMutationBias(-0.02),
-                   sdMutationalEffectSize(0.015),
+                   sdMutationalEffectSize(0.02),
                    initAgeSpecificGenes(0.99),
                    mutationProbAgeSpecificGenes(0.002), // 0.003 based on quality param simulations
                    numOfIndividualsToFollow(5),
@@ -29,7 +29,7 @@ struct Parameters {
                    numOfStemCells(30),
                    meanMutationBiasInvestmentInRepair(0),
                    sdMutationalEffectInvestmentInRepair(0.02),
-                   mutationProbInvestmentGenes(0.004),
+                   mutationProbInvestmentGenes(0.002),
                    weightInvestment(0.3),
                    baselineSurvival(0.5),
                    scalingStrengthOfAllocationToSurvival(0.2),
@@ -152,7 +152,6 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addAgeSpecific", addAgeSpecific, ifs);
             checkParam(parID, "addQuality", addQuality, ifs);
             checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
-            checkParam(parID, "numOfOffspringPerFemale", numOfOffspringPerFemale, ifs);
         }
         else break;
     }
