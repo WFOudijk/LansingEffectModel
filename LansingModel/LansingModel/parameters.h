@@ -21,7 +21,7 @@ struct Parameters {
                    mutationProbStemcell(0.0024),
                    meanMutationBias(-0.02),
                    sdMutationalEffectSize(0.02),
-                   initAgeSpecificGenes(0.99),
+                   initAgeSpecificGenes(0.90),
                    mutationProbAgeSpecificGenes(0.002), // 0.003 based on quality param simulations
                    numOfIndividualsToFollow(5),
                    weightMaternalEffect(0.5),
