@@ -87,14 +87,14 @@ Individual::Individual(const Parameters& p, // initializing constructor
     ageSpecificInvestmentInRepair[0] = gameteMaternal.ageSpecificInvestmentInRepair;
     ageSpecificInvestmentInRepair[1] = gametePaternal.ageSpecificInvestmentInRepair;
 
-    // calculates survivalProb, based on binary genes and
+    // calculates survivalProb, based on binary genes
     calcSurvivalProb(p);
     // fills averageAgeSpecificGenes array based on age-specific genes
     calcAverageParentalQuality();
     // fills average averageInvestmentGenes
     calcAverageInvestmentGenes();
     // simulate parental quality effect
-    survivalProb *= averageAgeSpecificGenes[0];
+    if (p.addQuality) survivalProb *= averageAgeSpecificGenes[0];
    
 
     // if the individual is female she should make gametes, otherwise the male should make stem cells.
@@ -153,9 +153,10 @@ Individual::Individual(Individual& mother,
         double adjustedInvestmentInReproduction = investmentInReproduction / p.numOfOffspringPerFemale;
         
         // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
-        survivalProb = survivalProb -
-                ((p.baselineSurvival - adjustedInvestmentInReproduction) * p.scalingStrengthOfAllocationToSurvival);
-        if (survivalProb < 0) survivalProb = 0; // to prevent the survival probability becoming negative
+        //survivalProb = survivalProb -
+        //        ((p.baselineSurvival - adjustedInvestmentInReproduction) * p.scalingStrengthOfAllocationToSurvival);
+        survivalProb *= 1 / (1 + exp(-p.steepnessAllocationToSurvival * adjustedInvestmentInReproduction - p.scalingStrengthOfAllocationToSurvival));
+        //if (survivalProb < 0) survivalProb = 0; // to prevent the survival probability becoming negative
     }
 }
 

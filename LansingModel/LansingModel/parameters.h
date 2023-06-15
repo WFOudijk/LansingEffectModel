@@ -32,12 +32,13 @@ struct Parameters {
                    mutationProbInvestmentGenes(0.002),
                    weightInvestment(0.3),
                    baselineSurvival(0.5),
-                   scalingStrengthOfAllocationToSurvival(0.2),
+                   scalingStrengthOfAllocationToSurvival(1),
                    numOfOffspringForOffspringLifespanSim(10),
+                   steepnessAllocationToSurvival(3),
                    addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(true),
-                   addInvestmentInRepair(false){}
+                   addQuality(false),
+                   addInvestmentInRepair(true){}
     
     unsigned int populationSize; // total population size
     float initDamageProportion; // the proportion of initial damage in the binary genes
@@ -66,6 +67,7 @@ struct Parameters {
     float scalingStrengthOfAllocationToSurvival; // to determine the strength of the allocative effect on survival
     int numOfOffspringForOffspringLifespanSim; // the number of offspring per female to track to determine offspring lifespan
     float survivalProbExtrinsicMort; // the survival probability based on extrinsic mortality
+    float steepnessAllocationToSurvival; // to determine the steepness in allocation to survival effect 
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
