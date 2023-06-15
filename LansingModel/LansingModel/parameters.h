@@ -14,7 +14,7 @@ struct Parameters {
                    numOfOffspringPerFemale(1),
                    mutationProb(0.0024),
                    extrinsicMortRisk(0),
-                   outputTime(1),
+                   outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
                    maximumAge(40),

@@ -112,8 +112,18 @@ void Population::mortalityRound(const Parameters& p,
 void Population::addOffspring(const Parameters& p,
                               Randomizer& rng){
     /**This function adds (random) offspring to the adult vectors untill the vectors are at their maximum size again. **/
-				
-    while (males.size() < (p.populationSize)){
+    
+    auto maxCapacityF = p.populationSize; // female max capacity
+    auto maxCapacityM = p.populationSize; // male max capacity
+    
+    if (2 * p.populationSize - (males.size() + females.size()) > offspring.size()){
+        auto halfOffspring = offspring.size() * 0.5;
+        maxCapacityF = females.size() + halfOffspring; // get new maximum capacity
+        maxCapacityM = males.size() + halfOffspring; // same for the males
+    }
+    
+    //while (males.size() < (p.populationSize)){
+    while (males.size() < maxCapacityM){
         int randIndex = rng.drawRandomNumber(offspring.size());
         males.emplace_back(std::move(offspring[randIndex])); // add a random offspring to the males vector
         males.back().makeStemcells(p); // new male has to make stem cells
@@ -125,7 +135,8 @@ void Population::addOffspring(const Parameters& p,
     }
     
     // same for females
-    while (females.size() < (p.populationSize)){
+    //while (females.size() < (p.populationSize)){
+    while (females.size() < maxCapacityF){
         int randIndex = rng.drawRandomNumber(offspring.size());
         females.emplace_back(std::move(offspring[randIndex])); // add a random offspring to the females vector
         females.back().makeSeveralGametes(p, rng); // new female has to make gametes
