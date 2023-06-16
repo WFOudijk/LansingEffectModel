@@ -26,4 +26,8 @@ int stochasticRound(const double x, Randomizer& rng) {
     return static_cast<int>(intpart);
 }
 
+float logistic(double k, double x, double i){
+    return (1.0 / (1.0 + exp(-k * x - i)));
+}
+
 #endif // UTILS_H

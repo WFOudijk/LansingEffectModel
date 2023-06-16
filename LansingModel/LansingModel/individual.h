@@ -155,7 +155,7 @@ Individual::Individual(Individual& mother,
         // use the adjustedInvestmentInRepair to calculate the effect on the survival of the offspring
         //survivalProb = survivalProb -
         //        ((p.baselineSurvival - adjustedInvestmentInReproduction) * p.scalingStrengthOfAllocationToSurvival);
-        survivalProb *= 1 / (1 + exp(-p.steepnessAllocationToSurvival * adjustedInvestmentInReproduction - p.scalingStrengthOfAllocationToSurvival));
+        survivalProb *= logistic(p.steepnessAllocationToSurvival, adjustedInvestmentInReproduction, p.scalingStrengthOfAllocationToSurvival);
         //if (survivalProb < 0) survivalProb = 0; // to prevent the survival probability becoming negative
     }
 }
