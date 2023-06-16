@@ -83,9 +83,6 @@ int main(int argc, const char * argv[]) {
     
     // simulate offspring lifespan over parental age
     pop.simulateOffspringLifespan(p, rng);
-    
-    // create output for with age-specific gene values
-    createOutputAgeSpecificGenes(p, deadTrackedIndividuals);
-				
+    				
     return 0;
 }

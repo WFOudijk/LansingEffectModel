@@ -276,7 +276,7 @@ void Population::simulateOffspringLifespan(const Parameters& p,
                 // checks if the offspring is already dead
                 if (!offs.isDead){
                     // if not, go through mortality round, it either dies or ages one year.
-                    offs.dies(rng, p);
+                    offs.dies(rng, p);  
                 } else {
                     counter += 1;
                 }
@@ -284,5 +284,9 @@ void Population::simulateOffspringLifespan(const Parameters& p,
         }
     }
     
+    // create output for offspring lifespan 
     outputOffspringLifespanLongitudinal(p, rng, deadTrackedIndividuals);
+    
+    // create output for with age-specific gene values
+    createOutputAgeSpecificGenes(p, deadTrackedIndividuals);
 }

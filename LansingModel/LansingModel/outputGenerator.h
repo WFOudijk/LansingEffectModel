@@ -69,8 +69,8 @@ void createOutputAgeSpecificGenes(const Parameters& p,
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " " // write as id of individual
             << i << " " // write age
-            ///<< deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
-            << deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // write parental quality in repair for this age class
+            << deadIndividuals[ind].averageInvestmentGenes[i] << "\n"; // write parental investment in repair for this age class
+            ///<< deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // write parental quality in repair for this age class
         }
 		
     }
