@@ -6,14 +6,14 @@ library(mgcv)
 d <- myLongitudinalData
 d <- trackedIndividuals
 
-ggplot(d,aes(x=expectedAgeAtDeath)) + geom_histogram(bins=50)
+ggplot(d,aes(x=expectedAgeAtDeath)) + geom_histogram(bins=10)
 
 ## Let's cut off at 40
 d <- d %>% mutate(y1 = pmin(40,expectedAgeAtDeath))
 d <- d %>% mutate(y1 = pmin(40,ageAtDeath))
 
 
-ggplot(d,aes(x=y1)) + geom_histogram(bins=50)
+ggplot(d,aes(x=y1)) + geom_histogram(bins=10)
 ## Large peak at 40
 ## Not exactly looking like a beta distribution because of that.
 ## Better would be a zero one inflated beta. WO: [0, 1]
@@ -279,7 +279,7 @@ for (x in rangeMutProb) {
 }
 
 # remove some data otherwise it takes too long 
-d2 <- d %>% filter(na>2)
+d2 <- d %>% filter(na>7)
 #d3 <- d2 %>% filter(na<18)
 
 ## Use faster bam on logit transformed y
@@ -312,7 +312,7 @@ while ((nrow(d2[d2$ageOfParent == maxi,]) / nrow(d2) * 100) <= 3 && index < max_
 }
 pred_data = expand.grid(ageOfParent = c(0,maxi), ID = levels(d2$ID)[1])
 
-pred_data = expand.grid(ageOfParent = c(0,38), ID = levels(d2$ID)[1])
+pred_data = expand.grid(ageOfParent = c(0,max(d2$ageOfParent)), ID = levels(d2$ID)[1])
 #pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], mutationProbGametes = levels(d2$mutationProbGametes)[1])
 
 ## Predict, only using the first term (i.e. without the "random" effect)
@@ -334,7 +334,7 @@ logist <- function(x) 40/(1+exp(-x))
 plot(m1z, trans = logist, 
      xlab = "Parental age",
      ylab = "Expected age at death of offspring",
-     #main = paste(mechanisms, ", % decrease = ", perc_decr),
+     main = paste("% decrease = ", perc_decr),
     # pages = 1,
      shade = TRUE, 
      shade.col = "lightgrey",

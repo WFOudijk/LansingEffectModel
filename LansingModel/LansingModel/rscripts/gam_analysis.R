@@ -47,8 +47,8 @@ d2 <- d %>% filter(na>15)
 ##########################
 
 ## Model without interaction
-m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k= 5) +
-             s(mutationProbGametes, k = 5),
+m1z <- bam(y3 ~ s(ageOfParent, k = 5) + s(ageOfParent, ID, bs = "fs", k= 5),
+            # s(mutationProbGametes, k = 5),
            #family=betar(link="logit"),
            data=d2,
            method = "REML")
@@ -100,7 +100,7 @@ vis.gam(m1zc,theta=130,phi=20,ticktype="detailed",n.grid=40)
 d2 <- d2 %>% mutate(ID = factor(ID)) 
 d2 <- d2 %>% mutate(mutationProbGametes = factor(mutationProbGametes)) 
 # new predicted data for determining the percentage decrease
-pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1], 
+pred_data = expand.grid(ageOfParent = c(0,40), ID = levels(d2$ID)[1],
                         mutationProbGametes = levels(d2$mutationProbGametes)[1])
 
 # GENERATE NEW DATA FOR PLOT
@@ -117,7 +117,7 @@ d.pred <- expand.grid(ageOfParent=seq(0,40,length=len),
                       mutationProbSC=unique(d2$mutationProbSC))
 
 # Compute all terms, excluding the one with ID
-z <- predict(m1zb,newdata = d.pred,
+z <- predict(m1zb,newdata = pred_data,
              type = "terms",
              exclude = c("s(ageOfParent,ID)"))
 str(z) # contains 9 terms (the s and ti terms, not including the intercept)
@@ -437,7 +437,7 @@ zl <- logist(z)
 perc_decr <- 100*(zl[1]-zl[2])/zl[1]
 perc_decr
 
-plot(m1a, trans = logist,
+plot(m1z, trans = logist,
      main = paste("Quality-only, % decrease =", perc_decr),
      subtitle = "Mutation rate = 0.003; mean = -0.022; sd = 0.024",
      xlab = "Age of parent",
