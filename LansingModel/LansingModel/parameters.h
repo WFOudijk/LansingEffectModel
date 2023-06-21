@@ -32,13 +32,13 @@ struct Parameters {
                    mutationProbInvestmentGenes(0.002),
                    weightInvestment(0.3),
                    baselineSurvival(0.5),
-                   scalingStrengthOfAllocationToSurvival(1),
+                   scalingStrengthOfAllocationToReproduce(1),
                    numOfOffspringForOffspringLifespanSim(10),
-                   steepnessAllocationToSurvival(3),
+                   steepnessAllocationToReproduce(3),
                    addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(false),
-                   addInvestmentInRepair(true){}
+                   addQuality(true),
+                   addInvestmentInRepair(false){}
     
     unsigned int populationSize; // total population size
     float initDamageProportion; // the proportion of initial damage in the binary genes
@@ -64,10 +64,10 @@ struct Parameters {
     float mutationProbInvestmentGenes; // mutation rate of age-specific investment in repair genes
     float weightInvestment; // to weigh the investment in repair genes
     float baselineSurvival; // baseline survival in the resource distribution when allocation to reproduction is zero
-    float scalingStrengthOfAllocationToSurvival; // to determine the strength of the allocative effect on survival
+    float scalingStrengthOfAllocationToReproduce; // to determine the strength of the allocative effect on survival
     int numOfOffspringForOffspringLifespanSim; // the number of offspring per female to track to determine offspring lifespan
     float survivalProbExtrinsicMort; // the survival probability based on extrinsic mortality
-    float steepnessAllocationToSurvival; // to determine the steepness in allocation to survival effect 
+    float steepnessAllocationToReproduce; // to determine the steepness in allocation to survival effect
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
