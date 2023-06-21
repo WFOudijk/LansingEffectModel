@@ -662,19 +662,45 @@ ggplot(dataTotalLansingPat, aes(ageOfParent, offspringLifespan, colour = scenari
 d <- myLongitudinalData
 d <- totalDatasets
 
+length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
+
+## Count how many unique ageOfParent per ID
+z <- d %>% group_by(ID) %>% summarize(na = length(unique(maternalAge)))
+table(z$na) # indeed there are plenty with more than 1 ageOfParent!
+
+## Add the counter to d
+d <- d %>% left_join(z,by="ID")
+
+## Filter out the one with 1 observation (but this selects ...)
+
+d <- d %>% filter(na>1)
+
+d <- d %>% mutate(ID = factor(ID)) 
+
 # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
 d <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
 d <- d %>% mutate(y2 = y1/40)
 
 ## Work with logits (then (0,1) -> (-inf,+inf))
 d <- d %>% mutate(y3 = car::logit(y2))
+d2 <- d[d$ID %in% sample(d$ID, 200),]
 
-d$scenario <- factor(d$scenario)
+#d$scenario <- factor(d$scenario)
+
+
+#d2 <- d %>% filter(na>8)
+
 
 Sys.time()
 m1z <- bam(y3 ~ s(maternalAge, k = 10, by = as.factor(scenario)), 
            data=d,
            method = "REML")
+
+m1z <- bam(y3 ~ s(maternalAge, k = 10) + s(maternalAge, ID, bs = "fs", k = 10), 
+           data=d2,
+           method = "REML")
+
+
 # interaction term. 
 Sys.time()
 
@@ -684,25 +710,36 @@ plot(m1z)
 # not fully working yet. 
 pred_data = expand.grid(maternalAge = c(0,max(d$maternalAge)), 
                         scenario = levels(d$scenario))
+# with ID 
+d$ID <- factor(d$ID)
+pred_data = expand.grid(maternalAge = c(0,max(d$maternalAge)),
+                        ID = levels(d$ID)[1]) # maternal
+
+
 pred_data <- aggregate(d$maternalAge, list(d$scenario), min)
 pred_data <- rbind(pred_data, aggregate(d$maternalAge, list(d$scenario), max))
 colnames(pred_data) <- c("scenario", "maternalAge")
 
 ## Predict
-z <- predict(m1z, newdata = pred_data)
+z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(paternalAge)"))
+
              
 str(z)
+z
+logist(z)
 
 # Add intercept and all terms, transform back
-pred_data$y3 <- coef(m1z)[1] + apply(z,1,sum) 
-logist <- function(x) 1/(1+exp(-x))
-pred_data$y4 <- 40*logist(pred_data$y3)
+#pred_data$y3 <- coef(m1z)[1] + apply(z,1,sum) 
+#logist <- function(x) 1/(1+exp(-x)) # transforms data back to the original data/40 (so mapped to 0-1)
+#pred_data$y4 <- 40*logist(pred_data$y3)
 
-ggplot(pred_data, aes(maternalAge, y4, colour = as.factor(scenario))) + 
-  geom_line() +
-  ylim(0,100)
+#ggplot(pred_data, aes(maternalAge, y4, colour = as.factor(scenario))) + 
+#  geom_line() +
+#  ylim(0,100)
 
 ## Use logist transformed:
+logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
 zl <- logist(z)
 
 ## Percentage decrease: Not fully working yet. 
@@ -717,7 +754,7 @@ perc_decr
 
 summary(m1z)
 
-logist <- function(x) 40/(1+exp(-x))
+logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
 
 plot(m1z, trans = logist, 
      #xlab = "Parental age",
@@ -732,5 +769,105 @@ plot(m1z, trans = logist,
 )
 #
 
+###########################################
+# Looking at the individuals longitudinally
+##########################################
 
+parent_path <- paste(path, "combiningAll3/", sep = "")
+dataTotalLansing <- c()
+f <- list.files(path = parent_path, pattern = "outputLifeExpLong", recursive = T)
 
+# paste all data together
+for (x in f) {
+  # get path 
+  file_name <- paste0(parent_path, x)
+  # extract scenario from file name 
+  splitted_path <- strsplit(file_name, "/")
+  nScenario <- length(splitted_path[[1]]) - 1
+  scenario <- splitted_path[[1]][nScenario]
+  # read data
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  colnames(local_data) <- c("ID", "ageAtDeath", "maternalAge", "paternalAge")
+  # add the scenario as a column to the data
+  local_data$scenario <- scenario
+  local_data$ID <- sub("^", local_data$scenario[1], local_data$ID)
+  # subset parents 
+  z <- local_data %>% group_by(ID) %>% summarize(na = length(unique(maternalAge)))
+  ## Add the counter to data
+  local_data <- local_data %>% left_join(z,by="ID")
+  local_data <- local_data %>% mutate(ID = factor(ID)) 
+  local_data <- local_data %>% filter(na > 6)
+  # sample 40 parents by their IDs
+  local_data <- local_data[local_data$ID %in% sample(local_data$ID, 50, replace = F),]
+  # add the complete data to the totalDatasets dataframe. 
+  dataTotalLansing <- rbind(dataTotalLansing, local_data) # get all data together
+}
+
+ggplot(dataTotalLansing, aes(maternalAge, ageAtDeath, group=as.factor(scenario), colour = as.factor(scenario))) +
+  geom_smooth()
+
+d <- dataTotalLansing
+d <-local_data
+length(unique(d$ID))  
+
+## Count how many unique ageOfParent per ID
+z <- d %>% group_by(ID) %>% summarize(na = length(unique(maternalAge)))
+table(z$na) # indeed there are plenty with more than 1 ageOfParent!
+
+## Add the counter to d
+d <- d %>% left_join(z,by="ID")
+
+# compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
+d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
+d2 <- d2 %>% mutate(y2 = y1/40)
+
+## Work with logits (then (0,1) -> (-inf,+inf))
+d2 <- d2 %>% mutate(y3 = car::logit(y2))
+
+#local_data_tmp <- d2[d2$ID %in% sample(d2$ID, 300, replace = F),]
+#local_data_tmp <- local_data_tmp %>% filter(na.x>6)
+
+d2 <- d2 %>% mutate(scenario = factor(scenario)) 
+Sys.time()
+m1z <- bam(y3 ~ s(maternalAge, k = 10) + s(maternalAge, ID, bs = "fs", k = 10), 
+             #s(scenario, k = 5) +
+             #ti(maternalAge, scenario, k = c(5,5)), 
+           data=d2,
+           method = "REML")
+
+# interaction term. 
+Sys.time()
+
+#d$ID <- factor(d$ID)
+pred_data = expand.grid(maternalAge = c(0,max(d$maternalAge)),
+                        ID = levels(d$ID)[1]) # maternal
+
+## Predict
+z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+
+str(z)
+z
+logist(z)
+
+## Use logist transformed:
+logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
+zl <- logist(z)
+
+perc_decr <- 100*(zl[1]-zl[2])/zl[1]
+perc_decr
+
+logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
+
+plot(m1z, trans = logist, 
+     #xlab = "Parental age",
+     #ylab = "Expected age at death of offspring",
+     main = paste("Expected age at death over parental age. 
+                   % decrease = ", perc_decr),
+     # pages = 1,
+     shade = TRUE, 
+     shade.col = "lightgrey",
+     shift = coef(m1z)[1], # adjust for intercept,
+     #ylim = c(0, 5)
+)
+
+|
