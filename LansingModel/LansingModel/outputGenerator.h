@@ -69,8 +69,8 @@ void createOutputAgeSpecificGenes(const Parameters& p,
             << p.meanMutationBias << "_" << p.sdMutationalEffectSize << "_"
             << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " " // write as id of individual
             << i << " " // write age
-            << deadIndividuals[ind].averageInvestmentGenes[i] << "\n"; // write parental investment in repair for this age class
-            ///<< deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // write parental quality in repair for this age class
+            << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
+            << deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // parental quality for this age class
         }
 		
     }
@@ -99,9 +99,7 @@ void outputForSimulatedLifespan(const indVec& deadIndividuals){
     ofs.close();
 }
 
-void outputOffspringLifespanLongitudinal(const Parameters& p,
-                                         Randomizer& rng,
-                                         indVec deadTrackedIndividuals){
+void outputOffspringLifespanLongitudinal(indVec deadTrackedIndividuals){
     /**Function to write output of the longitudinal offspring lifespan simulation. **/
     
     // open file to write output for the longitudinal offspring lifespan simulation
