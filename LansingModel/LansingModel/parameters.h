@@ -13,7 +13,7 @@ struct Parameters {
                    initDamageProportion(0.1),
                    numOfOffspringPerFemale(1),
                    mutationProb(0.0024),
-                   extrinsicMortRisk(0),
+                   extrinsicMortRisk(0.0),
                    outputTime(10),
                    tEnd(10000), // 10.000
                    strengthOfSelection(-0.05),
