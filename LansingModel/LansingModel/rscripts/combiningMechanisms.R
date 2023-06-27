@@ -797,77 +797,46 @@ for (x in f) {
   local_data <- local_data %>% left_join(z,by="ID")
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   local_data <- local_data %>% filter(na > 6)
-  # sample 40 parents by their IDs
-  local_data <- local_data[local_data$ID %in% sample(local_data$ID, 50, replace = F),]
+  # sample 200 parents by their IDs
+  local_data <- local_data[local_data$ID %in% sample(local_data$ID, 200, replace = F),]
+  d <-local_data
+  # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
+  d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
+  d2 <- d2 %>% mutate(y2 = y1/40)
+  ## Work with logits (then (0,1) -> (-inf,+inf))
+  d2 <- d2 %>% mutate(y3 = car::logit(y2))
+  d2 <- d2 %>% mutate(scenario = factor(scenario)) 
+  print(d2$scenario[1])
+  k = 10; 
+  if (length(levels(as.factor(d2$maternalAge))) < k) { 
+    k = length(levels(as.factor(local_data$maternalAge))) 
+    }
+  m1z <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = 4), 
+             data=d2,
+             method = "REML")
+  # get 95th percentile 
+  percentile <- quantile(d2$maternalAge, probs = 0.95)
+  # make data expansion 
+  pred_data = expand.grid(maternalAge =seq(0,percentile,1),
+                          ID = levels(d2$ID)[1],
+                          scenario = levels(d2$scenario)[1]) 
+  
+  pred_data$z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+  # predict
+  #pred_data$z <- predict(m1z, newdata = pred_data)
+  colnames(pred_data)[4] <- "z"
+  pred_data$z <- logist(pred_data$z) # transform back
+  # normalize the axes between 0 and 1 
+  pred_data$maternalAge <- pred_data$maternalAge / percentile
+  pred_data$z <- pred_data$z / pred_data$z[1]
+  
   # add the complete data to the totalDatasets dataframe. 
-  dataTotalLansing <- rbind(dataTotalLansing, local_data) # get all data together
+  dataTotalLansing <- rbind(dataTotalLansing, pred_data)
 }
 
-ggplot(dataTotalLansing, aes(maternalAge, ageAtDeath, group=as.factor(scenario), colour = as.factor(scenario))) +
-  geom_smooth()
+ggplot(dataTotalLansing, aes(maternalAge, z, group=scenario, colour = scenario, shape = scenario)) +
+  geom_line() +
+  scale_shape_manual(values=1:nlevels(dataTotalLansing$scenario)) +
+  geom_point() 
+  
 
-d <- dataTotalLansing
-d <-local_data
-length(unique(d$ID))  
-
-## Count how many unique ageOfParent per ID
-z <- d %>% group_by(ID) %>% summarize(na = length(unique(maternalAge)))
-table(z$na) # indeed there are plenty with more than 1 ageOfParent!
-
-## Add the counter to d
-d <- d %>% left_join(z,by="ID")
-
-# compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
-d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
-d2 <- d2 %>% mutate(y2 = y1/40)
-
-## Work with logits (then (0,1) -> (-inf,+inf))
-d2 <- d2 %>% mutate(y3 = car::logit(y2))
-
-#local_data_tmp <- d2[d2$ID %in% sample(d2$ID, 300, replace = F),]
-#local_data_tmp <- local_data_tmp %>% filter(na.x>6)
-
-d2 <- d2 %>% mutate(scenario = factor(scenario)) 
-Sys.time()
-m1z <- bam(y3 ~ s(maternalAge, k = 10) + s(maternalAge, ID, bs = "fs", k = 10), 
-             #s(scenario, k = 5) +
-             #ti(maternalAge, scenario, k = c(5,5)), 
-           data=d2,
-           method = "REML")
-
-# interaction term. 
-Sys.time()
-
-#d$ID <- factor(d$ID)
-pred_data = expand.grid(maternalAge = c(0,max(d$maternalAge)),
-                        ID = levels(d$ID)[1]) # maternal
-
-## Predict
-z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
-
-str(z)
-z
-logist(z)
-
-## Use logist transformed:
-logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
-zl <- logist(z)
-
-perc_decr <- 100*(zl[1]-zl[2])/zl[1]
-perc_decr
-
-logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
-
-plot(m1z, trans = logist, 
-     #xlab = "Parental age",
-     #ylab = "Expected age at death of offspring",
-     main = paste("Expected age at death over parental age. 
-                   % decrease = ", perc_decr),
-     # pages = 1,
-     shade = TRUE, 
-     shade.col = "lightgrey",
-     shift = coef(m1z)[1], # adjust for intercept,
-     #ylim = c(0, 5)
-)
-
-|
