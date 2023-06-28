@@ -763,8 +763,8 @@ plot(m1z, trans = logist,
     #              ", plotText, "% decrease = ", perc_decr),
      # pages = 1,
      shade = TRUE, 
-     shade.col = "lightgrey",
-     shift = coef(m1z)[1], # adjust for intercept,
+     shade.col = "lightgrey"
+     #shift = coef(m1z)[1], # adjust for intercept,
      #ylim = c(0, 5)
 )
 #
@@ -806,6 +806,7 @@ for (x in f) {
   ## Work with logits (then (0,1) -> (-inf,+inf))
   d2 <- d2 %>% mutate(y3 = car::logit(y2))
   d2 <- d2 %>% mutate(scenario = factor(scenario)) 
+  d2 <- d2 %>% mutate(ID = factor(ID)) 
   print(d2$scenario[1])
   k = 10; 
   if (length(levels(as.factor(d2$maternalAge))) < k) { 
@@ -821,22 +822,61 @@ for (x in f) {
                           ID = levels(d2$ID)[1],
                           scenario = levels(d2$scenario)[1]) 
   
-  pred_data$z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
-  # predict
-  #pred_data$z <- predict(m1z, newdata = pred_data)
-  colnames(pred_data)[4] <- "z"
+  tmp <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"), se.fit = TRUE)
+ 
+  pred_data$z <- tmp$fit
+  #pred_data$se <- tmp$se.fit
+  pred_data$upr <- tmp$fit + (2 * tmp$se.fit)
+  pred_data$lwr <- tmp$fit - (2 * tmp$se.fit)
+  
+  pred_data$z <- coef(m1z)[1] + pred_data$z 
+  pred_data$upr <- coef(m1z)[1] + pred_data$upr 
+  pred_data$lwr <- coef(m1z)[1] + pred_data$lwr 
+  
   pred_data$z <- logist(pred_data$z) # transform back
+  pred_data$upr <- logist(pred_data$upr) # transform upper interval back 
+  pred_data$lwr <- logist(pred_data$lwr) # transform lower interval back 
+  
   # normalize the axes between 0 and 1 
   pred_data$maternalAge <- pred_data$maternalAge / percentile
+  pred_data$upr <- pred_data$upr / pred_data$z[1]
+  pred_data$lwr <- pred_data$lwr / pred_data$z[1]
   pred_data$z <- pred_data$z / pred_data$z[1]
   
   # add the complete data to the totalDatasets dataframe. 
   dataTotalLansing <- rbind(dataTotalLansing, pred_data)
 }
 
+# the normalized Lansing data
+#dataTotalLansingTMP <- read.table("/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/combiningAll3/dataTotalLansing.txt")
+
+library(MetBrewer)
+library(ggrepel)
+
+# data plotted with scenarios at the end of the lines 
+dataTotalLansing %>%
+  mutate(label = if_else(maternalAge == max(maternalAge), as.character(scenario), NA_character_)) %>%
+  ggplot(aes(maternalAge, z, group=scenario, colour = scenario)) +
+  geom_line() +
+  scale_color_manual(values = met.brewer("Cross", 15)) +
+  #geom_point() +
+  labs(title = "Offspring quality over parental age",
+       x = "Normalized parental age",
+       y = "Normalized offspring age at death") +
+  theme_cowplot() + 
+  geom_label_repel(aes(label = label),
+                   nudge_x = 0.1,
+                   na.rm = TRUE) +
+  theme(legend.position = "none")
+
+# data plotted with the scenarios as legend. 
 ggplot(dataTotalLansing, aes(maternalAge, z, group=scenario, colour = scenario, shape = scenario)) +
   geom_line() +
+  scale_color_manual(values = met.brewer("Degas", 15)) +
   scale_shape_manual(values=1:nlevels(dataTotalLansing$scenario)) +
-  geom_point() 
+  geom_point() +
+  labs(title = "Offspring quality over parental age",
+       x = "Normalized parental age",
+       y = "Normalized offspring age at death") +
+  theme_cowplot()
   
-
