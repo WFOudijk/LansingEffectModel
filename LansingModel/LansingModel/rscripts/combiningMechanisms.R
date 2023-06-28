@@ -763,8 +763,8 @@ plot(m1z, trans = logist,
     #              ", plotText, "% decrease = ", perc_decr),
      # pages = 1,
      shade = TRUE, 
-     shade.col = "lightgrey"
-     #shift = coef(m1z)[1], # adjust for intercept,
+     shade.col = "lightgrey",
+     shift = coef(m1z)[1], # adjust for intercept,
      #ylim = c(0, 5)
 )
 #
@@ -825,7 +825,6 @@ for (x in f) {
   tmp <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"), se.fit = TRUE)
  
   pred_data$z <- tmp$fit
-  #pred_data$se <- tmp$se.fit
   pred_data$upr <- tmp$fit + (2 * tmp$se.fit)
   pred_data$lwr <- tmp$fit - (2 * tmp$se.fit)
   
@@ -878,5 +877,9 @@ ggplot(dataTotalLansing, aes(maternalAge, z, group=scenario, colour = scenario, 
   labs(title = "Offspring quality over parental age",
        x = "Normalized parental age",
        y = "Normalized offspring age at death") +
-  theme_cowplot()
-  
+  theme_cowplot() +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, outline.type = "full")
+
+# plot only the singled-out scenarios 
+
+
