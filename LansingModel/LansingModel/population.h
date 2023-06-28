@@ -195,6 +195,8 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     // make output of the dead individuals
     outputForSimulatedLifespan(deadIndividuals);
     
+    p.numOfOffspringPerFemale = 1;
+    
 }
 
 void Population::mortalityRoundOffspring(const Parameters& p,

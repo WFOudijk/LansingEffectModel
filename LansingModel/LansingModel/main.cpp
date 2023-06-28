@@ -81,6 +81,9 @@ int main(int argc, const char * argv[]) {
     }
     ofs.close();
     
+    // simulate latitudinal offspring lifespan
+    pop.simulateAgeAtDeath(p, rng);
+    
     // simulate offspring lifespan over parental age
     pop.simulateOffspringLifespan(p, rng);
     				
