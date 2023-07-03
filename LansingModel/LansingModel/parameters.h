@@ -9,32 +9,32 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000),
+    Parameters() : populationSize(10000), // N in manuscript
                    initDamageProportion(0.1),
-                   numOfOffspringPerFemale(1),
-                   mutationProb(0.0024),
+                   numOfOffspringPerFemale(1), // o in manuscript
+                   mutationProb(0.0024), // m_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(10000), // 10.000
-                   strengthOfSelection(-0.05),
-                   maximumAge(40),
-                   mutationProbStemcell(0.0024),
-                   meanMutationBias(-0.02),
-                   sdMutationalEffectSize(0.02),
+                   tEnd(100000), // 10.000
+                   strengthOfSelection(-0.05), // s in manuscript
+                   maximumAge(40), // M in manuscript
+                   mutationProbStemcell(0.0024), // m_b in manuscript
+                   meanMutationBias(-0.02), // mu_s in manuscript
+                   sdMutationalEffectSize(0.02), // sigma in manuscript
                    initAgeSpecificGenes(0.90),
-                   mutationProbAgeSpecificGenes(0.002), // 0.003 based on quality param simulations
+                   mutationProbAgeSpecificGenes(0.002), // m_a in manuscript
                    numOfIndividualsToFollow(5),
                    weightMaternalEffect(0.5),
                    initInvestmentInRepair(0.5),
-                   numOfStemCells(30),
-                   meanMutationBiasInvestmentInRepair(0),
-                   sdMutationalEffectInvestmentInRepair(0.02),
-                   mutationProbInvestmentGenes(0.002),
-                   weightInvestment(0.3),
+                   numOfStemCells(30), // n_sc in manuscript
+                   meanMutationBiasInvestmentInRepair(0), // mu_i in manuscript
+                   sdMutationalEffectInvestmentInRepair(0.02), // sigma in manuscript
+                   mutationProbInvestmentGenes(0.002), // m_a in manuscript
+                   weightInvestment(0.3), // w in manuscript
                    baselineSurvival(0.5),
-                   scalingStrengthOfAllocationToReproduce(1),
+                   scalingStrengthOfAllocationToReproduce(1), // b in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
-                   steepnessAllocationToReproduce(3),
+                   steepnessAllocationToReproduce(3), // a in manuscript
                    addBinary(false),
                    addAgeSpecific(false),
                    addQuality(true),
