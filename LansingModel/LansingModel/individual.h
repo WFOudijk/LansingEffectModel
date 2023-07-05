@@ -17,11 +17,10 @@ struct Individual {
     unsigned int ageOfMother;
     unsigned int ageOfFather;
     float survivalProb; // based on the binary genes
-    //float parentalQuality; // parental quality
     bool tracked; // the flagged individuals will be true
     bool isDead{false}; // track dead individuals
 			
-    // array with genes - binary
+    // array with genes - binary    
     std::array<arrayOfGenes, 2> geneticsBinary;
 
     // array with age specific genes - survival probabilities

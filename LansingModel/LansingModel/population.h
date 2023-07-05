@@ -227,8 +227,8 @@ void Population::simulateOffspringLifespan(const Parameters& p,
     reproduce(p, rng);
     
     // the new individuals need to be tracked to record the offspring
-    std::for_each(std::execution::par, begin(offspring), end(offspring),
-                  [&](auto& ind){ind.tracked = 1;});
+    //std::for_each(std::execution::par, begin(offspring), end(offspring),
+    //              [&](auto& ind){ind.tracked = 1;});
     
     auto tmp = offspring.size() * 0.5; // get the half value
     
@@ -248,6 +248,7 @@ void Population::simulateOffspringLifespan(const Parameters& p,
                   [&](auto& ind){
         ind.makeSeveralGametes(p, rng);
         ind.isFemaleSex = 1;
+        ind.tracked = 1;
     });
     
     // needed for the mortality function - not used in this case
