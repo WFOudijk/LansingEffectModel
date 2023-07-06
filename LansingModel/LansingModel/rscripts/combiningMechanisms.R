@@ -1326,6 +1326,9 @@ predDataTotalNormalizedLat$group <- "Cross-sectional"
 # merge them together 
 totalNormalizedData <- rbind(predDataTotalNormalized, predDataTotalNormalizedLat)
 
+#totalNormalizedData <- read.table("totalNormalizedData.txt")
+totalNormalizedData <- totalNormalizedData %>% mutate(scenario = factor(scenario))
+
 # get the scenarios relevant for the matrix plot
 scenarios <- c()
 for (x in levels(totalNormalizedData$scenario)) {
@@ -1412,6 +1415,8 @@ for (x in levels(allData$scenario)){
 }
 
 # add the age distribution plots to the matrix. 
+
+predDataTotalAgeDist <- read.table("predDataTotalAgeDist.txt")
 
 # get the scenarios relevant for the matrix plot
 scenarios <- c()
