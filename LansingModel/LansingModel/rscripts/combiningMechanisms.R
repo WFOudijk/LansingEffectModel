@@ -1,5 +1,6 @@
 ###############################################################################
 # COMBINING OF THE MECHANISMS 
+# final Rscript
 ###############################################################################
 library(cowplot)
 library(tidyverse)
@@ -62,6 +63,7 @@ plotText <- "Null, long run"
 deathPop <- fread(paste(path, "nullDamageQuality/outputDeclineGameteQuality.txt", sep = ""), select = 1:6) # Null + damage + quality 
 plotText <- "Null+damage+quality"
 
+# do the following steps for every death pop data set 
 deathPop <- deathPop[, 1:6] # select only the columns that are useful 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb")
 
@@ -98,7 +100,7 @@ ggplot(averageDataSurvProb, aes(time, meanSurvProb)) +
 ggplot(deathPop, aes(time, survivalProb)) + 
   geom_smooth() + 
   theme_cowplot() + 
-  labs(title = "Survival prob over time",
+  labs(title = "Survival prob over time with geom_smooth",
        subtitle = plotText,
        y = "average survival prob") 
 
@@ -120,6 +122,7 @@ deathPop <- subset(deathPop, deathPop$time > 9000)
 deathPop <- subset(deathPop, select = c(ageAtDeath, sex)) 
 deathPop <- melt(deathPop)
 
+# plot the ages at death 
 ggplot(deathPop, aes(x = value, fill = sex)) +
   geom_histogram(alpha=.25, position = "identity", binwidth = 1) +
   labs(title = "Histogram of age at death distribution",
@@ -155,6 +158,7 @@ ggplot(averageSurvProb, aes(ageAtDeath, survivalProb, group = time, colour = tim
 # make empty data frame
 dataTotalLansing <- c()
 
+# read in the data 
 myLongitudinalData <- read.table(paste(path, "null/outputLETrackedIndividuals.txt", sep = "")) # mut rate = 0.001; mean = -0.02; sd = 0.01
 plotText <- "Mut rate = 0.001; mean = -0.02; sd = 0.01"
 myLongitudinalData <- read.table(paste(path, "null/outputLETrackedIndividuals2.txt", sep = "")) # mut rate = 0.001; mean = -0.01; sd = 0.01
@@ -204,6 +208,7 @@ plotText <- "Null + damage + quality"
 myLongitudinalData <- read.table(paste(path, "nullDamageResource/outputLETrackedIndividuals.txt", sep = "")) #  null + damage + resource 
 plotText <- "Null + damage + resource"
 
+# every time for the dataset
 myLongitudinalData <- myLongitudinalData[, 1:5] # subset only the useful columns
 colnames(myLongitudinalData) <- c("ID", "ageOfParent", "sexOfParent", "survivalProb", "expectedAgeAtDeath")
 
@@ -220,15 +225,17 @@ avg$n <- tapply(myLongitudinalData[myLongitudinalData$ageOfParent <= percentile,
 
 avg$sd <- tapply(myLongitudinalData[myLongitudinalData$ageOfParent <= percentile,]$expectedAgeAtDeath,
                  myLongitudinalData[myLongitudinalData$ageOfParent <= percentile,]$ageOfParent, sd)
+
 calcMargin = function(x, output) { # function to calculate the margin for confidence interval 
   n <- x[3] # get sample size
   sd <- x[4] # get sd 
   return(qt(0.975, df = n - 1)*sd/sqrt(n))
 }
+
 avg$margin <- apply(avg, 1, calcMargin) # calc margin per row
 avg$lowerInterval <- apply(avg, 1, function(x){x[2] - x[5]}) # get lower bound per row
 avg$upperInterval <- apply(avg, 1, function(x){x[2] + x[5]}) # get upper bound per row
-avg$scenario <- plotText
+avg$scenario <- plotText # incldue the corresponding scenario to the data 
 # adjust values to between 0-1
 avg$ageOfParent <- avg$ageOfParent / percentile
 avg$sd <- avg$sd / avg$averageExpectedAgeAtDeath[1]
@@ -314,6 +321,7 @@ summary(m1z)
 
 logist <- function(x) 40/(1+exp(-x))
 
+# plot the model. 
 plot(m1z, trans = logist, 
      xlab = "Parental age",
      ylab = "Expected age at death of offspring",
@@ -335,7 +343,7 @@ dataTotal <- c()
 getwd()
 #dataTotal <- read.table("desktop/dataTotal.txt", header = T)
 
-# first get the scenarios-only data combined 
+# first get the data combined 
 deathPop <- read.table(paste(path, "null/outputDeclineGameteQuality3.txt", sep = "")) # Null-only (1)
 txt <- "Null"
 deathPop <- read.table(paste(path, "nullDamage/outputDeclineGameteQuality.txt", sep = "")) # Null + damage (2)
@@ -357,7 +365,6 @@ txt <- "qualityOnly"
 deathPop <- read.table(paste(path, "resourceOnly/outputDeclineGameteQuality.txt", sep = "")) # resource only (10)
 txt <- "ResourceOnly"
 
-# subset to only get some timepoints
 deathPop <- deathPop[, 1:6] # select only the columns that are useful 
 colnames(deathPop) <- c("time", "ageAtDeath", "sex", "ageOfMother", "ageOfFather", "survivalProb")
 
@@ -472,7 +479,9 @@ ggplot(averageDataNull, aes(time, meanAgeAtDeath)) +
   geom_linerange(aes(ymin = min, ymax = max), 
                  linetype = 2)
 
-#### look at alive population ####
+###############################################################################
+# look at the alive population. 
+###############################################################################
 # create empty dataframe 
 dataTotalSurvPop <- c()
 
@@ -510,6 +519,7 @@ dataTotalSurvPop <- rbind(dataTotalSurvPop, tmp)
 
 dataTotalSurvPop$txt <- factor(dataTotalSurvPop$txt, levels = unique(dataTotalSurvPop$txt))
 
+# plot 
 ggplot(dataTotalSurvPop, aes(txt, average)) + 
   geom_point() + 
   geom_errorbar(aes(ymin = average-sd, ymax = average+sd)) +
@@ -519,7 +529,9 @@ ggplot(dataTotalSurvPop, aes(txt, average)) +
        subtitle = "with the ages normalized by square root transformation")
 
 
-## look at age-specific gene values for sampled IDs. 
+###############################################################################
+# Sample some IDs and look at the age-specific gene values. 
+###############################################################################
 age_specific_data <- read.table(paste(path, "longrunNull/outputWithAgeSpecificGenes.txt", sep = ""))
 age_specific_data <- read.table(paste(path, "qualityOnly/outputWithAgeSpecificGenes.txt", sep = ""))
 age_specific_data <- read.table(paste(path, "null/outputWithAgeSpecificGenes.txt", sep = "")) # pop size = 10.000, tEnd = 10.000
@@ -529,7 +541,7 @@ age_specific_data <- read.table(paste(path, "null/outputWithAgeSpecificGenes7.tx
 age_specific_data <- age_specific_data[, 1:3]
 colnames(age_specific_data) <- c("ID", "age", "geneValue")
 # sample a subset 
-sub <- age_specific_data[age_specific_data$ID %in% sample(age_specific_data$ID, 15),]
+sub <- age_specific_data[age_specific_data$ID %in% sample(unique(age_specific_data$ID), 15),]
 
 # plot the subset. 
 ggplot(sub, aes(age, geneValue, group = factor(ID), colour = factor(ID))) + 
@@ -542,7 +554,7 @@ ggplot(sub, aes(age, geneValue, group = factor(ID), colour = factor(ID))) +
 # Offspring lifespan recalculated with simulated offspring going through 
 # the mortality round an x number of times. 
 # Starting from this point this is calculated by using a for loop. 
-# LATITUDINALLY
+# CROSS-SECTIONAL
 #############################################################################
 dataTotalLansingLat <- c()
 dataTotalLansing2 <- c()
@@ -556,7 +568,6 @@ calcMargin = function(x, output) { # function to calculate the margin for confid
 
 # set the path to all data files. 
 parent_path <- paste(path, "combiningAll2/", sep = "")
-parent_path <- paste(path, "combiningAll3Rep3/", sep = "") # with latitudinal 
 f <- list.files(path = parent_path, pattern = "outputLifeExp.txt", recursive = T)
 dataTotalLansingMat <- c() # for maternal 
 dataTotalLansingPat <- c() # for paternal 
@@ -637,7 +648,7 @@ ggplot(dataTotalLansingMat, aes(ageOfParent, offspringLifespan, colour = scenari
   #geom_ribbon(aes(ymin = lowerInterval, ymax = upperInterval), # use this for confidence interval 
   #            alpha = 0.2,
   #            size = 0) +
-  labs(title = "Looking at Lansing effect per scenario latitudinally",
+  labs(title = "Looking at Lansing effect per scenario cross-sectionally",
        subtitle = "maternal",
        y = "adjusted average expected age at death",
        x = "Adjusted parental age") +
@@ -666,16 +677,14 @@ ggplot(dataTotalLansingPat, aes(ageOfParent, offspringLifespan, colour = scenari
 d <- myLongitudinalData
 d <- totalDatasets
 
-length(unique(d$ID)) # number of parents = 981. The remainder did not have offspring 
+length(unique(d$ID)) 
 
 ## Count how many unique ageOfParent per ID
 z <- d %>% group_by(ID) %>% summarize(na = length(unique(maternalAge)))
-table(z$na) # indeed there are plenty with more than 1 ageOfParent!
+table(z$na)
 
 ## Add the counter to d
 d <- d %>% left_join(z,by="ID")
-
-## Filter out the one with 1 observation (but this selects ...)
 
 d <- d %>% filter(na>1)
 
@@ -687,78 +696,28 @@ d <- d %>% mutate(y2 = y1/40)
 
 ## Work with logits (then (0,1) -> (-inf,+inf))
 d <- d %>% mutate(y3 = car::logit(y2))
-d2 <- d[d$ID %in% sample(d$ID, 200),]
+# sample 200 parents. 
+d2 <- d[d$ID %in% sample(unique(d$ID), 200),]
 
 #d$scenario <- factor(d$scenario)
-
-
 #d2 <- d %>% filter(na>8)
 
-
 Sys.time()
+# for the combined dataset with scenario as factor. 
 m1z <- bam(y3 ~ s(maternalAge, k = 10, by = as.factor(scenario)), 
            data=d,
            method = "REML")
 
+# for one dataset. 
 m1z <- bam(y3 ~ s(maternalAge, k = 10) + s(maternalAge, ID, bs = "fs", k = 10), 
            data=d2,
            method = "REML")
-
-
-# interaction term. 
 Sys.time()
-
-# plot 
-plot(m1z)
-
-# not fully working yet. 
-pred_data = expand.grid(maternalAge = c(0,max(d$maternalAge)), 
-                        scenario = levels(d$scenario))
-# with ID 
-d$ID <- factor(d$ID)
-pred_data = expand.grid(maternalAge = c(0,max(d$maternalAge)),
-                        ID = levels(d$ID)[1]) # maternal
-
-
-pred_data <- aggregate(d$maternalAge, list(d$scenario), min)
-pred_data <- rbind(pred_data, aggregate(d$maternalAge, list(d$scenario), max))
-colnames(pred_data) <- c("scenario", "maternalAge")
-
-## Predict
-z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
-z <- predict(m1z, newdata = pred_data, type="terms",terms = c("s(paternalAge)"))
-
-             
-str(z)
-z
-logist(z)
-
-# Add intercept and all terms, transform back
-#pred_data$y3 <- coef(m1z)[1] + apply(z,1,sum) 
-#logist <- function(x) 1/(1+exp(-x)) # transforms data back to the original data/40 (so mapped to 0-1)
-#pred_data$y4 <- 40*logist(pred_data$y3)
-
-#ggplot(pred_data, aes(maternalAge, y4, colour = as.factor(scenario))) + 
-#  geom_line() +
-#  ylim(0,100)
 
 ## Use logist transformed:
 logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
-zl <- logist(z)
-
-## Percentage decrease: Not fully working yet. 
-for(i in 1:length(unique(pred_data$scenario))){
-  print(z[i]-z[(i+length(unique(pred_data$scenario)))])
-  perc_decr <- 100*(z[i]-z[(i+length(unique(pred_data$scenario)))])/z[i]
-  print(paste(unique(pred_data$scenario[i]), "perc decre =", logist(perc_decr)))
-}
-
-perc_decr <- 100*(zl[1]-zl[2])/zl[1]
-perc_decr
 
 summary(m1z)
-
-logist <- function(x) 40/(1+exp(-x)) # transforms data back to original age at death 
 
 plot(m1z, trans = logist, 
      #xlab = "Parental age",
@@ -776,10 +735,8 @@ plot(m1z, trans = logist,
 ############################################################################
 # Looking at the individuals LONGITUDINALLY
 ###########################################################################
-
+# set path 
 parent_path <- paste(path, "combiningAll3/", sep = "")
-parent_path <- paste(path, "combiningAll3Rep2/", sep = "") # removed (rename to 9 - but nothing in it anymore)
-parent_path <- paste(path, "combiningAll3Rep3/", sep = "") # removed (rename to 10 - also empty)
 dataTotalLansing <- c()
 f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T)
 
@@ -809,7 +766,7 @@ for (x in f) {
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   local_data <- local_data %>% filter(na > 6)
   # sample 200 parents by their IDs
-  local_data <- local_data[local_data$ID %in% sample(local_data$ID, 200, replace = F),]
+  local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 200, replace = F),]
   d <-local_data
   # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
   d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
@@ -944,10 +901,9 @@ ggplot(singleSceneariosData, aes(ageOfParent, offspringLifespan)) +
 ggsave(paste(path_to_output, "singleScenarios.png", sep = ""), last_plot())
 
 ############################################################################
-# LATITUDINAL
+# CROSS-SECTIONAL
 ############################################################################
 parent_path <- paste(path, "combiningAll2/", sep = "")
-parent_path <- paste(path, "combiningAll3Rep3/", sep = "") # with latitudinal 
 f <- list.files(path = parent_path, pattern = "outputLifeExp.txt", recursive = T)
 dataTotalLansingMat <- c() # for maternal 
 dataTotalLansingPat <- c() # for paternal 
@@ -1048,8 +1004,10 @@ ggplot(singleSceneariosData, aes(maternalAge, z)) +
   ylim(0,1.5)
 
 ###############################################################################
-# 10 replicates for every scenario. Use these as CIs. 
+# Using replicates as CIs for the scenarios LONGITUDINALLY.  
 ###############################################################################
+
+# LONGITUDINALLY 
 
 # the gam model
 run_model <- function(data) {
@@ -1061,6 +1019,7 @@ run_model <- function(data) {
 parent_path <- paste(path, "combiningAll3/", sep = "")
 f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T)
 allData <- c()
+allDataComplete <- c()
 models <- list()
 # paste all data together
 for (i in 1:length(f)) {
@@ -1085,13 +1044,17 @@ for (i in 1:length(f)) {
   local_data$ID <- sub("^", local_data$scenario[1], local_data$ID)
   local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
   # subset parents 
-  z <- local_data %>% group_by(ID) %>% summarize(na = length(unique(maternalAge)))
+  z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
   ## Add the counter to data
   local_data <- local_data %>% left_join(z,by="ID")
-  local_data <- local_data %>% mutate(ID = factor(ID)) 
+  
+  allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+  
   local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% mutate(ID = factor(ID)) 
+  
   # sample 100 parents by their IDs
-  local_data <- local_data[local_data$ID %in% sample(local_data$ID, 100, replace = F),]
+  local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 100, replace = F),]
   # save the data
   allData <- rbind(allData, local_data)
   
@@ -1118,6 +1081,10 @@ for (i in 1:length(f)) {
   names(models)[i] <- paste("model_", rep, "_", scenario, sep = "")
 }
 
+# save the R data just in case. 
+saveRDS(allData, file = "allData.rds")
+saveRDS(models, file = "models.rds")
+
 # loop through the scenarios 
 allData$scenario <- factor(allData$scenario)
 allData$rep <- factor(allData$rep)
@@ -1125,13 +1092,14 @@ allData$rep <- factor(allData$rep)
 # to save all data 
 predDataTotal <- c()
 predDataTotalNormalized <- c()
+# go per scenario through the data 
 for (x in levels(allData$scenario)){
   # make subset of scenario 
   sub <- allData[allData$scenario == x,]
   # make data expansion 
   pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
                           ID = levels(sub$ID)[1],
-                          scenario = levels(sub$scenario)[1]) 
+                          scenario = sub$scenario[1]) 
   
   # loop through the replicates
   for (i in levels(sub$rep)){
@@ -1143,30 +1111,35 @@ for (x in levels(allData$scenario)){
     pred_data[[new_col]] <- tmp + attr(tmp, "constant")
   }
   
-  # get means
+  # get means, minimum and maximum values 
   repVals <- subset(pred_data, select = 4:13)
   pred_data$mean <- rowMeans(repVals)
   pred_data$min <- apply(repVals, 1, min)
   pred_data$max <- apply(repVals, 1, max)
 
   # transform back 
-  pred_data$mean <- logist(pred_data$mean) # transform back
-  pred_data$min <- logist(pred_data$min) # transform min interval back 
-  pred_data$max <- logist(pred_data$max) # transform max interval back 
+  pred_data$mean <- logist(pred_data$mean) 
+  pred_data$min <- logist(pred_data$min) 
+  pred_data$max <- logist(pred_data$max) 
   
+  # save by binding to one big dataframe 
   predDataTotal <- rbind(predDataTotal, pred_data)
   
+  # get 95th percentile 
   percentile <- quantile(sub$maternalAge, probs = 0.95)
+  # cut-off the data at that percentile 
   pred_data <- pred_data[pred_data$maternalAge <= percentile,]
   # normalize the axes between 0 and 1 
   pred_data$maternalAge <- pred_data$maternalAge / percentile
   pred_data$min <- pred_data$min / pred_data$mean[1]
   pred_data$max <- pred_data$max / pred_data$mean[1]
   pred_data$mean <- pred_data$mean / pred_data$mean[1]
+  
+  # save the data 
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data)
-
 }
 
+# plot the normalized data grouped by scenario
 ggplot(predDataTotalNormalized, aes(maternalAge, mean, group=scenario, colour = scenario, shape = scenario)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Greek", 15)) +
@@ -1177,30 +1150,310 @@ ggplot(predDataTotalNormalized, aes(maternalAge, mean, group=scenario, colour = 
   theme_cowplot() +
   geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) 
 
-
-
-
-
-# MATRIX 
+###############################################################################
+# Plotting the scenarios in a 4x4 matrix.   
+###############################################################################
+# get the scenarios relevant for the matrix plot
 scenarios <- c()
 for (x in levels(dataTotalLansing$scenario)) {
   if (length(strsplit(x, "(?<=.)(?=[A-Z])", perl = TRUE)[[1]]) <= 2){
     scenarios <- c(scenarios, x) # get list of single scenarios and doubles. 
   }
 }
-# make subset of data 
-dataForMatrix <- dataTotalLansing[dataTotalLansing$scenario %in% scenarios,]
 
-# split the scenarios over two columns 
-apply(dataForMatrix, 1, splitScenario)
+# dynamically generate the plots
+plots <- c()
+for (i in 1:length(scenarios)){ # per scenario ..
+  # .. make the ggplot 
+  p <- ggplot(predDataTotalNormalized[predDataTotalNormalized$scenario == scenarios[i],], aes(maternalAge, mean)) +
+    geom_line() +
+    labs(x = NULL, # set labs to NULL 
+         y = NULL) +
+    geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) + # CIs based on reps 
+    ylim(0, 1.7) + 
+    theme_minimal() +
+    theme(#legend.text = element_text(size=10),
+      #legend.key.size = unit(0.2, "cm"),
+    #legend.key.width = unit(0.1,"cm"),
+      #legend.position = "bottom",
+      #legend.title = element_blank(),
+      axis.text = element_text(size=11,face="plain",color="black"),
+    axis.title = element_text(size = 13),
+    #axis.text.x = element_blank(),
+    axis.line = element_line(color="black", linewidth = 0.6),
+    panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)
+  )
+  plots[[i]] <- p # save the plot to a list 
+  # rename the list element by scenario 
+  names(plots)[i] <- paste("p_", scenarios[i], sep = "") 
+}
 
-splitScenario <- function(x) {
-  tmp <- strsplit(x[3], "(?<=.)(?=[A-Z])", perl = TRUE)
-  if (length(tmp[[1]]) == 1){
-    x$scenario2 <- tmp
-  } else {
-    x[[scenario]] <- tmp[[1]][1]
-    x[[scenario2]] <- tmp[[1]][2]
+# make matrix plot using cowplot 
+plot_grid(plots$p_damage, NULL, NULL, NULL, 
+          plots$p_nullDamage, plots$p_null, NULL, NULL,
+          plots$p_damageQuality, plots$p_nullQuality, plots$p_quality, NULL,
+          plots$p_damageResource, plots$p_nullResource, plots$p_qualityResource, plots$p_resource,
+          ncol = 4)
+
+###############################################################################
+# Using replicates as CIs for the scenarios CROSS-SECTIONAL.    
+############################################################################### 
+
+# the gam model
+run_model_lat <- function(data) {
+  tmp <- bam(y3 ~ s(maternalAge, k = k), data=data,method = "REML")
+  return(tmp)
+}
+
+# reading all data and saving both the data as the gam models. 
+parent_path <- paste(path, "combiningAll3/", sep = "")
+f <- list.files(path = parent_path, pattern = "outputLifeExp.txt", recursive = T)
+allDataLat <- c()
+modelsLat <- list()
+# paste all data together
+for (i in 1:length(f)) {
+  x <- f[i]
+  # get path 
+  file_name <- paste0(parent_path, x)
+  # extract scenario from file name 
+  splitted_path <- strsplit(file_name, "/")
+  nScenario <- length(splitted_path[[1]]) - 2
+  scenario <- splitted_path[[1]][nScenario]
+  # extract replicate from file name 
+  nRep <- length(splitted_path[[1]]) - 1
+  rep <- splitted_path[[1]][nRep]
+  # read data
+  local_data <- read.csv(file_name, header = F, sep = " ")
+  colnames(local_data) <- c("ID", "ageAtDeath", "maternalAge", "paternalAge")
+  # add the scenario as a column to the data
+  local_data$scenario <- scenario
+  # add replicate as column 
+  local_data$rep <- rep
+  # rename ID so it is unique per replicate per scenario
+  local_data$ID <- sub("^", local_data$scenario[1], local_data$ID)
+  local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+  local_data <- local_data %>% mutate(ID = factor(ID)) 
+  # sample 100 parents by their IDs
+  local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 100, replace = F),]
+  # save the data
+  allDataLat <- rbind(allDataLat, local_data)
+  
+  # GAM 
+  d <- local_data
+  # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
+  #d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
+  d2 <- d %>% mutate(y2 = ageAtDeath/40)
+  ## Work with logits (then (0,1) -> (-inf,+inf))
+  d2 <- d2 %>% mutate(y3 = car::logit(y2))
+  d2 <- d2 %>% mutate(scenario = factor(scenario)) 
+  d2 <- d2 %>% mutate(ID = factor(ID)) 
+  d2 <- d2 %>% mutate(rep = factor(rep)) 
+  print(d2$scenario[1])
+  k = 10; 
+  if (length(levels(as.factor(d2$maternalAge))) < k) { 
+    k = length(levels(as.factor(local_data$maternalAge))) 
+  }
+  # run model 
+  mod <- run_model_lat(d2)
+  # save model in list 
+  modelsLat[[i]] <- mod
+  # rename model to be unique for replicate and scenario
+  names(modelsLat)[i] <- paste("model_", rep, "_", scenario, sep = "")
+}
+
+# save the R data just in case. 
+saveRDS(allDataLat, file = "allDataLat.rds")
+saveRDS(modelsLat, file = "modelsLat.rds")
+
+# loop through the scenarios 
+allDataLat$scenario <- factor(allDataLat$scenario)
+allDataLat$rep <- factor(allDataLat$rep)
+
+# to save all data 
+predDataTotalLat <- c()
+predDataTotalNormalizedLat <- c()
+library(plyr)
+for (x in levels(allDataLat$scenario)){
+  print(x)
+  # make subset of scenario 
+  sub <- allDataLat[allDataLat$scenario == x,]
+  # make data expansion 
+  pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                          ID = levels(sub$ID)[1],
+                          scenario = sub$scenario[1]) 
+  
+  sub <- sub %>% mutate(rep = factor(rep))
+  # loop through the replicates
+  for (i in levels(sub$rep)){
+    mod <- paste("model_", i, "_", x, sep = "")
+    index <- which(names(modelsLat) == mod)
+    new_col <- paste("rep", i, sep = "")
+    tmp <- predict(modelsLat[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+    # add to predicted data with adjusting for the intercept. 
+    pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+  }
+  
+  # get means
+  repVals <- subset(pred_data, select = 4:11)
+  pred_data$mean <- rowMeans(repVals)
+  pred_data$min <- apply(repVals, 1, min)
+  pred_data$max <- apply(repVals, 1, max)
+  
+  # transform back 
+  pred_data$mean <- logist(pred_data$mean) # transform back
+  pred_data$min <- logist(pred_data$min) # transform min interval back 
+  pred_data$max <- logist(pred_data$max) # transform max interval back 
+  
+  predDataTotalLat <- rbind(predDataTotalLat, pred_data)
+  
+  percentile <- quantile(sub$maternalAge, probs = 0.95)
+  pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+  # normalize the axes between 0 and 1 
+  pred_data$maternalAge <- pred_data$maternalAge / percentile
+  pred_data$min <- pred_data$min / pred_data$mean[1]
+  pred_data$max <- pred_data$max / pred_data$mean[1]
+  pred_data$mean <- pred_data$mean / pred_data$mean[1]
+  predDataTotalNormalizedLat <- rbind(predDataTotalNormalizedLat, pred_data)
+}
+
+###############################################################################
+# Combining longitudinal with cross-sectional in one 4x4 matrix plot.   
+############################################################################### 
+
+# add column with group to both normalized data sets 
+predDataTotalNormalized$group <- "Longitudinal"
+predDataTotalNormalizedLat$group <- "Cross-sectional"
+# merge them together 
+totalNormalizedData <- rbind(predDataTotalNormalized, predDataTotalNormalizedLat)
+
+# get the scenarios relevant for the matrix plot
+scenarios <- c()
+for (x in levels(totalNormalizedData$scenario)) {
+  if (length(strsplit(x, "(?<=.)(?=[A-Z])", perl = TRUE)[[1]]) <= 2){
+    scenarios <- c(scenarios, x) # get list of single scenarios and doubles. 
   }
 }
 
+# dynamically generate the plots
+plotsTot <- c()
+for (i in 1:length(scenarios)){
+  p <- ggplot(totalNormalizedData[totalNormalizedData$scenario == scenarios[i],], 
+              aes(maternalAge, mean, group = group, colour = group)) +
+    geom_line() +
+    labs(x = NULL,
+         y = NULL) +
+    geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) + 
+    ylim(0, 2) + 
+    theme_minimal() +
+    theme(#legend.text = element_text(size=10),
+      #legend.key.size = unit(0.2, "cm"),
+      #legend.key.width = unit(0.1,"cm"),
+      legend.position = "none",
+      #legend.title = element_blank(),
+      axis.text = element_text(size=11,face="plain",color="black"),
+      axis.title = element_text(size = 13),
+      #axis.text.x = element_blank(),
+      axis.line = element_line(color="black", linewidth = 0.6),
+      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) +
+    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1))
+  
+  # save plot in list 
+  plotsTot[[i]] <- p
+  # adjust name to corresponding scenario run
+  names(plotsTot)[i] <- paste("p_", scenarios[i], sep = "") 
+}
+
+# plot matrix using cowplot 
+plot_grid(plotsTot$p_damage, NULL, NULL, NULL, 
+          plotsTot$p_nullDamage, plotsTot$p_null, NULL, NULL,
+          plotsTot$p_damageQuality, plotsTot$p_nullQuality, plotsTot$p_quality, NULL,
+          plotsTot$p_damageResource, plotsTot$p_nullResource, plotsTot$p_qualityResource, plotsTot$p_resource,
+          ncol = 4)
+
+###############################################################################
+# Adding the parental age distribution to the matrix. 
+############################################################################### 
+
+# Parental age distribution plots 
+predDataTotalAgeDist <- c()
+
+# loop through the scenarios. 
+for (x in levels(allData$scenario)){
+  print(x)
+  # make subset of scenario 
+  sub <- allData[allData$scenario == x,]
+  # make data expansion 
+  pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                          scenario = sub$scenario[1]) 
+  
+  sub <- sub %>% mutate(rep = factor(rep))
+  # loop through the replicates
+  for (i in levels(sub$rep)){
+    tmp <- sub[sub$rep == i,]
+    
+    # use this to count the number of parents per age class 
+    counts <- c()
+    for (j in seq(0, max(pred_data$maternalAge), 1)) {
+      counts <- c(counts, nrow(tmp[tmp$maternalAge == j,]))
+    }
+    new_col <- paste("rep", i, sep = "")
+    # add the counts
+    pred_data[[new_col]] <- counts
+  }
+  
+  # get means
+  repVals <- subset(pred_data, select = 3:12)
+  pred_data$mean <- rowMeans(repVals)
+  pred_data$min <- apply(repVals, 1, min)
+  pred_data$max <- apply(repVals, 1, max)
+
+  # combine the data per scenario
+  predDataTotalAgeDist <- rbind(predDataTotalAgeDist, pred_data)
+}
+
+# add the age distribution plots to the matrix. 
+
+# get the scenarios relevant for the matrix plot
+scenarios <- c()
+for (x in levels(totalNormalizedData$scenario)) {
+  if (length(strsplit(x, "(?<=.)(?=[A-Z])", perl = TRUE)[[1]]) == 2){
+    scenarios <- c(scenarios, x) # get list of single scenarios and doubles. 
+  }
+}
+
+# dynamically generate the plots
+plotsAgeDist <- c()
+for (i in 1:length(scenarios)){
+  p <- ggplot(predDataTotalAgeDist[predDataTotalAgeDist$scenario == scenarios[i],], 
+              aes(maternalAge, mean)) +
+    geom_line() +
+    labs(x = NULL,
+         y = NULL) +
+    geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) + 
+    #ylim(0, 2) + 
+    theme_minimal() +
+    theme(#legend.text = element_text(size=10),
+      #legend.key.size = unit(0.2, "cm"),
+      #legend.key.width = unit(0.1,"cm"),
+      legend.position = "none",
+      #legend.title = element_blank(),
+      axis.text = element_text(size=11,face="plain",color="black"),
+      axis.title = element_text(size = 13),
+      #axis.text.x = element_blank(),
+      axis.line = element_line(color="black", linewidth = 0.6),
+      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) +
+    xlim(0, 40)
+    #scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1))
+  
+  # save plot in list 
+  plotsAgeDist[[i]] <- p
+  # adjust name to corresponding scenario run
+  names(plotsAgeDist)[i] <- paste("p_", scenarios[i], sep = "") 
+}
+
+# plot matrix using cowplot 
+plot_grid(plotsTot$p_damage, plotsAgeDist$p_nullDamage, plotsAgeDist$p_damageQuality, plotsAgeDist$p_damageResource, 
+          plotsTot$p_nullDamage, plotsTot$p_null, plotsAgeDist$p_nullQuality, plotsAgeDist$p_nullResource,
+          plotsTot$p_damageQuality, plotsTot$p_nullQuality, plotsTot$p_quality, plotsAgeDist$p_qualityResource,
+          plotsTot$p_damageResource, plotsTot$p_nullResource, plotsTot$p_qualityResource, plotsTot$p_resource,
+          ncol = 4)
