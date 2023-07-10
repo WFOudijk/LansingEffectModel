@@ -1049,7 +1049,7 @@ for (i in 1:length(f)) {
   local_data <- local_data %>% left_join(z,by="ID")
   
   allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
-  
+
   local_data <- local_data %>% filter(na > 6)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
@@ -1345,7 +1345,9 @@ for (i in 1:length(scenarios)){
     geom_line() +
     labs(x = NULL,
          y = NULL) +
-    geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) + 
+    geom_ribbon(data = totalNormalizedData[totalNormalizedData$scenario == scenarios[i],],
+                aes(ymin = min, ymax = max,  fill = group), 
+                alpha = 0.2, colour = NA) +
     ylim(0, 2) + 
     theme_minimal() +
     theme(#legend.text = element_text(size=10),
@@ -1356,9 +1358,11 @@ for (i in 1:length(scenarios)){
       axis.text = element_text(size=11,face="plain",color="black"),
       axis.title = element_text(size = 13),
       #axis.text.x = element_blank(),
-      axis.line = element_line(color="black", linewidth = 0.6),
-      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) +
-    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1))
+      axis.line = element_line(color="black", linewidth = 1.0),
+      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7)) +
+    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+    scale_colour_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
+    scale_fill_manual(values = met.brewer("Egypt", 4)[c(2,4)])
   
   # save plot in list 
   plotsTot[[i]] <- p
@@ -1380,11 +1384,12 @@ plot_grid(plotsTot$p_damage, NULL, NULL, NULL,
 # Parental age distribution plots 
 predDataTotalAgeDist <- c()
 
+allDataComplete <- allDataComplete %>% mutate(scenario = factor(scenario))
 # loop through the scenarios. 
-for (x in levels(allData$scenario)){
+for (x in levels(allDataComplete$scenario)){
   print(x)
   # make subset of scenario 
-  sub <- allData[allData$scenario == x,]
+  sub <- allDataComplete[allDataComplete$scenario == x,]
   # make data expansion 
   pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
                           scenario = sub$scenario[1]) 
@@ -1416,7 +1421,7 @@ for (x in levels(allData$scenario)){
 
 # add the age distribution plots to the matrix. 
 
-predDataTotalAgeDist <- read.table("predDataTotalAgeDist.txt")
+#predDataTotalAgeDist <- read.table("predDataTotalAgeDist.txt")
 
 # get the scenarios relevant for the matrix plot
 scenarios <- c()
@@ -1434,6 +1439,96 @@ for (i in 1:length(scenarios)){
     geom_line() +
     labs(x = NULL,
          y = NULL) +
+    geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2, linewidth = 0.8) + 
+    #ylim(0, 2) + 
+    theme_minimal() +
+    theme(#legend.text = element_text(size=10),
+      #legend.key.size = unit(0.2, "cm"),
+      #legend.key.width = unit(0.1,"cm"),
+      legend.position = "none",
+      #legend.title = element_blank(),
+      axis.text = element_text(size=11,face="plain",color="black"),
+      axis.title = element_text(size = 13),
+      #axis.text.x = element_blank(),
+      axis.line = element_line(color="black", linewidth = 1.0),
+      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7)) +
+    xlim(0, 40)
+    #scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1))
+  
+  # save plot in list 
+  plotsAgeDist[[i]] <- p
+  # adjust name to corresponding scenario run
+  names(plotsAgeDist)[i] <- paste("p_", scenarios[i], sep = "") 
+}
+
+# plot matrix using cowplot 
+plot_grid(plotsTot$p_null, plotsAgeDist$p_nullDamage, plotsAgeDist$p_nullQuality, plotsAgeDist$p_nullResource, 
+          plotsTot$p_nullDamage, plotsTot$p_damage, plotsAgeDist$p_damageQuality, plotsAgeDist$p_damageResource,
+          plotsTot$p_nullQuality, plotsTot$p_damageQuality, plotsTot$p_quality, plotsAgeDist$p_qualityResource,
+          plotsTot$p_nullResource, plotsTot$p_damageResource, plotsTot$p_qualityResource, plotsTot$p_resource,
+          ncol = 4)
+
+plotsTot$p_null <- plotsTot$p_null + theme(axis.text.x = element_blank())
+plotsTot$p_nullDamage <- plotsTot$p_nullDamage + theme(axis.text.x = element_blank())
+plotsTot$p_nullQuality <- plotsTot$p_nullQuality + theme(axis.text.x = element_blank())
+plotsTot$p_damage <- plotsTot$p_damage + theme(axis.text.x = element_blank(),
+                                               axis.text.y = element_blank())
+plotsTot$p_damageQuality <- plotsTot$p_damageQuality + theme(axis.text.x = element_blank(),
+                                                             axis.text.y = element_blank())
+plotsTot$p_damageResource <- plotsTot$p_damageResource + theme(axis.text.y = element_blank())
+plotsTot$p_quality <- plotsTot$p_quality + theme(axis.text.x = element_blank(),
+                                                 axis.text.y = element_blank())
+plotsTot$p_qualityResource <- plotsTot$p_qualityResource + theme(axis.text.y = element_blank())
+plotsTot$p_resource <- plotsTot$p_resource + theme(axis.text.y = element_blank())
+plotsAgeDist$p_nullQuality <- plotsAgeDist$p_nullQuality + theme(axis.text.x = element_blank(),
+                                                                 axis.text.y = element_blank())
+plotsAgeDist$p_nullResource <- plotsAgeDist$p_nullResource + theme(axis.text.x = element_blank(),
+                                                                   axis.text.y = element_blank())
+plotsAgeDist$p_damageResource <- plotsAgeDist$p_damageResource + theme(axis.text.x = element_blank(),
+                                                                       axis.text.y = element_blank())
+
+plot_matrix <- plot_grid(plotsTot$p_null, plotsAgeDist$p_nullDamage, plotsAgeDist$p_nullQuality, plotsAgeDist$p_nullResource,
+                         plotsTot$p_nullDamage, plotsTot$p_damage, plotsAgeDist$p_damageQuality, plotsAgeDist$p_damageResource,
+                         plotsTot$p_nullQuality, plotsTot$p_damageQuality, plotsTot$p_quality, plotsAgeDist$p_qualityResource, 
+                         plotsTot$p_nullResource, plotsTot$p_damageResource, plotsTot$p_qualityResource, plotsTot$p_resource,
+                         ncol = 4, align = "hv", axis = "brlt")
+
+p_tmp <- plotsTot$p_resource + theme(legend.position = "bottom",
+                                     legend.title = element_blank())
+
+leg1 <- get_legend(p_tmp) 
+legend <- as_ggplot(leg1)
+legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+legend_row <- plot_grid(blank, blank, blank, legend, nrows = 1)
+
+library(grid)
+library(gridExtra)
+plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Parental age", gp=gpar(fontsize=15)), 
+                                         left = textGrob("Offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
+plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
+ggsave("Lansing_fig.pdf", width = 12, height = 8)
+
+
+###############################################################################
+# plotting the three scenarios combined 
+############################################################################### 
+
+scenarios <- c()
+for (x in levels(totalNormalizedData$scenario)) {
+  if (length(strsplit(x, "(?<=.)(?=[A-Z])", perl = TRUE)[[1]]) == 3){
+    scenarios <- c(scenarios, x) # get list of single scenarios and doubles. 
+  }
+}
+
+# dynamically generate the plots
+plotsThreeCombs <- c()
+for (i in 1:length(scenarios)){
+  p <- ggplot(totalNormalizedData[totalNormalizedData$scenario == scenarios[i],], 
+              aes(maternalAge, mean, group = group, colour = group)) +
+    geom_line() +
+    labs(x = NULL,
+         y = NULL) +
     geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) + 
     #ylim(0, 2) + 
     theme_minimal() +
@@ -1446,19 +1541,20 @@ for (i in 1:length(scenarios)){
       axis.title = element_text(size = 13),
       #axis.text.x = element_blank(),
       axis.line = element_line(color="black", linewidth = 0.6),
-      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) +
-    xlim(0, 40)
-    #scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1))
+      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) + 
+  scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1)) + 
+    ylim(0, 1.5)
   
   # save plot in list 
-  plotsAgeDist[[i]] <- p
+  plotsThreeCombs[[i]] <- p
   # adjust name to corresponding scenario run
-  names(plotsAgeDist)[i] <- paste("p_", scenarios[i], sep = "") 
+  names(plotsThreeCombs)[i] <- paste("p_", scenarios[i], sep = "") 
 }
 
-# plot matrix using cowplot 
-plot_grid(plotsTot$p_damage, plotsAgeDist$p_nullDamage, plotsAgeDist$p_damageQuality, plotsAgeDist$p_damageResource, 
-          plotsTot$p_nullDamage, plotsTot$p_null, plotsAgeDist$p_nullQuality, plotsAgeDist$p_nullResource,
-          plotsTot$p_damageQuality, plotsTot$p_nullQuality, plotsTot$p_quality, plotsAgeDist$p_qualityResource,
-          plotsTot$p_damageResource, plotsTot$p_nullResource, plotsTot$p_qualityResource, plotsTot$p_resource,
-          ncol = 4)
+# needs formatting 
+plot_grid(plotsThreeCombs$p_nullDamageQuality,
+          plotsThreeCombs$p_nullDamageResource,
+          plotsThreeCombs$p_damageQualityResource,
+          plotsThreeCombs$p_nullQualityResource)
+
+
