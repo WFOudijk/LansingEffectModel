@@ -15,6 +15,9 @@ using indVec = std::vector<Individual>;
 void createOutputDeclineInGameteQuality(const int t,
                                         const Parameters& p,
                                         const std::vector<Individual>& deadIndividualsVec){
+    
+    /**Function to write information about the death individuals every p.outputTime step**/
+    
     if (t == 0) { // if time is at zero. Empty file before addition
         std::ofstream ofs;
         ofs.open("outputDeclineGameteQuality.txt"); // output file
@@ -25,7 +28,7 @@ void createOutputDeclineInGameteQuality(const int t,
         ofs.close();
     }
     std::ofstream ofs;
-    ofs.open("outputDeclineGameteQuality.txt", std::ios::app); // output file for age of death
+    ofs.open("outputDeclineGameteQuality.txt", std::ios::app); // output file
     for (auto i : deadIndividualsVec){
         // if age-specific gene effect should not be taken into account, this will be set to 1.
         float ageSpecSurvProb = (p.addQuality && !p.addAgeSpecific) ? 1 : i.averageAgeSpecificGenes[i.age];
@@ -49,12 +52,11 @@ void createOutputDeclineInGameteQuality(const int t,
 void createOutputAgeSpecificGenes(const Parameters& p,
                                     const indVec& deadIndividuals){
 				
-    /**Function to create output for the tracked individuals. For every individual its age and the corresponding parental quality value
-     is documented to the first file. To the second file information about the offspring of the tracked individuals is documented. **/
+    /**Function to write the gene values for every age class to a file. Function is called after time simulation.
+     So the final gene values are documented. **/
 				
     // open file to write output for the
     std::ofstream ofs;
-    //ofs.open("outputWithInvestmentDistribution.txt"); // the output file
     ofs.open("outputWithAgeSpecificGenes.txt");
     if (!ofs.is_open()){
         std::cerr << "Error. Unable to open output file.\n";
@@ -70,7 +72,7 @@ void createOutputAgeSpecificGenes(const Parameters& p,
             << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " " // write as id of individual
             << i << " " // write age
             << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
-            << deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // parental quality for this age class
+            << deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // write parental quality for this age class
         }
 		
     }
@@ -78,7 +80,8 @@ void createOutputAgeSpecificGenes(const Parameters& p,
 }
 
 void outputForSimulatedLifespan(const indVec& deadIndividuals){
-    /**Function to write relevant output of the offspring to determine life expectancy. **/
+    /**Function to write relevant output of the offspring to determine life expectancy
+     for the cross-sectional analysis. **/
 
     // open file to write output for the
     std::ofstream ofs;

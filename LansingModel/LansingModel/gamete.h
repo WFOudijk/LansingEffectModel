@@ -11,7 +11,7 @@
 #include "utils.h"
 #include <array>
 
-const int numOfGenes = 20; // the number of genes every individual contains
+const int numOfGenes = 20; // the number of binary genes every individual carries
 using arrayOfGenes = std::array<bool, numOfGenes>;
 using vectorOfAgeSpecificGenes = std::vector<float>;
 
@@ -39,10 +39,10 @@ struct Gamete{
             genesOfGamete[i] = rng.bernoulli(p.initDamageProportion);
         }
 
-        // sets age-specific array to length maximum age and filled with intial value
+        // sets age-specific array size to maximum age and fill with intial value
         ageSpecificGenesOfGamete.resize((p.maximumAge + 1), p.initAgeSpecificGenes);
 
-        // set age-specific invstment in repair to maximum age and fill with initial value
+        // set age-specific investment in repair size to maximum age and fill with initial value
         ageSpecificInvestmentInRepair.resize((p.maximumAge + 1), p.initInvestmentInRepair);
     }
 
@@ -53,11 +53,10 @@ void Gamete::mutate(const Parameters &p,
                     Randomizer &rng,
                     const bool isStemcell){
 
-    /**Function to mutate a gamete.  First is the age-specific gene array mutated.
-     This is done by using a Poisson distribution to draw how many times a mutation will occur. Next, the genes are randomly sampled to determine which will mutate.
-     Next, the binary gene array is mutated.
-     This is done by first checking whether the gamete comes from a male stem cell or from a female gamete. Next, another Poisson distribution is used
-     to determine how many times a mutation will occur. Finally, the genes are randomly sampled to determine which will mutate.
+    /**Function to mutate a gamete.  First is the age-specific survival gene array mutated.
+     Second, the age-specific investment in repair vs. reproduction array is mutated.
+     Finally, the binary gene array is mutated.
+     For all mutations, a Poisson distribution is used to draw how many times a mutation will occur, next the genes are randomly sampled to determine which gene will mutate.
      **/
 
     // if both are off, the genes don't need to mutate. Saves speed in model.
@@ -75,13 +74,18 @@ void Gamete::mutate(const Parameters &p,
         }
     }
     
-    if (p.addInvestmentInRepair) { // if resrouce distribution is on, these genes will mutate
+    // if resrouce distribution is on, these genes will mutate
+    if (p.addInvestmentInRepair) {
         // mutation of age-specific genes for investment in repair/ reproduction
         const double expectedNumMut{ageSpecificInvestmentInRepair.size() * p.mutationProbInvestmentGenes};
         const unsigned numMut{rng.rpois(expectedNumMut)};
+        // mutate
         for (unsigned i = 0; i < numMut; ++i){
+            // determine which gene will mutate
             int geneToMutate = rng.drawRandomNumber(ageSpecificInvestmentInRepair.size());
+            // draw the effect from the mutation based on a normal distribution
             ageSpecificInvestmentInRepair[geneToMutate] += rng.drawMutationEffectInvestment();
+            // check if gene value is not < 0 or > 1. If so, gene value is clipped
             clip01(ageSpecificInvestmentInRepair[geneToMutate]);
         }
     }
@@ -96,6 +100,6 @@ void Gamete::mutate(const Parameters &p,
     // mutate
     for (size_t i = 0; i < numMut; ++i){
         auto test = rng.rn(genesOfGamete.size());
-        genesOfGamete[test] = 1;
+        genesOfGamete[test] = 1; // gene becomes damaged
     }
 }
