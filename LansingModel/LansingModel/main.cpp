@@ -1,9 +1,11 @@
 //
 //  main.cpp
+//  Parental age and offspring lifespan: the Lansing effect and its underlying mechanisms.
 //  LansingModel
 //
 //  Created by Willemijn Oudijk on 17/01/2023.
-//
+//  s4995805
+//  Master Biology: Modelling in the life sciences.
 
 #include <iostream>
 #include <vector>
@@ -36,7 +38,8 @@ int main(int argc, const char * argv[]) {
     }
     
     p.setAdditionalParams();
-    				
+    
+    // disable the effects of these mechanisms if they are off in the model run
     if (!p.addBinary) p.strengthOfSelection = 0; // survival probability of binary genes will be equal to 1
     if (!p.addAgeSpecific && !p.addQuality) { // survival probability of age-specific genes will be equal to 1
         p.initAgeSpecificGenes = 1;
@@ -55,13 +58,14 @@ int main(int argc, const char * argv[]) {
     indVec deadTrackedIndividuals;
 
     auto t_start = std::chrono::system_clock::now();
-        
+    
+    // start simulation
     for (unsigned t = 0; t < p.tEnd; ++t){
         indVec deadIndividualsVec; // to examine all dead individuals
         pop.reproduce(p, rng); // reproduce to make offspring
         pop.mortalityRound(p, rng, deadIndividualsVec, deadTrackedIndividuals); // mortality round of the adults
-        pop.addOffspring(p, rng); // adding offspring to the adults
-        pop.mutationRound(p, rng);
+        pop.addOffspring(p, rng); // adding offspring to replace dead adults
+        pop.mutationRound(p, rng); // mutate the gametes and stem cells
         // output
         if (t % p.outputTime == 0) { // to prevent every time step of being outputted
             std::cout << t << "\n";
@@ -73,6 +77,7 @@ int main(int argc, const char * argv[]) {
     std::chrono::duration<double> diff_t = t_now - t_start;
     std::cout << "Time loop finished. This took: " << diff_t.count() << " seconds = " << diff_t.count() / 60 << " minutes \n";
     
+    // to record the ages of the population after the simulation has ended
     std::ofstream ofs;
     ofs.open("outputAgeAlivePop.txt"); // the output file
     for (size_t i =0 ; i < pop.males.size(); ++i) {
@@ -81,10 +86,10 @@ int main(int argc, const char * argv[]) {
     }
     ofs.close();
     
-    // simulate latitudinal offspring lifespan
+    // simulate cross-sectional offspring lifespan
     pop.simulateAgeAtDeath(p, rng);
     
-    // simulate offspring lifespan over parental age
+    // simulate longitudinal offspring lifespan over parental age
     pop.simulateOffspringLifespan(p, rng);
     				
     return 0;

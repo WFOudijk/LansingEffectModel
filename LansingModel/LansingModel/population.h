@@ -6,10 +6,12 @@
 //
 #pragma once
 #include <iostream>
-//#include <oneapi/dpl/algorithm>
-//#include <oneapi/dpl/execution> // for parallelization
-#include <algorithm>
-#include <execution>
+// disable the following two lines when code needs to run on the cluster
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/execution> // for parallelization
+// enable the following two lines when code needs to run on the cluster
+//#include <algorithm>
+//#include <execution>
 #include "individual.h"
 
 using indVec = std::vector<Individual>;
@@ -27,7 +29,6 @@ struct Population{
                         indVec& trackedIndividuals);
     void addOffspring(const Parameters& p, Randomizer& rng);
     void mutationRound(const Parameters& p, Randomizer& rng);
-    void setTrackedIndividuals(const Parameters& p, Randomizer& rng);
     void simulateAgeAtDeath(Parameters& p, Randomizer& rng);
     void mortalityRoundOffspring(const Parameters& p, Randomizer& rng, indVec& deadIndividuals);
     void simulateOffspringLifespan(const Parameters& p, Randomizer& rng);
@@ -35,7 +36,7 @@ struct Population{
 
 void Population::makePopulation(const Parameters& p,
                                 Randomizer &rng){
-    /**This function initialises the population and initialises males and females. **/
+    /**Initialise the population by initialising males and females. **/
 				
     females.reserve(p.populationSize);
     males.reserve(p.populationSize);
@@ -50,7 +51,7 @@ void Population::makePopulation(const Parameters& p,
 void Population::reproduce(const Parameters& p,
                            Randomizer& rng){
     /**This function is the reproducing step of the population.  Every female reproduces a numOfOffspringPerFemale
-     number of offspring with random males. **/
+     number of offspring with a random male. **/
 				
     offspring.clear(); // to make sure the vector is empty
         
@@ -74,19 +75,24 @@ void Population::mortalityRound(const Parameters& p,
                                 Randomizer& rng,                                
                                 indVec& deadIndividualsVec,
                                 indVec& trackedIndividuals){
-    /**This function kills off adults.**/
+    /**This function kills removes the individuals that have died from the population.**/
 				
     std::for_each(std::execution::par, begin(females), end(females),
                   [&](auto& f){f.dies(rng,p);});
     std::for_each(std::execution::par, begin(males), end(males),
                   [&](auto& m){ m.dies(rng,p); });
     
+    // loop through every male
     for (size_t m = 0; m < males.size();){
-        if (males[m].isDead){ // if this is the case, remove the male from the vector
-            if (males[m].tracked) { // the individual is tracked
+        if (males[m].isDead){ // if male is dead, remove from the vector
+            if (males[m].tracked) { // if the individual is tracked ..
+                // .. the male information is recorded in this vector ..
                 trackedIndividuals.push_back(males[m]);
             }
+            // .. otherwise in this vector
             deadIndividualsVec.emplace_back(std::move(males[m]));
+            
+            // remove male from vector
             males[m] = std::move(males.back());
             males.pop_back();
         } else { // else, continue loop
@@ -96,11 +102,15 @@ void Population::mortalityRound(const Parameters& p,
    
     // same for the females
     for (size_t f = 0; f < females.size();){
-        if (females[f].isDead){ // if this is the case, remove female from vector
-            if (females[f].tracked){
+        if (females[f].isDead){ // if female is dead, remove from the vector
+            if (females[f].tracked){ // if the individual is tracked ..
+                // .. the female information is recorded in this vector ..
                 trackedIndividuals.push_back(females[f]);
             }
+            // .. otherwise in this vector
             deadIndividualsVec.emplace_back(std::move(females[f]));
+            
+            // remove female from vector
             females[f] = std::move(females.back());
             females.pop_back();
         } else { // else, continue loop
@@ -111,18 +121,19 @@ void Population::mortalityRound(const Parameters& p,
 
 void Population::addOffspring(const Parameters& p,
                               Randomizer& rng){
-    /**This function adds (random) offspring to the adult vectors untill the vectors are at their maximum size again. **/
+    /**This function adds (random) offspring to the adult vectors for every adult that has died. **/
     
     auto maxCapacityF = p.populationSize; // female max capacity
     auto maxCapacityM = p.populationSize; // male max capacity
     
+    // checks if there are not enough offspring to fill both the male and the female vectors to their
+    // initial size, then fill the distribute the offspring over the females and males
     if (2 * p.populationSize - (males.size() + females.size()) > offspring.size()){
         auto halfOffspring = offspring.size() * 0.5;
         maxCapacityF = females.size() + halfOffspring; // get new maximum capacity
         maxCapacityM = males.size() + halfOffspring; // same for the males
     }
     
-    //while (males.size() < (p.populationSize)){
     while (males.size() < maxCapacityM){
         int randIndex = rng.drawRandomNumber(offspring.size());
         males.emplace_back(std::move(offspring[randIndex])); // add a random offspring to the males vector
@@ -135,7 +146,6 @@ void Population::addOffspring(const Parameters& p,
     }
     
     // same for females
-    //while (females.size() < (p.populationSize)){
     while (females.size() < maxCapacityF){
         int randIndex = rng.drawRandomNumber(offspring.size());
         females.emplace_back(std::move(offspring[randIndex])); // add a random offspring to the females vector
@@ -156,21 +166,12 @@ void Population::mutationRound(const Parameters& p,
     std::for_each(std::execution::par,begin(males),end(males),[&](auto& m){ m.mutateStemCells(p,rng);});
 }
 
-void Population::setTrackedIndividuals(const Parameters &p, Randomizer &rng){
-    /**Function to shuffle the remaing population and track a certain number of individuals longitudinally. **/
-				
-    // shuffle to make it random
-    std::shuffle(males.begin(), males.end(), rng.rng);
-    std::shuffle(females.begin(), females.end(), rng.rng);
-    for (unsigned i = 0; i < p.numOfIndividualsToFollow; ++i){
-        // Choosing individuals in order after shuffling the vector to prevent drawing random indviduals without replacement
-        males[i].tracked = 1;
-        females[i].tracked = 1;
-    }
-}
 
 void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
-    /**Function to simulate age at death from offspring to determine offspring lifespan. **/
+    /**Function to simulate age at death from offspring to determine offspring lifespan for the cross-sectional analysis. **/
+    
+    // save the num of offspring per female in variable
+    unsigned int saveNumOfOffspringPerFemale = p.numOfOffspringPerFemale;
     
     // reset the number of offspring per female
     p.numOfOffspringPerFemale = p.numOfOffspringForOffspringLifespanSim;
@@ -186,30 +187,31 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     // reserve memory space for the dead individuals
     deadIndividuals.reserve(offspring.size() + 1);
     
-    // have offspring go through mortality until they are all dead
+    // let offspring live out their lives and record the age at death
     while (!offspring.empty()) {
         // offspring go through mortality round
         mortalityRoundOffspring(p, rng, deadIndividuals);
     }
 
-    // make output of the dead individuals
+    // make output of the dead individuals and their offspring
     outputForSimulatedLifespan(deadIndividuals);
     
-    p.numOfOffspringPerFemale = 1;
+    // reset the number of offspring per female
+    p.numOfOffspringPerFemale = saveNumOfOffspringPerFemale;
     
 }
 
 void Population::mortalityRoundOffspring(const Parameters& p,
                                          Randomizer& rng,
                                          indVec& deadIndividuals){
-    /**Function to have the simulated offspring go through a mortality round. **/
+    /**Function to let the offspring live out their lives for the cross-sectional analysis. **/
     
     std::for_each(std::execution::par, begin(offspring), end(offspring),
                   [&](auto& ind){ind.dies(rng,p);});
        
     // loop through the offspring
     for (size_t indiv = 0; indiv < offspring.size();){
-        if (offspring[indiv].isDead){ // if the individual is dead, remove the individual from the vector
+        if (offspring[indiv].isDead){ // if the offspring is dead, remove from the vector
             deadIndividuals.emplace_back(std::move(offspring[indiv]));
             offspring[indiv] = std::move(offspring.back());
             offspring.pop_back();
@@ -223,12 +225,8 @@ void Population::simulateOffspringLifespan(const Parameters& p,
                                            Randomizer& rng){
     /**Function to look at the individuals longitudinally to determine offspring lifespan. **/
     
-    // final population reproduces
+    // population reproduces
     reproduce(p, rng);
-    
-    // the new individuals need to be tracked to record the offspring
-    //std::for_each(std::execution::par, begin(offspring), end(offspring),
-    //              [&](auto& ind){ind.tracked = 1;});
     
     auto tmp = offspring.size() * 0.5; // get the half value
     
@@ -248,11 +246,13 @@ void Population::simulateOffspringLifespan(const Parameters& p,
                   [&](auto& ind){
         ind.makeSeveralGametes(p, rng);
         ind.isFemaleSex = 1;
+        // set tracked to true to keep track of the offspring from the females
         ind.tracked = 1;
     });
     
     // needed for the mortality function - not used in this case
     indVec deadIndividualsVec;
+    // to keep track of the females and their offspring over their lives
     indVec deadTrackedIndividuals;
     
     // loop until maximum age.
@@ -287,7 +287,7 @@ void Population::simulateOffspringLifespan(const Parameters& p,
         }
     }
     
-    // create output for offspring lifespan 
+    // create output for offspring lifespan for longitudinal analysis
     outputOffspringLifespanLongitudinal(deadTrackedIndividuals);
     
     // create output for with age-specific gene values
