@@ -18,7 +18,7 @@ library(gridExtra)
 #library(R.filesets) # remove 
 
 # set path with downloaded data
-path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/dataForReport/"
+path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/TheLansingEffect/LansingModel/rscripts/dataForReport/"
 # set path to where the figures should be saved
 output_path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/figuresForReport/"
 
@@ -167,18 +167,20 @@ plot_matrix
 # add legend
 p_tmp <- plotsTot$p_resource + theme(legend.position = "bottom",
                                      legend.title = element_blank(),
-                                     legend.text = element_text(size = 13))
+                                     legend.text = element_text(size = 17))
 leg1 <- get_legend(p_tmp) 
 legend <- as_ggplot(leg1)
-legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
-blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+legend <- legend + theme(plot.margin = unit(c(1, 0, 1, 0), "cm"))
+blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(1, 0, 1, 0), "cm"))
 legend_row <- plot_grid(legend, blank, blank, blank, nrows = 1)
 
 # arrange grid again, with legend and axis titles
-plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)), 
-                                         left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
+plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=17)), 
+                                         left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=17), rot = 90)))
 
 plot_with_legend <- plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
+plot_with_legend <- plot_grid(plot_matrix2, ncol = 1, rel_heights = c(1, 0.01)) # without legend
+
 # visualize the result
 plot_with_legend
 
@@ -267,11 +269,12 @@ ggsave(paste0(output_path, "figure_S3.pdf"), width = 12, height = 8)
 ggsave(paste0(output_path, "figure_S4.pdf"), width = 12, height = 8)
 
 ###############################################################################
-# FIGURE S5 & S6
+# FIGURE S5 - S7
 ###############################################################################
-
+# zipped files
 found <- read.table(paste0(path, "resourceGeneVals.txt")) # FIGURE S5
-found <- read.table(paste0(path, "resourceGeneVals.txt")) # FIGURE S6
+found <- read.table(paste0(path, "resourceBaselineGeneVals.txt")) # FIGURE S6
+found <- read.table(paste0(path, "resourceQualityGeneVals.txt")) # FIGURE S7
 
 # get the mean gene value per age class
 tmp <- aggregate(found$InvestmentGeneVal, list(found$age), mean)
@@ -292,9 +295,10 @@ ggplot(tmp, aes(age, (1-mean))) + geom_line() +
 # save figure
 ggsave(paste0(output_path, "Figure_S5.pdf"), width = 12, height = 8)
 ggsave(paste0(output_path, "Figure_S6.pdf"), width = 12, height = 8)
+ggsave(paste0(output_path, "Figure_S7.pdf"), width = 12, height = 8)
 
 ###############################################################################
-# FIGURE S7
+# FIGURE S8
 ###############################################################################
 
 scenarios <- c()
@@ -365,7 +369,7 @@ plot_with_legend
 ggsave(paste0(output_path, "Figure_S7.pdf"), width = 12, height = 10)
 
 ###############################################################################
-# FIGURE S8
+# FIGURE S9
 ###############################################################################
 
 scenario <- "nullDamageQualityResource"

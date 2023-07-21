@@ -5,6 +5,11 @@
 library(cowplot)
 library(tidyverse)
 library(mgcv)
+library(MetBrewer)
+library(ggpubr)
+library(grid)
+library(gridExtra)
+library(R.filesets)
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/"
 path_to_output <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/report/figures/"
 
@@ -1009,6 +1014,9 @@ ggplot(singleSceneariosData, aes(maternalAge, z)) +
 
 # LONGITUDINALLY 
 
+allData <- loadRDS("allData.rds")
+models <- loadRDS("models.rds")
+
 # the gam model
 run_model <- function(data) {
   tmp <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = 4), data=data,method = "REML")
@@ -1084,6 +1092,7 @@ for (i in 1:length(f)) {
 # save the R data just in case. 
 saveRDS(allData, file = "allData.rds")
 saveRDS(models, file = "models.rds")
+saveRDS(allDataComplete, file = "allDataComplete.rds")
 
 # loop through the scenarios 
 allData$scenario <- factor(allData$scenario)
@@ -1155,7 +1164,7 @@ ggplot(predDataTotalNormalized, aes(maternalAge, mean, group=scenario, colour = 
 ###############################################################################
 # get the scenarios relevant for the matrix plot
 scenarios <- c()
-for (x in levels(dataTotalLansing$scenario)) {
+for (x in levels(allData$scenario)) {
   if (length(strsplit(x, "(?<=.)(?=[A-Z])", perl = TRUE)[[1]]) <= 2){
     scenarios <- c(scenarios, x) # get list of single scenarios and doubles. 
   }
@@ -1198,6 +1207,9 @@ plot_grid(plots$p_damage, NULL, NULL, NULL,
 ###############################################################################
 # Using replicates as CIs for the scenarios CROSS-SECTIONAL.    
 ############################################################################### 
+
+allDataLat <- loadRDS("allDataLat.rds")
+modelsLat <- loadRDS("modelsLat.rds")
 
 # the gam model
 run_model_lat <- function(data) {
@@ -1272,7 +1284,7 @@ allDataLat$rep <- factor(allDataLat$rep)
 # to save all data 
 predDataTotalLat <- c()
 predDataTotalNormalizedLat <- c()
-library(plyr)
+
 for (x in levels(allDataLat$scenario)){
   print(x)
   # make subset of scenario 
@@ -1355,7 +1367,7 @@ for (i in 1:length(scenarios)){
       #legend.key.width = unit(0.1,"cm"),
       legend.position = "none",
       #legend.title = element_blank(),
-      axis.text = element_text(size=11,face="plain",color="black"),
+      axis.text = element_text(size=13,face="plain",color="black"),
       axis.title = element_text(size = 13),
       #axis.text.x = element_blank(),
       axis.line = element_line(color="black", linewidth = 1.0),
@@ -1377,12 +1389,15 @@ plot_grid(plotsTot$p_damage, NULL, NULL, NULL,
           plotsTot$p_damageResource, plotsTot$p_nullResource, plotsTot$p_qualityResource, plotsTot$p_resource,
           ncol = 4)
 
+
 ###############################################################################
 # Adding the parental age distribution to the matrix. 
 ############################################################################### 
 
 # Parental age distribution plots 
 predDataTotalAgeDist <- c()
+
+allDataComplete <- loadRDS("allDataComplete.rds")
 
 allDataComplete <- allDataComplete %>% mutate(scenario = factor(scenario))
 # loop through the scenarios. 
@@ -1447,7 +1462,7 @@ for (i in 1:length(scenarios)){
       #legend.key.width = unit(0.1,"cm"),
       legend.position = "none",
       #legend.title = element_blank(),
-      axis.text = element_text(size=11,face="plain",color="black"),
+      axis.text = element_text(size=13,face="plain",color="black"), # size = 11
       axis.title = element_text(size = 13),
       #axis.text.x = element_blank(),
       axis.line = element_line(color="black", linewidth = 1.0),
@@ -1491,23 +1506,44 @@ plot_matrix <- plot_grid(plotsTot$p_null, plotsAgeDist$p_nullDamage, plotsAgeDis
                          plotsTot$p_nullDamage, plotsTot$p_damage, plotsAgeDist$p_damageQuality, plotsAgeDist$p_damageResource,
                          plotsTot$p_nullQuality, plotsTot$p_damageQuality, plotsTot$p_quality, plotsAgeDist$p_qualityResource, 
                          plotsTot$p_nullResource, plotsTot$p_damageResource, plotsTot$p_qualityResource, plotsTot$p_resource,
-                         ncol = 4, align = "hv", axis = "brlt")
+                         ncol = 4, align = "hv", axis = "brlt", labels = "AUTO", label_x = 0.88, label_y = 0.97)
+plot_matrix
 
 p_tmp <- plotsTot$p_resource + theme(legend.position = "bottom",
                                      legend.title = element_blank())
 
 leg1 <- get_legend(p_tmp) 
+library(ggpubr)
 legend <- as_ggplot(leg1)
 legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
 blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
-legend_row <- plot_grid(blank, blank, blank, legend, nrows = 1)
+legend_row <- plot_grid(legend, blank, blank, blank, nrows = 1)
+
+
+#null <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Baseline") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#damage <- ggplot() + annotate("text", x = 1, y = 0, size = 4, label = "Damage accumulation") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#quality <- ggplot() + annotate("text", x = 1, y = 0, size = 4, label = "Parental care quality") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#resource <- ggplot() + annotate("text", x = 1, y = 0, size = 4, label = "Resource allocation") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#top_labels <- plot_grid(null, damage, quality, resource, rel_widths = c(1, 1, 1, 1), nrow = 1)
+
+#null2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Baseline", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#damage2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Damage accumulation", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#quality2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Parental care quality", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#resource2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Resource allocation", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+#right_labels <- plot_grid(null2, damage2, quality2, resource2, rel_heights = c(1, 1, 1, 1), ncol = 1)
+
 
 library(grid)
 library(gridExtra)
-plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Parental age", gp=gpar(fontsize=15)), 
-                                         left = textGrob("Offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
-plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
-ggsave("Lansing_fig.pdf", width = 12, height = 8)
+plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)), 
+                                         left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
+
+#plot_with_legend <- plot_grid(top_labels, plot_matrix2, legend_row, ncol = 1, rel_heights = c(0.02, 1, 0.01), align = "v", axis = "rl")
+#plot_with_legend2 <- plot_grid(plot_with_legend, right_labels, nrow = 1, rel_widths = c(1, 0.02), align = "h", axis = "tb")
+
+plot_with_legend <- plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
+plot_with_legend
+ggsave("Lansing_fig.pdf", width = 12, height = 10)
 
 
 ###############################################################################
@@ -1529,7 +1565,9 @@ for (i in 1:length(scenarios)){
     geom_line() +
     labs(x = NULL,
          y = NULL) +
-    geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) + 
+    geom_ribbon(data = totalNormalizedData[totalNormalizedData$scenario == scenarios[i],],
+                aes(ymin = min, ymax = max,  fill = group), 
+                alpha = 0.2, colour = NA) + 
     #ylim(0, 2) + 
     theme_minimal() +
     theme(#legend.text = element_text(size=10),
@@ -1537,13 +1575,17 @@ for (i in 1:length(scenarios)){
       #legend.key.width = unit(0.1,"cm"),
       legend.position = "none",
       #legend.title = element_blank(),
-      axis.text = element_text(size=11,face="plain",color="black"),
+      axis.text = element_text(size=13,face="plain",color="black"),
       axis.title = element_text(size = 13),
       #axis.text.x = element_blank(),
       axis.line = element_line(color="black", linewidth = 0.6),
       panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) + 
   scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1)) + 
-    ylim(0, 1.5)
+  scale_colour_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
+  scale_fill_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
+    scale_y_continuous(breaks = seq(0, 1.5, 0.2)) +
+    coord_cartesian(ylim= c(0, 1.5))
+
   
   # save plot in list 
   plotsThreeCombs[[i]] <- p
@@ -1557,4 +1599,328 @@ plot_grid(plotsThreeCombs$p_nullDamageQuality,
           plotsThreeCombs$p_damageQualityResource,
           plotsThreeCombs$p_nullQualityResource)
 
+plotsThreeCombs$p_nullDamageQuality <- plotsThreeCombs$p_nullDamageQuality + theme(axis.text.x = element_blank())
+plotsThreeCombs$p_nullDamageResource <- plotsThreeCombs$p_nullDamageResource + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank())
+plotsThreeCombs$p_nullQualityResource <- plotsThreeCombs$p_nullQualityResource + theme(axis.text.y = element_blank())
 
+plot_matrix <- plot_grid(plotsThreeCombs$p_nullDamageQuality,
+          plotsThreeCombs$p_nullDamageResource,
+          plotsThreeCombs$p_damageQualityResource,
+          plotsThreeCombs$p_nullQualityResource,
+          align = "hv", axis = "brlt", labels = "AUTO", label_x = 0.90, label_y = 0.97)
+
+plot_matrix
+
+p_tmp <- plotsThreeCombs$p_nullQualityResource + theme(legend.position = "bottom",
+                                     legend.title = element_blank(),
+                                     legend.text = element_text(size=13))
+
+leg1 <- get_legend(p_tmp) 
+library(ggpubr)
+legend <- as_ggplot(leg1)
+legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+legend_row <- plot_grid(legend, blank, blank, blank, nrows = 1)
+
+
+library(grid)
+library(gridExtra)
+plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)), 
+                                         left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
+
+plot_with_legend <- plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
+plot_with_legend
+ggsave("Lansing_fig_suppl.pdf", width = 12, height = 10)
+
+
+########## suppl figure for all 4 scenarios combined 
+scenario <- "nullDamageQualityResource"
+p <- ggplot(totalNormalizedData[totalNormalizedData$scenario == scenario,], 
+            aes(maternalAge, mean, group = group, colour = group)) +
+  geom_line() +
+  labs(x = "Normalized parental age",
+       y = "Normalized offspring lifespan") +
+  geom_ribbon(data = totalNormalizedData[totalNormalizedData$scenario == scenario,],
+              aes(ymin = min, ymax = max,  fill = group), 
+              alpha = 0.2, colour = NA) + 
+  theme_minimal() +
+  theme(legend.text = element_text(size=13),
+    #legend.key.size = unit(0.2, "cm"),
+    #legend.key.width = unit(0.1,"cm"),
+    legend.position = c(0.10, -0.04),
+    legend.direction = "horizontal",
+    legend.title = element_blank(),
+    axis.text = element_text(size=13,face="plain",color="black"),
+    axis.title = element_text(size = 13),
+    #axis.text.x = element_blank(),
+    axis.line = element_line(color="black", linewidth = 0.6),
+    panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.5)) + 
+  scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1)) + 
+  scale_colour_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
+  scale_fill_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
+  scale_y_continuous(breaks = seq(0, 1.3, 0.2)) +
+  coord_cartesian(ylim = c(0,1.3))
+p
+ggsave("All_scenarios.pdf", width = 12, height = 8)
+
+###############################################################################
+# Plotting the supplementary figures with varying parameters 
+############################################################################### 
+
+# look at tracked individuals data 
+parent_path <- paste0(path, "parameterSim/null/")
+parent_path <- paste0(path, "parameterSim/damage/")
+parent_path <- paste0(path, "parameterSim/quality/")
+parent_path <- paste0(path, "parameterSim/resource/")
+
+f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+found <- c()
+for (x in f) {
+  # get path 
+  file_name <- paste0(parent_path, x)
+  # extract scenario from file name 
+  splitted_path <- strsplit(file_name, "/")
+  nMutProb <- length(splitted_path[[1]]) - 1
+  mutProb <- splitted_path[[1]][nMutProb]
+  # read data
+  local_data <- read.table(file_name, header = F, sep = " ")
+  colnames(local_data) <- c("ID", "ageAtDeath", "maternalAge", "paternalAge")
+  local_data$mutProb <- mutProb
+  local_data$ID <- sub("^", local_data$mutProb[1], local_data$ID)
+  
+  # subset parents 
+  z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+  ## Add the counter to data
+  local_data <- local_data %>% left_join(z,by="ID")
+  
+  #allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+  
+  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% mutate(ID = factor(ID)) 
+  
+  # sample 100 parents by their IDs
+  local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 200, replace = F),]
+  
+  found <- rbind(found, local_data)
+}
+
+# average the offspring lifespan per maternal age per mutation probability 
+calcMargin = function(x) { # function to calculate the margin for confidence interval 
+  n <- x[4] # get sample size
+  n <- as.numeric(n)
+  sd <- x[5] # get sd 
+  sd <- as.numeric(sd)
+  return(qt(0.975, df = n - 1)*sd/sqrt(n))
+}
+  
+found <- found %>% mutate(mutProb = factor(mutProb))
+allAvgs <- c()
+for (x in levels(found$mutProb)) {
+  sub <- found[found$mutProb == x,]
+  percentile <- quantile(sub$maternalAge, probs = 0.95)
+  sub <- sub[sub$maternalAge <= percentile,]
+  # calculate average expected age at death from parental age of 0 until 95th percentile parental age 
+  avg <- aggregate(sub$ageAtDeath, list(sub$maternalAge), mean)
+  colnames(avg) <- c("ageOfParent", "avgOffspringLifespan")
+  avg$mutProb <- x
+  
+  # get information for CIs. 
+  avg$n <- tapply(sub$ageAtDeath, sub$maternalAge, length)
+  avg$sd <- tapply(sub$ageAtDeath, sub$maternalAge, sd)
+  
+  avg$margin <- apply(avg, 1, calcMargin) # calc margin per row
+  avg$lwr <- by(avg, seq(nrow(avg)), function(x){x[2] - x[6]}) # get lower bound per row
+  avg$upr <- by(avg, seq(nrow(avg)), function(x){x[2] + x[6]}) # get upper bound per row
+  
+  allAvgs <- rbind(allAvgs, avg)
+}
+
+allAvgs <- allAvgs %>% mutate(lwr = as.numeric(lwr),
+                              upr = as.numeric(upr))
+
+# with 95% CIs. 
+legend_title <- "Mutation probability for age-specific 
+resource allocation genes"
+ggplot(allAvgs, aes(ageOfParent, avgOffspringLifespan, group = mutProb, colour = mutProb)) +
+  geom_line() +
+  geom_ribbon(data = allAvgs,
+              aes(ymin = lwr, ymax = upr, fill = mutProb),
+              alpha = 0.2, colour = NA) +
+  theme_minimal() +
+  theme(axis.text = element_text(size=15,face="plain",color="black"),
+        axis.title = element_text(size = 16),
+        #axis.text.x = element_blank(),
+        axis.line = element_line(color="black", linewidth = 1.0),
+        panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
+        text = element_text(size = 13),
+        legend.position = c(0.85, 0.85),
+        legend.text = element_text(size = 15),
+        legend.title = element_text(size = 16)) +
+  scale_colour_manual(legend_title, values = met.brewer("Egypt")[1:5]) +
+  scale_fill_manual(legend_title, values = met.brewer("Egypt")[1:5]) + 
+  ylim(0, 30) +
+  labs(x = "Maternal age",
+       y = "Average offspring lifespan") 
+
+
+ggsave("SupplResource.pdf", width = 12, height = 8)
+
+
+###############################################################################
+# plotting the resource allocation gene values
+############################################################################### 
+myData <- read.table(paste0(path, "combiningAll3/resource/1/outputWithAgeSpecificGenes.txt"))
+colnames(myData) <- c("ID", "age", "investmentGeneVal", "survivalGeneVal")
+ggplot(myData[myData$ID %in% sample(myData$ID, 10),], aes(age, investmentGeneVal, group = as.factor(ID), colour = as.factor(ID))) +
+  geom_line()
+
+
+
+# plot to show effect of s 
+funcPP <- function(x) {exp(-x[1]*x[2])}
+s <- c(0, 0.01, 0.03, 0.05, 0.07, 0.1)
+D <- 0:20
+tmp <- expand.grid(s,D)
+colnames(tmp) <- c("s", "D")
+res <- apply(tmp, 1,function(x){exp(-x[1]*x[2])})
+tmp$res <- res
+ggplot(tmp, aes(D, res, group = as.factor(s), colour = as.factor(s))) + 
+  geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 30),
+        strip.text.x = element_text(size = 35, face = "bold")) +
+  scale_y_continuous(breaks = seq(0,1,0.2),
+                     limits = c(0,1)) +
+  scale_color_manual("s", values = met.brewer("Egypt", 6)) +
+  labs(y = "m2")
+ggsave("ppEquation.pdf", width = 12, height = 8)
+
+c <- seq(0,1,0.1)
+x <- seq(0,1, 0.1)
+tmp <- expand.grid(c,x)
+colnames(tmp) <- c("c", "x")
+res <- apply(tmp, 1, function(x){1 - x[1] * x[2]^2})
+tmp$res <- res
+
+ggplot(tmp, aes(x, res, group = as.factor(c), colour = as.factor(c))) + 
+  geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 30),
+        strip.text.x = element_text(size = 35, face = "bold")) +
+  scale_y_continuous(breaks = seq(0,1,0.2),
+                     limits = c(0,1)) +
+  scale_color_manual("c", values = met.brewer("Egypt", 11)) +
+  labs(y = "m4a")
+ggsave("ppEquation2.pdf", width = 12, height = 8)
+
+a <- 0:5
+tmp <- expand.grid(a,x)
+colnames(tmp) <- c("a", "x")
+res <- apply(tmp, 1, function(x){1 / (1+exp(-x[1]*x[2]-1))})
+tmp$res <- res
+
+ggplot(tmp, aes(x, res, group = as.factor(a), colour = as.factor(a))) + 
+  geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 30),
+        strip.text.x = element_text(size = 35, face = "bold")) +
+  scale_y_continuous(breaks = seq(0,1,0.2),
+                     limits = c(0,1)) +
+  scale_color_manual("a", values = met.brewer("Egypt", 11)) +
+  labs(y = "m4b")
+ggsave("ppEquation3.pdf", width = 12, height = 8)
+
+b <- 0:5
+tmp <- expand.grid(b,x)
+colnames(tmp) <- c("b", "x")
+res <- apply(tmp, 1, function(x){1 / (1+exp(-3*x[2]-x[1]))})
+tmp$res <- res
+funcTMP <- function(x) {1 / (1 + exp(-3*x - 1))}
+x <- seq(0,1,0.1)
+res <- funcTMP(x)
+dfTMP <- data.frame(x, res)
+
+ggplot(dfTMP, aes(x, res)) + 
+  geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 30),
+        strip.text.x = element_text(size = 35, face = "bold")) +
+  scale_y_continuous(breaks = seq(0,1,0.2),
+                     limits = c(0,1)) +
+  #scale_color_manual("b", values = met.brewer("Egypt", 11)) +
+  labs(y = "m4b")
+ggsave("ppEquation4.pdf", width = 12, height = 8)
+
+
+##### plot age-specific gene values 
+path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/"
+
+parent_path <- paste0(path, "combiningAll3/nullDamage/")
+parent_path <- paste0(path, "combiningAll3/resource/")
+parent_path <- paste0(path, "combiningAll3/damageResource/")
+parent_path <- paste0(path, "combiningAll3/qualityResource/")
+parent_path <- paste0(path, "combiningAll3/nullResource/")
+
+f <- list.files(path = parent_path, pattern = "outputWithAgeSpecificGenes.txt", recursive = T, all.files = T)
+found <- c()
+for (x in f) {
+  # get path 
+  file_name <- paste0(parent_path, x)
+  # extract scenario from file name 
+  splitted_path <- strsplit(file_name, "/")
+  nScenario <- length(splitted_path[[1]]) - 2
+  scenario <- splitted_path[[1]][nScenario]
+  # extract replicate from file name 
+  nRep <- length(splitted_path[[1]]) - 1
+  rep <- splitted_path[[1]][nRep]
+  # read data
+  local_data <- read.table(file_name, header = F)
+  colnames(local_data) <- c("ID", "age", "InvestmentGeneVal", "SurvivalGeneVal")
+  # add the scenario as a column to the data
+  local_data$scenario <- scenario
+  # add replicate as column 
+  local_data$rep <- rep
+  local_data$ID <- sub("^", local_data$scenario[1], local_data$ID)
+  local_data$ID <- sub("^", local_data$rep[1], local_data$ID)
+  
+  found <- rbind(found, local_data)
+  
+}
+
+found <- found %>% mutate(scenario = factor(scenario))
+found <- found %>% mutate(rep = factor(rep))
+
+# for age-specific survival genes 
+tmp <- aggregate(found$SurvivalGeneVal, list(found$age), mean)
+colnames(tmp) <- c("age", "mean")
+tmp$min <- tapply(found$SurvivalGeneVal, found$age, min)
+tmp$max <- tapply(found$SurvivalGeneVal, found$age, max)
+
+ggplot(tmp, aes(age, mean)) + geom_line() +
+  geom_ribbon(aes(ymin =min, ymax = max), alpha = 0.2) +
+  theme_bw() +
+  labs(x = "Age",
+       y = "Averaged survival gene value") +
+  scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+  theme(axis.text = element_text(size=17,face="plain",color="black"), 
+  axis.title = element_text(size = 17))
+ggsave("ppNullDamAgeGenes.pdf", width = 10, height = 8)
+
+# for age-specific resource genes
+tmp <- aggregate(found$InvestmentGeneVal, list(found$age), mean)
+colnames(tmp) <- c("age", "mean")
+tmp$min <- tapply(found$InvestmentGeneVal, found$age, min)
+tmp$max <- tapply(found$InvestmentGeneVal, found$age, max)
+
+ggplot(tmp, aes(age, (1-mean))) + geom_line() +
+  geom_ribbon(aes(ymin =(1-min), ymax = (1-max)), alpha = 0.2) +
+  theme_bw() +
+  labs(x = "Age",
+       y = "Averaged proportion of resources 
+  allocated to reproduction") +
+  scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+  theme(axis.text = element_text(size=17,face="plain",color="black"), 
+        axis.title = element_text(size = 17))
+ggsave("ppResourceNull.pdf", width = 12, height = 8)
