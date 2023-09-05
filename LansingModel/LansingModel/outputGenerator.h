@@ -102,7 +102,8 @@ void outputForSimulatedLifespan(const indVec& deadIndividuals){
     ofs.close();
 }
 
-void outputOffspringLifespanLongitudinal(indVec deadTrackedIndividuals){
+void outputOffspringLifespanLongitudinal(indVec deadTrackedIndividuals,
+                                         const Parameters& p){
     /**Function to write output of the longitudinal offspring lifespan simulation. **/
     
     // open file to write output for the longitudinal offspring lifespan simulation
@@ -113,13 +114,26 @@ void outputOffspringLifespanLongitudinal(indVec deadTrackedIndividuals){
         exit(EXIT_FAILURE);
     }
     
+    // write header
+    ofs << "ID" << " "
+    << "ageAtDeath" << " "
+    << "maternalAge" << " "
+    << "paternalAge" << " ";
+    for (auto i : p.param_names_to_record) ofs << i << " "; // varying params
+    ofs << "\n";
+        
     for (size_t ind = 0; ind < deadTrackedIndividuals.size(); ++ind){
         for (Individual offspring : deadTrackedIndividuals[ind].offspring){
             ofs << ind << " " // use this as ID of the parent
             << offspring.age << " " // the age at death of this individual
             << offspring.ageOfMother << " " // write maternal age to file
-            << offspring.ageOfFather << "\n"; // write paternal age to file
+            << offspring.ageOfFather << " "; // write paternal age to file
+            for (auto i : p.params_to_record) ofs << i << " "; // varying param value
+            ofs << "\n";
+            
         }
     }
     ofs.close();
 }
+
+

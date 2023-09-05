@@ -288,7 +288,7 @@ void Population::simulateOffspringLifespan(const Parameters& p,
     }
     
     // create output for offspring lifespan for longitudinal analysis
-    outputOffspringLifespanLongitudinal(deadTrackedIndividuals);
+    outputOffspringLifespanLongitudinal(deadTrackedIndividuals, p);
     
     // create output for with age-specific gene values
     createOutputAgeSpecificGenes(p, deadTrackedIndividuals);

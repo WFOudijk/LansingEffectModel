@@ -15,7 +15,7 @@ struct Parameters {
                    mutationProb(0.0024), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(1000),
+                   tEnd(100),
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.0024), // mu_b in manuscript
@@ -68,6 +68,9 @@ struct Parameters {
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
     bool addInvestmentInRepair; // adds investment in repair to model
+    std::string temp_params_to_record;
+    std::vector < std::string > param_names_to_record;
+    std::vector < float > params_to_record;
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
@@ -82,7 +85,14 @@ struct Parameters {
                     const std::string focal_parametername,
                     bool& parameter,
                     std::ifstream& ifs);
+    void checkParam(const std::string parID,
+                    const std::string focal_parametername,
+                    std::string& parameter,
+                    std::ifstream& ifs);
     void setAdditionalParams();
+    std::vector<std::string> split(std::string s);
+    std::vector<float> create_params_to_record(const std::vector< std::string >& param_names);
+    float get_val(std::string s);
 };
 
 void Parameters::checkParam(const std::string parID,
@@ -121,6 +131,16 @@ void Parameters::checkParam(const std::string parID,
     }
 }
 
+void Parameters::checkParam(const std::string parID,
+                            const std::string focal_parametername,
+                            std::string& parameter,
+                            std::ifstream& ifs) {
+    // set parameter from file to parameter in object bool parameter
+    if (parID == focal_parametername) {
+        ifs >> parameter;
+    }
+}
+
 void Parameters::readParameters(const std::string& parameterFile){
     /**This function receives a parameter file and reads this. Next, the parameters in the file are set to the correct parameters
      in the parameters object using the checkParam function.**/
@@ -132,6 +152,7 @@ void Parameters::readParameters(const std::string& parameterFile){
         exit(EXIT_FAILURE);
     }
     std::clog << "Reading parameters from file: " << parameterFile << std::endl;
+    
     for(;;){
         std::string parID;
         ifs >> parID; // get row in file
@@ -150,9 +171,13 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addAgeSpecific", addAgeSpecific, ifs);
             checkParam(parID, "addQuality", addQuality, ifs);
             checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
+            checkParam(parID, "params_to_record", temp_params_to_record, ifs);
         }
         else break;
     }
+    
+    param_names_to_record = split(temp_params_to_record);
+    params_to_record = create_params_to_record(param_names_to_record);
 }
 
 void Parameters::setAdditionalParams(){
@@ -167,3 +192,40 @@ void Parameters::setAdditionalParams(){
     survivalProbExtrinsicMort = 1.0 - extrinsicMortRisk;
 }
 
+std::vector< std::string > Parameters::split(std::string s) {
+    // code from: https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+    std::vector< std::string > output;
+    std::string delimiter = ",";
+    size_t pos = 0;
+    std::string token;
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+      token = s.substr(0, pos);
+      output.push_back(token);
+      s.erase(0, pos + delimiter.length());
+    }
+    output.push_back(s);
+    return output;
+}
+
+std::vector< float > Parameters::create_params_to_record(const std::vector< std::string >& param_names) {
+  std::vector< float > output;
+  for (auto i : param_names) {
+    output.push_back(get_val(i));
+  }
+  return output;
+}
+
+float Parameters::get_val(std::string s) {
+    if (s == "addBinary")                           return addBinary;
+    if (s == "addQuality")                          return addQuality;
+    if (s == "addAgeSpecific")                      return addAgeSpecific;
+    if (s == "addInvestmentInRepair")               return addInvestmentInRepair;
+    if (s == "populationSize")                      return populationSize;
+    if (s == "tEnd")                                return tEnd;
+    if (s == "mutationProb")                        return mutationProb;
+    if (s == "mutationProbStemcell")                return mutationProbStemcell;
+    if (s == "mutationProbInvestmentGenes")         return mutationProbInvestmentGenes;
+
+    throw std::runtime_error("can not find parameter");
+    return -1.f; // FAIL
+}
