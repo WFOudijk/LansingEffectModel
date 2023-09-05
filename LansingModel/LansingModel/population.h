@@ -7,11 +7,11 @@
 #pragma once
 #include <iostream>
 // disable the following two lines when code needs to run on the cluster
-#include <oneapi/dpl/algorithm>
-#include <oneapi/dpl/execution> // for parallelization
+//#include <oneapi/dpl/algorithm>
+//#include <oneapi/dpl/execution> // for parallelization
 // enable the following two lines when code needs to run on the cluster
-//#include <algorithm>
-//#include <execution>
+#include <algorithm>
+#include <execution>
 #include "individual.h"
 
 using indVec = std::vector<Individual>;
