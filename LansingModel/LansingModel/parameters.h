@@ -9,17 +9,17 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(100), // N in manuscript
+    Parameters() : populationSize(1000), // N in manuscript
                    initDamageProportion(0.1),
                    numOfOffspringPerFemale(1), // o in manuscript
                    mutationProb(0.0024), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(100),
+                   tEnd(10000),
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.0024), // mu_b in manuscript
-                   meanMutationBias(-0.02), // b_s in manuscript
+                   meanMutationBias(0), // b_s in manuscript
                    sdMutationalEffectSize(0.02), // sigma in manuscript
                    initAgeSpecificGenes(0.90),
                    mutationProbAgeSpecificGenes(0.002), // mu_a in manuscript
@@ -33,8 +33,8 @@ struct Parameters {
                    scalingStrengthOfAllocationToReproduce(1), // d in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
                    steepnessAllocationToReproduce(3), // a in manuscript
-                   addBinary(true),
-                   addAgeSpecific(false),
+                   addBinary(false),
+                   addAgeSpecific(true),
                    addQuality(false),
                    addInvestmentInRepair(false){}
     
@@ -194,6 +194,7 @@ void Parameters::setAdditionalParams(){
 
 std::vector< std::string > Parameters::split(std::string s) {
     // code from: https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+    std::cout << s << std::endl;
     std::vector< std::string > output;
     std::string delimiter = ",";
     size_t pos = 0;
@@ -227,7 +228,7 @@ float Parameters::get_val(std::string s) {
     if (s == "mutationProbStemcell")                return mutationProbStemcell;
     if (s == "mutationProbAgeSpecificGenes")        return mutationProbAgeSpecificGenes;
 
-    std::cout << "s: " << s << std::endl;
+    //std::cout << "s: " << s << std::endl;
     throw std::runtime_error("can not find parameter");
     return -1.f; // FAIL
 }
