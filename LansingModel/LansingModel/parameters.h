@@ -20,7 +20,7 @@ struct Parameters {
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.0024), // mu_b in manuscript
                    meanMutationBias(0), // b_s in manuscript
-                   sdMutationalEffectSize(0.02), // sigma in manuscript
+                   sdMutationalEffectSize(0.08), // sigma in manuscript
                    initAgeSpecificGenes(0.90),
                    mutationProbAgeSpecificGenes(0.002), // mu_a in manuscript
                    weightMaternalEffect(0.5),
