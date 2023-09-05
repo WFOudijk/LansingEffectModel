@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000), // N in manuscript
+    Parameters() : populationSize(100), // N in manuscript
                    initDamageProportion(0.1),
                    numOfOffspringPerFemale(1), // o in manuscript
                    mutationProb(0.0024), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(10000),
+                   tEnd(100),
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.0024), // mu_b in manuscript
@@ -194,7 +194,6 @@ void Parameters::setAdditionalParams(){
 
 std::vector< std::string > Parameters::split(std::string s) {
     // code from: https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-    std::cout << s << std::endl;
     std::vector< std::string > output;
     std::string delimiter = ",";
     size_t pos = 0;
