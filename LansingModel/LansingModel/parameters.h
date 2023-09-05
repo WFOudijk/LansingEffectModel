@@ -215,6 +215,7 @@ std::vector< float > Parameters::create_params_to_record(const std::vector< std:
   return output;
 }
 
+
 float Parameters::get_val(std::string s) {
     if (s == "addBinary")                           return addBinary;
     if (s == "addQuality")                          return addQuality;
@@ -226,6 +227,7 @@ float Parameters::get_val(std::string s) {
     if (s == "mutationProbStemcell")                return mutationProbStemcell;
     if (s == "mutationProbAgeSpecificGenes")        return mutationProbAgeSpecificGenes;
 
+    std::cout << "s: " << s << std::endl;
     throw std::runtime_error("can not find parameter");
     return -1.f; // FAIL
 }
