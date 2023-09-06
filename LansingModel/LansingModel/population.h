@@ -54,7 +54,12 @@ void Population::reproduce(const Parameters& p,
      number of offspring with a random male. **/
 				
     offspring.clear(); // to make sure the vector is empty
-        
+    
+    // if males or females vector is empty: throw error message.
+    if (females.empty() | males.empty()){
+        throw std::runtime_error("No more males or females present to reproduce.");
+    }
+    
     for (auto& f : females){ // loop through every female
         
         // choose the male to mate with
