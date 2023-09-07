@@ -19,7 +19,7 @@ struct Parameters {
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.0024), // mu_b in manuscript
-                   meanMutationBias(-0.02), // b_s in manuscript
+                   meanMutationBias(0), // b_s in manuscript
                    sdMutationalEffectSize(0.02), // sigma in manuscript
                    initAgeSpecificGenes(0.90),
                    mutationProbAgeSpecificGenes(0.002), // mu_a in manuscript
@@ -33,8 +33,8 @@ struct Parameters {
                    scalingStrengthOfAllocationToReproduce(1), // d in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
                    steepnessAllocationToReproduce(3), // a in manuscript
-                   addBinary(false),
-                   addAgeSpecific(true),
+                   addBinary(true),
+                   addAgeSpecific(false),
                    addQuality(false),
                    addInvestmentInRepair(false){}
     
@@ -227,7 +227,6 @@ float Parameters::get_val(std::string s) {
     if (s == "mutationProbStemcell")                return mutationProbStemcell;
     if (s == "mutationProbAgeSpecificGenes")        return mutationProbAgeSpecificGenes;
 
-    //std::cout << "s: " << s << std::endl;
     throw std::runtime_error("can not find parameter");
     return -1.f; // FAIL
 }
