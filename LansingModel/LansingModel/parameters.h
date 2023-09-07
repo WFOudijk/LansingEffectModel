@@ -68,9 +68,9 @@ struct Parameters {
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
     bool addInvestmentInRepair; // adds investment in repair to model
-    std::string temp_params_to_record;
-    std::vector < std::string > param_names_to_record;
-    std::vector < float > params_to_record;
+    std::string temp_params_to_record; // to temporarily store varying parameter(s)
+    std::vector < std::string > param_names_to_record; // to store the names of the varying parameter(s)
+    std::vector < float > params_to_record; // to store the varying parameter(s)
     
     void readParameters(const std::string& parameterFile);
     void checkParam(const std::string parID,
