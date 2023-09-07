@@ -226,6 +226,8 @@ float Parameters::get_val(std::string s) {
     if (s == "mutationProb")                        return mutationProb;
     if (s == "mutationProbStemcell")                return mutationProbStemcell;
     if (s == "mutationProbAgeSpecificGenes")        return mutationProbAgeSpecificGenes;
+    if (s == "meanMutationBias")                    return meanMutationBias;
+    if (s == "sdMutationalEffectSize")              return sdMutationalEffectSize;
 
     throw std::runtime_error("can not find parameter");
     return -1.f; // FAIL
