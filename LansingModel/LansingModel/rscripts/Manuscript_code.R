@@ -523,6 +523,10 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   parent_path <- paste0(path, "parental_care/defaults/") # with mutation bias
   name = "parental_care_default"
   
+  # reading all data and saving both the data as the gam models. 
+  parent_path <- paste0(path, "parental_care/no_bias/") # with mutation bias
+  name = "parental_care_no_bias"
+  
   f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
   allData <- c()
   allDataComplete <- c()
@@ -669,13 +673,18 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   
   saveRDS(predDataTotalNormalized, file = paste0("predDataTotalNormalized_", name, ".rds"))
   
-  predDataTotalNormalized_parental_care_defaults <- predDataTotalNormalized
-  predDataTotal_parental_care_defaults <- predDataTotal
+  predDataTotalNormalized_parental_care_no_bias <- predDataTotalNormalized
+  predDataTotal_parental_care_no_bias <- predDataTotal
   
   # load from saved extra in environment 
   predDataTotalNormalized <- predDataTotalNormalized_parental_care_defaults
   predDataTotal <- predDataTotal_parental_care_defaults
   name = "parental_care_defaults"
+  
+  # load from saved extra in environment 
+  predDataTotalNormalized <- predDataTotalNormalized_parental_care_no_bias
+  predDataTotal <- predDataTotal_parental_care_no_bias
+  name = "parental_care_no_bias"
   
   # load from RDS
   #predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".rds"))
@@ -820,19 +829,19 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   predDataTotal <- c()
   predDataTotalNormalized <- c()
   # go per scenario through the data 
-  for (x in levels(allData$mutationProbAgeSpecificGenes)){
+  for (x in levels(allData$mutationProbInvestmentGenes)){
     # make subset of scenario 
-    sub <- allData[allData$mutationProbAgeSpecificGenes == x,]
+    sub <- allData[allData$mutationProbInvestmentGenes == x,]
     # refactor the replicates of the subset 
     sub <- sub %>% mutate(rep = factor(rep))
     # make data expansion 
     pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
                             ID = levels(sub$ID)[1],
-                            mutationProbAgeSpecificGenes = sub$mutationProbAgeSpecificGenes[1]) 
+                            mutationProbInvestmentGenes = sub$mutationProbInvestmentGenes[1]) 
     
     # loop through the replicates
     for (i in levels(sub$rep)){
-      mod <- paste0("model_", i, "_", sub$mutationProbAgeSpecificGenes[1])
+      mod <- paste0("model_", i, "_", sub$mutationProbInvestmentGenes[1])
       index <- which(names(models) == mod)
       new_col <- paste("rep", i, sep = "")
       tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
@@ -874,60 +883,60 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   
   saveRDS(predDataTotalNormalized, file = paste0("predDataTotalNormalized_", name, ".rds"))
   
-  predDataTotalNormalized_parental_care_defaults <- predDataTotalNormalized
-  predDataTotal_parental_care_defaults <- predDataTotal
+  predDataTotalNormalized_resource_dist <- predDataTotalNormalized
+  predDataTotal_resource_dist <- predDataTotal
   
   # load from saved extra in environment 
-  predDataTotalNormalized <- predDataTotalNormalized_parental_care_defaults
-  predDataTotal <- predDataTotal_parental_care_defaults
-  name = "parental_care_defaults"
+  predDataTotalNormalized <- predDataTotalNormalized_resource_dist
+  predDataTotal <- predDataTotal_resource_dist
+  name = "resource_distribution_defaults"
   
   # load from RDS
   #predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".rds"))
   
   # plot the normalized data grouped by mutation prob
   ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
-                                      group=mutationProbAgeSpecificGenes, 
-                                      colour = mutationProbAgeSpecificGenes, 
-                                      shape = mutationProbAgeSpecificGenes)) +
+                                      group=mutationProbInvestmentGenes, 
+                                      colour = mutationProbInvestmentGenes, 
+                                      shape = mutationProbInvestmentGenes)) +
     geom_line() +
     scale_color_manual(values = met.brewer("Egypt", 14)) +
-    scale_shape_manual(values=1:nlevels(predDataTotalNormalized$mutationProbAgeSpecificGenes)) +
+    scale_shape_manual(values=1:nlevels(predDataTotalNormalized$mutationProbInvestmentGenes)) +
     geom_point() +
     labs(title = name,
          x = "Normalized parental age",
          y = "Normalized offspring age at death") +
     theme_cowplot() 
   geom_ribbon(data = predDataTotalNormalized,
-              aes(ymin = min, ymax = max,  fill = mutationProbAgeSpecificGenes), 
+              aes(ymin = min, ymax = max,  fill = mutationProbInvestmentGenes), 
               alpha = 0.2, colour = NA) 
   
   # plot the normalized data grouped by mutation prob
   ggplot(predDataTotal, aes(maternalAge, mean, 
-                            group=mutationProbAgeSpecificGenes, 
-                            colour = mutationProbAgeSpecificGenes, 
-                            shape = mutationProbAgeSpecificGenes)) +
+                            group=mutationProbInvestmentGenes, 
+                            colour = mutationProbInvestmentGenes, 
+                            shape = mutationProbInvestmentGenes)) +
     geom_line() +
     scale_color_manual(values = met.brewer("Egypt", 11)) +
-    scale_shape_manual(values=1:nlevels(predDataTotal$mutationProbAgeSpecificGenes)) +
+    scale_shape_manual(values=1:nlevels(predDataTotal$mutationProbInvestmentGenes)) +
     geom_point() +
     labs(title = name, 
          x = "Normalized parental age",
          y = "Normalized offspring age at death") +
     theme_cowplot() 
   geom_ribbon(data = predDataTotal,
-              aes(ymin = min, ymax = max,  fill = mutationProbAgeSpecificGenes), 
+              aes(ymin = min, ymax = max,  fill = mutationProbInvestmentGenes), 
               alpha = 0.2, colour = NA) 
   
 
 ###############################################################################
 # Supplementary materials: Normalizing figures S5 - S7
 ###############################################################################
-path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/"
+path_s <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/"
 
-parent_path <- paste0(path, "combiningAll3/resource/")
-parent_path <- paste0(path, "combiningAll3/nullResource/")
-parent_path <- paste0(path, "combiningAll3/qualityResource/")
+parent_path <- paste0(path_s, "combiningAll3/resource/")
+parent_path <- paste0(path_s, "combiningAll3/nullResource/")
+parent_path <- paste0(path_s, "combiningAll3/qualityResource/")
 
 f <- list.files(path = parent_path, pattern = "outputWithAgeSpecificGenes.txt", recursive = T, all.files = T)
 found <- c()
@@ -961,15 +970,24 @@ for (x in f) {
   found_2 <- rbind(found_2, local_data_2)
 }
 
-# for age-specific resource genes
-tmp <- aggregate(found$InvestmentGeneVal, list(found$age), mean)
-colnames(tmp) <- c("age", "mean")
-tmp$min <- tapply(found$InvestmentGeneVal, found$age, min)
-tmp$max <- tapply(found$InvestmentGeneVal, found$age, max)
-cut_off <- quantile(found_2$ageAtDeath, probs = 0.95)
-tmp <- tmp[tmp$age <= cut_off,] # cut off at 95th percentile
+# determine the mean per replicate. 
+age <- c(0:max(found$age))
+data_per_rep <- data.frame(age)
+for (i in levels(as.factor(found$rep))){
+  sub <- found[found$rep == i,]
+  new_col <- paste0("rep", i)
+  data_per_rep[[new_col]] <- tapply(sub$InvestmentGeneVal, sub$age, mean)
+}
 
-ggplot(tmp, aes(age, (1-mean))) + geom_line() +
+# get means
+repVals <- subset(data_per_rep, select = 2:ncol(data_per_rep))
+data_per_rep$mean <- rowMeans(repVals)
+data_per_rep$min <- apply(repVals, 1, min)
+data_per_rep$max <- apply(repVals, 1, max)
+cut_off <- quantile(found_2$maternalAge, probs = 0.95) # ageAtDeath > maternalAge for nullResource. maternalAge > ageAtDeath for qualityResource. 
+data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] # cut off at 95th percentile
+
+ggplot(data_per_rep, aes(age, (1-mean))) + geom_line() +
   geom_ribbon(aes(ymin =(1-min), ymax = (1-max)), alpha = 0.2) +
   theme_bw() +
   labs(x = "Age",
@@ -982,25 +1000,6 @@ ggplot(tmp, aes(age, (1-mean))) + geom_line() +
                      limits = c(0, 9))
 ggsave("ppResourceNull.pdf", width = 12, height = 8)
 
-# try with normalization 
-# normalize the axes between 0 and 1 
-tmp_norm <- tmp
-tmp_norm$age <- tmp_norm$age / cut_off
-tmp_norm$min <- tmp_norm$min / tmp_norm$mean[1]
-tmp_norm$max <- tmp_norm$max / tmp_norm$mean[1]
-tmp_norm$mean <- tmp_norm$mean / tmp_norm$mean[1]
-
-ggplot(tmp_norm, aes(age, (1-mean))) + geom_line() +
-  geom_ribbon(aes(ymin =(1-min), ymax = (1-max)), alpha = 0.2) +
-  theme_bw() +
-  labs(x = "Age",
-       y = "Averaged proportion of resources 
-  allocated to reproduction") +
-  theme(axis.text = element_text(size=17,face="plain",color="black"), 
-        axis.title = element_text(size = 17)) 
-  scale_x_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1))
-  scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0,1))
-    
   
 ###############################################################################
 # Adjusting upper right corner of matrix by cutting off at 95th percentile. 
