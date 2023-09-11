@@ -175,6 +175,10 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
             checkParam(parID, "params_to_record", temp_params_to_record, ifs);
             checkParam(parID, "includeRecombination", includeRecombination, ifs);
+            checkParam(parID, "weightInvestment", weightInvestment, ifs);
+            checkParam(parID, "scalingStrengthOfAllocationToReproduce", scalingStrengthOfAllocationToReproduce, ifs);
+            checkParam(parID, "steepnessAllocationToReproduce", steepnessAllocationToReproduce, ifs);
+            
         }
         else break;
     }
@@ -220,19 +224,23 @@ std::vector< float > Parameters::create_params_to_record(const std::vector< std:
 
 
 float Parameters::get_val(std::string s) {
-    if (s == "addBinary")                           return addBinary;
-    if (s == "addQuality")                          return addQuality;
-    if (s == "addAgeSpecific")                      return addAgeSpecific;
-    if (s == "addInvestmentInRepair")               return addInvestmentInRepair;
-    if (s == "populationSize")                      return populationSize;
-    if (s == "tEnd")                                return tEnd;
-    if (s == "mutationProb")                        return mutationProb;
-    if (s == "mutationProbStemcell")                return mutationProbStemcell;
-    if (s == "mutationProbAgeSpecificGenes")        return mutationProbAgeSpecificGenes;
-    if (s == "meanMutationBias")                    return meanMutationBias;
-    if (s == "sdMutationalEffectSize")              return sdMutationalEffectSize;
-    if (s == "mutationProbInvestmentGenes")         return mutationProbInvestmentGenes;
-    if (s == "includeRecombination")                return includeRecombination;
+    if (s == "addBinary")                               return addBinary;
+    if (s == "addQuality")                              return addQuality;
+    if (s == "addAgeSpecific")                          return addAgeSpecific;
+    if (s == "addInvestmentInRepair")                   return addInvestmentInRepair;
+    if (s == "populationSize")                          return populationSize;
+    if (s == "tEnd")                                    return tEnd;
+    if (s == "mutationProb")                            return mutationProb;
+    if (s == "mutationProbStemcell")                    return mutationProbStemcell;
+    if (s == "mutationProbAgeSpecificGenes")            return mutationProbAgeSpecificGenes;
+    if (s == "meanMutationBias")                        return meanMutationBias;
+    if (s == "sdMutationalEffectSize")                  return sdMutationalEffectSize;
+    if (s == "mutationProbInvestmentGenes")             return mutationProbInvestmentGenes;
+    if (s == "includeRecombination")                    return includeRecombination;
+    if (s == "weightInvestment")                        return weightInvestment;
+    if (s == "scalingStrengthOfAllocationToReproduce")  return scalingStrengthOfAllocationToReproduce;
+    if (s == "steepnessAllocationToReproduce")          return steepnessAllocationToReproduce;
+    
 
     throw std::runtime_error("can not find parameter");
     return -1.f; // FAIL
