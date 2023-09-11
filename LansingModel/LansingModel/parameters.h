@@ -175,7 +175,6 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
             checkParam(parID, "params_to_record", temp_params_to_record, ifs);
             checkParam(parID, "includeRecombination", includeRecombination, ifs);
-            checkParam(parID, "weightInvestment", weightInvestment, ifs);
             checkParam(parID, "scalingStrengthOfAllocationToReproduce", scalingStrengthOfAllocationToReproduce, ifs);
             checkParam(parID, "steepnessAllocationToReproduce", steepnessAllocationToReproduce, ifs);
             
