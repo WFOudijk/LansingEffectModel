@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(100), // N in manuscript
+    Parameters() : populationSize(1000), // N in manuscript
                    initDamageProportion(0.1),
                    numOfOffspringPerFemale(1), // o in manuscript
                    mutationProb(0.0024), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(100),
+                   tEnd(10000),
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.0024), // mu_b in manuscript
@@ -33,9 +33,10 @@ struct Parameters {
                    scalingStrengthOfAllocationToReproduce(1), // d in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
                    steepnessAllocationToReproduce(3), // a in manuscript
-                   addBinary(true),
+                   includeRecombination(false),
+                   addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(false),
+                   addQuality(true),
                    addInvestmentInRepair(false){}
     
     unsigned int populationSize; // total population size
@@ -64,6 +65,7 @@ struct Parameters {
     int numOfOffspringForOffspringLifespanSim; // the number of offspring per female to track to determine offspring lifespan in cross-sectional analysis
     float survivalProbExtrinsicMort; // the survival probability based on extrinsic mortality
     float steepnessAllocationToReproduce; // to determine the steepness in allocation to survival effect
+    bool includeRecombination; // bool to either add recombination or not
     bool addBinary; // add binary genes to model
     bool addAgeSpecific; // adds age-specific genes to model
     bool addQuality; // adds quality effect to model
@@ -172,6 +174,7 @@ void Parameters::readParameters(const std::string& parameterFile){
             checkParam(parID, "addQuality", addQuality, ifs);
             checkParam(parID, "addInvestmentInRepair", addInvestmentInRepair, ifs);
             checkParam(parID, "params_to_record", temp_params_to_record, ifs);
+            checkParam(parID, "includeRecombination", includeRecombination, ifs);
         }
         else break;
     }
@@ -229,6 +232,7 @@ float Parameters::get_val(std::string s) {
     if (s == "meanMutationBias")                    return meanMutationBias;
     if (s == "sdMutationalEffectSize")              return sdMutationalEffectSize;
     if (s == "mutationProbInvestmentGenes")         return mutationProbInvestmentGenes;
+    if (s == "includeRecombination")                return includeRecombination;
 
     throw std::runtime_error("can not find parameter");
     return -1.f; // FAIL

@@ -164,31 +164,43 @@ Gamete Individual::makeGamete(Randomizer& rng,
     /**Function to make a single gamete. Based on recombination to determine which genes the gamete receives. **/
 				
     Gamete gamete; // initialise gamete
-				
-    // get a bit of numOfGenes long to use the bits as random for setting the gamete genes
-    const std::bitset<numOfGenes> x{rng.rui32()};
-				
-    for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
-        // based on the random bit sequence, determine if gene is paternal or maternal
-        gamete.genesOfGamete[i] = geneticsBinary[x[i]][i];
-    }
-				
-    // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
-    const std::bitset<41> y{rng.rui64()};
-				
-    for (size_t i = 0; i <= p.maximumAge; ++i){ // fill for every age class
-        // again, using the bit sequence determine if gene is paternal or maternal
-        gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[y[i]][i]);
-    }
     
-    // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
-    const std::bitset<41> z{rng.rui64()};
-
-    for (size_t i = 0; i <= p.maximumAge; ++i){ // fill for every age class
-        // again, using the bit sequence, determine if gene is paternal or maternal
-        gamete.ageSpecificInvestmentInRepair.push_back(ageSpecificInvestmentInRepair[z[i]][i]);
+    if (p.includeRecombination){ // with recombination of the genes
+        // get a bit of numOfGenes long to use the bits as random for setting the gamete genes
+        const std::bitset<numOfGenes> x{rng.rui32()};
+        
+        for (int i = 0; i < numOfGenes; ++i){ // loop through every gene
+            // based on the random bit sequence, determine if gene is paternal or maternal
+            gamete.genesOfGamete[i] = geneticsBinary[x[i]][i];
+        }
+        
+        // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
+        const std::bitset<41> y{rng.rui64()};
+        
+        for (size_t i = 0; i <= p.maximumAge; ++i){ // fill for every age class
+            // again, using the bit sequence determine if gene is paternal or maternal
+            gamete.ageSpecificGenesOfGamete.push_back(ageSpecificGenes[y[i]][i]);
+        }
+        
+        // get another random bitset, this needs to be the length of the maximum age for setting the age-specific genes
+        const std::bitset<41> z{rng.rui64()};
+        
+        for (size_t i = 0; i <= p.maximumAge; ++i){ // fill for every age class
+            // again, using the bit sequence, determine if gene is paternal or maternal
+            gamete.ageSpecificInvestmentInRepair.push_back(ageSpecificInvestmentInRepair[z[i]][i]);
+        }
+    } else { // without recombination of the genes
+        
+        if (rng.bernoulli()) gamete.genesOfGamete = geneticsBinary[0];
+        else gamete.genesOfGamete = geneticsBinary[1];
+        
+        if (rng.bernoulli()) gamete.ageSpecificGenesOfGamete = ageSpecificGenes[0];
+        else gamete.ageSpecificGenesOfGamete = ageSpecificGenes[1];
+        
+        if (rng.bernoulli()) gamete.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[0];
+        else gamete.ageSpecificInvestmentInRepair = ageSpecificInvestmentInRepair[1];
     }
-				
+    				
     return gamete;
 }
 
@@ -283,30 +295,43 @@ Gamete Individual::makeGameteFromStemCell(const Parameters& p,
     // initialise gamete
     Gamete gamete;
     
-    // draw a random numOfGenes long bitset to use as a random template for distributing genes
-    const std::bitset<numOfGenes> x{rng.rui32()};
-				
-    for (int i = 0; i < numOfGenes; ++i){ // loop through every binary gene
-        // determine based on the bitset which binary gene will be inherited
-        gamete.genesOfGamete[i] = stemCell[x[i]].genesOfGamete[i];
+    if (p.includeRecombination){ // with recombination of the genes
+        
+        // draw a random numOfGenes long bitset to use as a random template for distributing genes
+        const std::bitset<numOfGenes> x{rng.rui32()};
+        
+        for (int i = 0; i < numOfGenes; ++i){ // loop through every binary gene
+            // determine based on the bitset which binary gene will be inherited
+            gamete.genesOfGamete[i] = stemCell[x[i]].genesOfGamete[i];
+        }
+        
+        // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
+        const std::bitset<41> y{rng.rui64()};
+        
+        for (size_t i = 0; i <= p.maximumAge; ++i){
+            // for every age-specific gene of new gamete, determine which gene is inherited
+            gamete.ageSpecificGenesOfGamete.push_back(stemCell[y[i]].ageSpecificGenesOfGamete[i]);
+        }
+        
+        // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
+        const std::bitset<41> z{rng.rui64()};
+        
+        for (size_t i = 0; i <= p.maximumAge; ++i){
+            // for every age-specific gene of new gamete, determine which gene is inherited
+            gamete.ageSpecificInvestmentInRepair.push_back(stemCell[z[i]].ageSpecificInvestmentInRepair[i]);
+        }
+    } else { // without recombination of the genes
+        
+        if (rng.bernoulli()) gamete.genesOfGamete = stemCell[0].genesOfGamete;
+        else gamete.genesOfGamete = stemCell[1].genesOfGamete;
+        
+        if (rng.bernoulli()) gamete.ageSpecificGenesOfGamete = stemCell[0].ageSpecificGenesOfGamete;
+        else gamete.ageSpecificGenesOfGamete = stemCell[1].ageSpecificGenesOfGamete;
+        
+        if (rng.bernoulli()) gamete.ageSpecificInvestmentInRepair = stemCell[0].ageSpecificInvestmentInRepair;
+        else gamete.ageSpecificInvestmentInRepair = stemCell[1].ageSpecificInvestmentInRepair;
     }
-				
-    // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
-    const std::bitset<41> y{rng.rui64()};
-				
-    for (size_t i = 0; i <= p.maximumAge; ++i){
-        // for every age-specific gene of new gamete, determine which gene is inherited
-        gamete.ageSpecificGenesOfGamete.push_back(stemCell[y[i]].ageSpecificGenesOfGamete[i]);
-    }
-    
-    // get anther template random bitset, this one the length of maximumage to determine age-specific gene distribution
-    const std::bitset<41> z{rng.rui64()};
-
-    for (size_t i = 0; i <= p.maximumAge; ++i){
-        // for every age-specific gene of new gamete, determine which gene is inherited
-        gamete.ageSpecificInvestmentInRepair.push_back(stemCell[z[i]].ageSpecificInvestmentInRepair[i]);
-    }
-				
+    				
     return gamete;
 }
 
