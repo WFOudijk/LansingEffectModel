@@ -62,6 +62,14 @@ void createOutputAgeSpecificGenes(const Parameters& p,
         std::cerr << "Error. Unable to open output file.\n";
         exit(EXIT_FAILURE);
     }
+    
+    // write header
+    ofs << "ID" << " "
+    << "age" << " "
+    << "investmentGeneVal" << " "
+    << "survivalGeneVal" << " ";
+    for (auto i : p.param_names_to_record) ofs << i << " "; // varying params
+    ofs << "\n";
 
     // write parental quality for every age class to file
     for (size_t ind = 0; ind < deadIndividuals.size(); ++ind){
@@ -72,7 +80,9 @@ void createOutputAgeSpecificGenes(const Parameters& p,
             << p.mutationProbAgeSpecificGenes << "_" << p.weightInvestment << " " // write as id of individual
             << i << " " // write age
             << deadIndividuals[ind].averageInvestmentGenes[i] << " " // write parental investment in repair for this age class
-            << deadIndividuals[ind].averageAgeSpecificGenes[i] << "\n"; // write parental quality for this age class
+            << deadIndividuals[ind].averageAgeSpecificGenes[i] << " "; // write parental quality for this age class
+            for (auto i : p.params_to_record) ofs << i << " "; // varying param value
+            ofs << "\n";
         }
 		
     }
@@ -97,6 +107,7 @@ void outputForSimulatedLifespan(const indVec& deadIndividuals){
         << deadIndividuals[ind].age << " " // age at death of individual
         << deadIndividuals[ind].ageOfMother << " " // write maternal age at birth
         << deadIndividuals[ind].ageOfFather << "\n"; // write paternal age at birth
+        
     }
 
     ofs.close();
