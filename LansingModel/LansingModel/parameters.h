@@ -10,15 +10,15 @@
 struct Parameters {
     // initialise the parameters
     Parameters() : populationSize(1000), // N in manuscript
-                   initDamageProportion(0.7),
+                   initDamageProportion(0.1),
                    numOfOffspringPerFemale(1), // o in manuscript
-                   mutationProb(0.0024), // mu_b in manuscript
+                   mutationProb(0.002), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(10000),
+                   tEnd(20000),
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
-                   mutationProbStemcell(0.0024), // mu_b in manuscript
+                   mutationProbStemcell(0.002), // mu_b in manuscript
                    meanMutationBias(-0.01), // b_s in manuscript
                    sdMutationalEffectSize(0.02), // sigma in manuscript
                    initAgeSpecificGenes(0.90),
@@ -33,10 +33,10 @@ struct Parameters {
                    scalingStrengthOfAllocationToReproduce(1), // d in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
                    steepnessAllocationToReproduce(3), // a in manuscript
-                   includeRecombination(false),
-                   addBinary(false),
+                   includeRecombination(true),
+                   addBinary(true),
                    addAgeSpecific(false),
-                   addQuality(true),
+                   addQuality(false),
                    addInvestmentInRepair(false){}
     
     unsigned int populationSize; // total population size
