@@ -10,7 +10,7 @@
 struct Parameters {
     // initialise the parameters
     Parameters() : populationSize(1000), // N in manuscript
-                   initDamageProportion(0.1),
+                   initDamageProportion(0.7),
                    numOfOffspringPerFemale(1), // o in manuscript
                    mutationProb(0.0024), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
