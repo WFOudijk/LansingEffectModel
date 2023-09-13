@@ -199,7 +199,7 @@ void Population::simulateAgeAtDeath(Parameters& p, Randomizer& rng){
     }
 
     // make output of the dead individuals and their offspring
-    outputForSimulatedLifespan(deadIndividuals);
+    outputForSimulatedLifespan(p, deadIndividuals);
     
     // reset the number of offspring per female
     p.numOfOffspringPerFemale = saveNumOfOffspringPerFemale;

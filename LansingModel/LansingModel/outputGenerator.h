@@ -50,7 +50,7 @@ void createOutputDeclineInGameteQuality(const int t,
 }
 
 void createOutputAgeSpecificGenes(const Parameters& p,
-                                    const indVec& deadIndividuals){
+                                  const indVec& deadIndividuals){
 				
     /**Function to write the gene values for every age class to a file. Function is called after time simulation.
      So the final gene values are documented. **/
@@ -89,7 +89,8 @@ void createOutputAgeSpecificGenes(const Parameters& p,
     ofs.close();
 }
 
-void outputForSimulatedLifespan(const indVec& deadIndividuals){
+void outputForSimulatedLifespan(const Parameters& p,
+                                const indVec& deadIndividuals){
     /**Function to write relevant output of the offspring to determine life expectancy
      for the cross-sectional analysis. **/
 
@@ -101,13 +102,22 @@ void outputForSimulatedLifespan(const indVec& deadIndividuals){
         exit(EXIT_FAILURE);
     }
     
+    // write header
+    ofs << "ID" << " "
+    << "ageAtDeath" << " "
+    << "maternalAge" << " "
+    << "paternalAge" << " ";
+    for (auto i : p.param_names_to_record) ofs << i << " "; // varying params
+    ofs << "\n";
+    
     // loop through the dead offspring
     for (size_t ind = 0; ind < deadIndividuals.size(); ++ind){
         ofs << ind << " " // use index as ID
         << deadIndividuals[ind].age << " " // age at death of individual
         << deadIndividuals[ind].ageOfMother << " " // write maternal age at birth
         << deadIndividuals[ind].ageOfFather << "\n"; // write paternal age at birth
-        
+        for (auto i : p.params_to_record) ofs << i << " "; // varying param value
+        ofs << "\n";
     }
 
     ofs.close();
