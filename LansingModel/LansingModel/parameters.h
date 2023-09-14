@@ -9,13 +9,13 @@
 
 struct Parameters {
     // initialise the parameters
-    Parameters() : populationSize(1000), // N in manuscript
+    Parameters() : populationSize(10000), // N in manuscript
                    initDamageProportion(0.1),
                    numOfOffspringPerFemale(1), // o in manuscript
                    mutationProb(0.002), // mu_b in manuscript
                    extrinsicMortRisk(0.0),
                    outputTime(10),
-                   tEnd(20000),
+                   tEnd(100000),
                    strengthOfSelection(-0.05), // s in manuscript
                    maximumAge(40), // M in manuscript
                    mutationProbStemcell(0.002), // mu_b in manuscript
@@ -30,14 +30,14 @@ struct Parameters {
                    sdMutationalEffectInvestmentInRepair(0.02), // sigma in manuscript
                    mutationProbInvestmentGenes(0.002), // mu_a in manuscript
                    weightInvestment(0.3), // c in manuscript
-                   scalingStrengthOfAllocationToReproduce(1), // d in manuscript
+                   scalingStrengthOfAllocationToReproduce(-0.5), // d in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
-                   steepnessAllocationToReproduce(3), // a in manuscript
+                   steepnessAllocationToReproduce(4), // a in manuscript
                    includeRecombination(true),
-                   addBinary(true),
+                   addBinary(false),
                    addAgeSpecific(false),
-                   addQuality(false),
-                   addInvestmentInRepair(false){}
+                   addQuality(true),
+                   addInvestmentInRepair(true){}
     
     unsigned int populationSize; // total population size
     float initDamageProportion; // the proportion of initial damage in the binary genes
