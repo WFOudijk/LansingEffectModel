@@ -30,9 +30,9 @@ struct Parameters {
                    sdMutationalEffectInvestmentInRepair(0.02), // sigma in manuscript
                    mutationProbInvestmentGenes(0.002), // mu_a in manuscript
                    weightInvestment(0.3), // c in manuscript
-                   scalingStrengthOfAllocationToReproduce(-0.5), // d in manuscript
+                   scalingStrengthOfAllocationToReproduce(2), // d in manuscript
                    numOfOffspringForOffspringLifespanSim(10),
-                   steepnessAllocationToReproduce(4), // a in manuscript
+                   steepnessAllocationToReproduce(3), // a in manuscript
                    includeRecombination(true),
                    addBinary(false),
                    addAgeSpecific(false),
