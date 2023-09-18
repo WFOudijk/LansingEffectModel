@@ -181,7 +181,7 @@ void Parameters::readParameters(const std::string& parameterFile){
         }
         else break;
     }
-    if (!params_to_record.empty()){
+    if (!temp_params_to_record.empty()){
         param_names_to_record = split(temp_params_to_record);
         params_to_record = create_params_to_record(param_names_to_record);
     }
