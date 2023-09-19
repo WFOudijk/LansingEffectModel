@@ -6,6 +6,14 @@
 
 
 ###############################################################################
+library(cowplot)
+library(tidyverse)
+library(mgcv)
+library(MetBrewer)
+library(ggpubr)
+library(grid) # check if necessary 
+library(gridExtra)
+library(R.filesets)
 
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/data/"
 output_path_data <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/output_data/"
@@ -23,9 +31,9 @@ theme_plots <- theme(axis.text = element_text(size=15,face="plain",color="black"
                      axis.line = element_line(color="black", linewidth = 1.0),
                      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
                      text = element_text(size = 13),
-                     legend.position = c(0.84, 0.86),
-                     legend.text = element_text(size = 15),
-                     legend.title = element_text(size = 16))
+                     legend.position = "none")
+                     #legend.text = element_text(size = 15),
+                     #legend.title = element_text(size = 16))
 
 
 # define equation 1
@@ -126,10 +134,6 @@ path_rema_eq1 <- paste0(path_rema, "eq1/")
 # resource-only 
 parent_path <- paste0(path_rema_eq1, "resource_eq1/") 
 name = "resource_eq1"
-
-# resource + parental care quality
-parent_path <- paste0(path_rema, "resource_parentalQuality_eq1/") 
-name = "resource_quality_eq1"
 
 f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
 allData <- c()
@@ -304,23 +308,22 @@ saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormaliz
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_eq1"
+predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+
 # plot the normalized data grouped by weight investment
 p3 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                          group = weightInvestment, 
-                                         colour = weightInvestment, 
-                                         shape = weightInvestment)) +
+                                         colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$weightInvestment)) +
-  geom_point() +
-  labs(title = name ) +
-       #x = "Normalized parental age",
-       #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)])
+
   scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -368,23 +371,20 @@ for (i in levels(as.factor(found$weightInvestment))){
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
 
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
 
 # plot 
 p4 <- ggplot(combine_data, aes(age, mean, 
                          group= weightInvestment, 
-                         colour = weightInvestment, 
-                         shape = weightInvestment)) +
+                         colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$weightInvestment)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
 
 # RESOURCE + BASELINE 
 
@@ -565,23 +565,22 @@ saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormaliz
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_baseline_eq1"
+predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+
 # plot the normalized data grouped by weight investment
 p7 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                           group = weightInvestment, 
-                                          colour = weightInvestment, 
-                                          shape = weightInvestment)) +
+                                          colour = weightInvestment)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$weightInvestment)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)])
+
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -629,22 +628,20 @@ for (i in levels(as.factor(found$weightInvestment))){
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+
 # plot 
 p8 <- ggplot(combine_data, aes(age, mean, 
                                group= weightInvestment, 
-                               colour = weightInvestment, 
-                               shape = weightInvestment)) +
+                               colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$weightInvestment)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
 
 # RESOURCE + GAMETE 
 
@@ -823,23 +820,22 @@ saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormaliz
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_gamete_eq1"
+predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+
 # plot the normalized data grouped by weight investment
 p11 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                           group = weightInvestment, 
-                                          colour = weightInvestment, 
-                                          shape = weightInvestment)) +
+                                          colour = weightInvestment)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$weightInvestment)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -887,23 +883,22 @@ for (i in levels(as.factor(found$weightInvestment))){
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+
 # plot 
 p12 <- ggplot(combine_data, aes(age, mean, 
                                group= weightInvestment, 
-                               colour = weightInvestment, 
-                               shape = weightInvestment)) +
+                               colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$weightInvestment)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
-              alpha = 0.2, colour = NA) 
-# RESOURCE + GAMETE 
+              alpha = 0.2, colour = NA) +
+  theme_plots
+
+# RESOURCE + QUALITY
 
 # resource-only 
 parent_path <- paste0(path_rema_eq1, "resource_parentalQuality_eq1/") 
@@ -1079,23 +1074,22 @@ saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormaliz
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_quality_eq1"
+predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+
 # plot the normalized data grouped by weight investment
 p15 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                            group = weightInvestment, 
-                                           colour = weightInvestment, 
-                                           shape = weightInvestment)) +
+                                           colour = weightInvestment)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$weightInvestment)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -1143,22 +1137,20 @@ for (i in levels(as.factor(found$weightInvestment))){
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+
 # plot 
 p16 <- ggplot(combine_data, aes(age, mean, 
                                 group= weightInvestment, 
-                                colour = weightInvestment, 
-                                shape = weightInvestment)) +
+                                colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$weightInvestment)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
 
 ########## EQUATION 2 ##########
 
@@ -1337,23 +1329,22 @@ saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalN
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_eq2"
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+
 # plot the normalized data grouped by weight investment
 p5 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                            group = steepnessAllocationToReproduce, 
-                                           colour = steepnessAllocationToReproduce, 
-                                           shape = steepnessAllocationToReproduce)) +
+                                           colour = steepnessAllocationToReproduce)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+  
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -1396,22 +1387,20 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+
 # plot 
 p6 <- ggplot(combine_data, aes(age, mean, 
                                 group= steepnessAllocationToReproduce, 
-                                colour = steepnessAllocationToReproduce, 
-                                shape = steepnessAllocationToReproduce)) +
+                                colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
 
 # RESOURCE + BASELINE
 
@@ -1579,23 +1568,22 @@ saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalN
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_baseline_eq2"
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+
 # plot the normalized data grouped by weight investment
 p9 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                           group = steepnessAllocationToReproduce, 
-                                          colour = steepnessAllocationToReproduce, 
-                                          shape = steepnessAllocationToReproduce)) +
+                                          colour = steepnessAllocationToReproduce)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -1638,22 +1626,21 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+
 # plot 
 p10 <- ggplot(combine_data, aes(age, mean, 
                                group= steepnessAllocationToReproduce, 
-                               colour = steepnessAllocationToReproduce, 
-                               shape = steepnessAllocationToReproduce)) +
+                               colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
+
 
 # RESOURCE + GAMETE
 
@@ -1821,23 +1808,22 @@ saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalN
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_gamete_eq2"
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+
 # plot the normalized data grouped by weight investment
 p13 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                           group = steepnessAllocationToReproduce, 
-                                          colour = steepnessAllocationToReproduce, 
-                                          shape = steepnessAllocationToReproduce)) +
+                                          colour = steepnessAllocationToReproduce)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -1880,22 +1866,20 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+
 # plot 
 p14 <- ggplot(combine_data, aes(age, mean, 
                                 group= steepnessAllocationToReproduce, 
-                                colour = steepnessAllocationToReproduce, 
-                                shape = steepnessAllocationToReproduce)) +
+                                colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
 
 # RESOURCE + PARENTAL CARE QUALITY
 
@@ -2076,23 +2060,22 @@ saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalN
 saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
 saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
 
+name = "resource_and_parentalQuality_eq2"
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+
 # plot the normalized data grouped by weight investment
 p17 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                            group = steepnessAllocationToReproduce, 
-                                           colour = steepnessAllocationToReproduce, 
-                                           shape = steepnessAllocationToReproduce)) +
+                                           colour = steepnessAllocationToReproduce)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name ) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  theme_plots 
+  theme_plots +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+  
 scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
   scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
 
@@ -2135,31 +2118,33 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
 saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+
 # plot 
 p18 <- ggplot(combine_data, aes(age, mean, 
                                 group= steepnessAllocationToReproduce, 
-                                colour = steepnessAllocationToReproduce, 
-                                shape = steepnessAllocationToReproduce)) +
+                                colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Egypt", 11)) +
-  scale_shape_manual(values=1:nlevels(combine_data$steepnessAllocationToReproduce)) +
-  geom_point() +
-  labs(title = name) +
-  #x = "Normalized parental age",
-  #y = "Normalized offspring age at death") +
-  theme_cowplot() +
+  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
-              alpha = 0.2, colour = NA) 
+              alpha = 0.2, colour = NA) +
+  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
+  theme_plots
+  
 
 ############ make grid ##################
 
-resource_matrix <- plot_grid(p1, p2,
-                             p3, p4, p5, p6,
-                             p7, p8, p9, p10,
-                             p11, p12, p13, p14,
-                             p15, p16, p17, p18,
-                         ncol = 4, align = "hv", axis = "brlt", labels = "AUTO", label_x = 0.88, label_y = 0.97)
+top_row <- plot_grid(p1, p2, ncol = 2)
+bottom_part <- plot_grid(p3, p4, p5, p6,
+                         p7, p8, p9, p10,
+                         p11, p12, p13, p14,
+                         p15, p16, p17, p18,
+                         ncol = 4)
+bottom_part
+resource_matrix <- plot_grid(top_row, bottom_part, ncol = 1)
+                        # ncol = 4, align = "hv", axis = "brlt", labels = "AUTO", label_x = 0.88, label_y = 0.97)
 resource_matrix
 
 ############ until here #################
