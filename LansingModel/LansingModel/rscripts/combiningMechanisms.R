@@ -1019,7 +1019,7 @@ models <- loadRDS("models.rds")
 
 # the gam model
 run_model <- function(data) {
-  tmp <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = 4), data=data,method = "REML")
+  tmp <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = 4), data = data, method = "REML")
   return(tmp)
 }
 
@@ -1094,6 +1094,9 @@ saveRDS(allData, file = "allData.rds")
 saveRDS(models, file = "models.rds")
 saveRDS(allDataComplete, file = "allDataComplete.rds")
 
+allData <- loadRDS("allData.rds")
+models <- loadRDS("models.rds")
+
 # loop through the scenarios 
 allData$scenario <- factor(allData$scenario)
 allData$rep <- factor(allData$rep)
@@ -1101,6 +1104,9 @@ allData$rep <- factor(allData$rep)
 # to save all data 
 predDataTotal <- c()
 predDataTotalNormalized <- c()
+percentiles <- data.frame(levels(allData$scenario))
+colnames(percentiles) <- c("scenario")
+percentiles$percentile <- 0
 # go per scenario through the data 
 for (x in levels(allData$scenario)){
   # make subset of scenario 
@@ -1136,6 +1142,7 @@ for (x in levels(allData$scenario)){
   
   # get 95th percentile 
   percentile <- quantile(sub$maternalAge, probs = 0.95)
+  percentiles[percentiles$scenario == x,]$percentile <- percentile
   # cut-off the data at that percentile 
   pred_data <- pred_data[pred_data$maternalAge <= percentile,]
   # normalize the axes between 0 and 1 
@@ -1147,6 +1154,8 @@ for (x in levels(allData$scenario)){
   # save the data 
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data)
 }
+
+saveRDS(percentiles, "percentiles.RDS")
 
 # plot the normalized data grouped by scenario
 ggplot(predDataTotalNormalized, aes(maternalAge, mean, group=scenario, colour = scenario, shape = scenario)) +
@@ -1160,7 +1169,7 @@ ggplot(predDataTotalNormalized, aes(maternalAge, mean, group=scenario, colour = 
   geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2) 
 
 ###############################################################################
-# Plotting the scenarios in a 4x4 matrix.   
+# Generating the plots per scenario  
 ###############################################################################
 # get the scenarios relevant for the matrix plot
 scenarios <- c()
@@ -1742,7 +1751,7 @@ allAvgs <- allAvgs %>% mutate(lwr = as.numeric(lwr),
 
 # with 95% CIs. 
 legend_title <- "Mutation probability for age-specific 
-resource allocation genes"
+survival genes"
 ggplot(allAvgs, aes(ageOfParent, avgOffspringLifespan, group = mutProb, colour = mutProb)) +
   geom_line() +
   geom_ribbon(data = allAvgs,
@@ -1924,3 +1933,5 @@ ggplot(tmp, aes(age, (1-mean))) + geom_line() +
   theme(axis.text = element_text(size=17,face="plain",color="black"), 
         axis.title = element_text(size = 17))
 ggsave("ppResourceNull.pdf", width = 12, height = 8)
+
+

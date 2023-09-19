@@ -9,6 +9,7 @@
 ###############################################################################
 # Supplementary materials: looking at parameter simulations longitudinal. 
 # with ten replicates for the confidence intervals. 
+# for figures S1 - S4
 ###############################################################################
 # standard format for images. 
 # plot the normalized data grouped by mutation prob
@@ -43,6 +44,7 @@ ggsave("baseline_ps.pdf", width = 12, height = 8)
 
 
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/manuscript/"
+output_path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/Figures/"
 
 # BASELINE 
 
@@ -66,9 +68,9 @@ parent_path <- paste0(path, "baseline/figure_s1/") # final parameter sim for in 
 name = "Figure_s1"
 
 f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
-allDataBaseline <- c()
-allDataCompleteBaseline <- c()
-modelsBaseline <- list()
+allData <- c()
+allDataComplete <- c()
+models <- list()
 counter = 0
 # paste all data together
 for (i in 1:length(f)) {
@@ -94,7 +96,7 @@ for (i in 1:length(f)) {
   local_data <- local_data %>% left_join(z,by="ID")
   local_data <- local_data %>% mutate(mutationProbAgeSpecificGenes = factor(mutationProbAgeSpecificGenes))
   
-  allDataCompleteBaseline <- rbind(allDataCompleteBaseline, local_data) # for the maternal age distribution plot 
+  allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
   
   # perform gam
   local_data <- local_data %>% filter(na > 6)
@@ -109,7 +111,7 @@ for (i in 1:length(f)) {
   # sample 100 parents by their IDs
   local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
   # save the data
-  allDataBaseline <- rbind(allDataBaseline, local_data)
+  allData <- rbind(allData, local_data)
     
   # GAM 
   d <- local_data
@@ -133,31 +135,31 @@ for (i in 1:length(f)) {
   # run model 
   mod <- run_model(d2)
   # save model in list 
-  modelsBaseline[[i]] <- mod
+  models[[i]] <- mod
   # rename model to be unique for replicate and scenario
-  names(modelsBaseline)[i] <- paste0("model_", rep)
+  names(models)[i] <- paste0("model_", rep)
 }
 print(paste0("number of skipped replicates: ", counter))
 
 # save the R data just in case. 
-saveRDS(allDataBaseline, file = paste0("allDataBaseline_", name, ".rds"))
-saveRDS(modelsBaseline, file = paste0("modelsBaseline_", name, ".rds"))
-saveRDS(allDataCompleteBaseline, file = paste0("allDataCompleteBaseline_", name, ".rds"))
+saveRDS(allData, file = paste0("allData_", name, ".rds"))
+saveRDS(models, file = paste0("models_", name, ".rds"))
+saveRDS(allDataComplete, file = paste0("allDataComplete_", name, ".rds"))
 
-allDataBaseline$rep <- factor(allDataBaseline$rep)
+allData$rep <- factor(allData$rep)
 logist <- function(x) 40/(1+exp(-x))
 
-allDataBaseline <- loadRDS(paste0("allDataBaseline_", name, ".rds"))
-modelsBaseline <- loadRDS(paste0("modelsBaseline_", name, ".rds"))
-allDataCompleteBaseline <- loadRDS(paste0("allDataCompleteBaseline_", name, ".rds"))
+allData <- loadRDS(paste0("allData_", name, ".rds"))
+models <- loadRDS(paste0("models_", name, ".rds"))
+allDataComplete <- loadRDS(paste0("allDataComplete_", name, ".rds"))
 
 # to save all data 
 predDataTotal <- c()
 predDataTotalNormalized <- c()
 # go per scenario through the data 
-for (x in levels(allDataBaseline$mutationProbAgeSpecificGenes)){
+for (x in levels(allData$mutationProbAgeSpecificGenes)){
   # make subset of scenario 
-  sub <- allDataBaseline[allDataBaseline$mutationProbAgeSpecificGenes == x,]
+  sub <- allData[allData$mutationProbAgeSpecificGenes == x,]
   # refactor the replicates of the subset 
   sub <- sub %>% mutate(rep = factor(rep))
   # make data expansion 
@@ -168,9 +170,9 @@ for (x in levels(allDataBaseline$mutationProbAgeSpecificGenes)){
   # loop through the replicates
   for (i in levels(sub$rep)){
     mod <- paste0("model_", i)
-    index <- which(names(modelsBaseline) == mod)
+    index <- which(names(models) == mod)
     new_col <- paste("rep", i, sep = "")
-    tmp <- predict(modelsBaseline[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+    tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
     # add to predicted data with adjusting for the intercept. 
     pred_data[[new_col]] <- tmp + attr(tmp, "constant")
   }
@@ -293,6 +295,10 @@ parent_path <- paste0(path, "gamete_damage/figure_s2/") # final parameter sim fo
 name = "Figure_s2"
 parent_path <- paste0(path, "gamete_damage/gamete_small/") # gamete damage accumulation with smaller steps between the parameters
 name <- "Gamete_small_steps"
+parent_path <- paste0(path, "gamete_damage/no_recombination/") # gamete damage accumulation with smaller steps between the parameters
+name <- "Gamete_no_recombination"
+parent_path <- paste0(path, "gamete_damage/no_recombination_2/") # gamete damage accumulation with smaller steps between the parameters
+name <- "Gamete_no_recombination_2"
 
 # GAMETE + BASELINE
 parent_path <- paste0(path, "gamete_baseline/defaults/") # gamete damage accumulation + baseline
@@ -302,9 +308,9 @@ name = "no_bias"
 
 
 f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
-allDataBaseline <- c()
-allDataCompleteBaseline <- c()
-modelsBaseline <- list()
+allData <- c()
+allDataComplete <- c()
+models <- list()
 counter = 0
 # paste all data together
 Sys.time()
@@ -331,7 +337,7 @@ for (i in 1:length(f)) {
   local_data <- local_data %>% left_join(z,by="ID")
   local_data <- local_data %>% mutate(mutationProb = factor(mutationProb))
   
-  allDataCompleteBaseline <- rbind(allDataCompleteBaseline, local_data) # for the maternal age distribution plot 
+  allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
 
   # perform gam
   local_data <- local_data %>% filter(na > 6)
@@ -346,7 +352,7 @@ for (i in 1:length(f)) {
   # sample 100 parents by their IDs
   local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
   # save the data
-  allDataBaseline <- rbind(allDataBaseline, local_data)
+  allData <- rbind(allData, local_data)
   
   # GAM 
   d <- local_data
@@ -370,32 +376,32 @@ for (i in 1:length(f)) {
   # run model 
   mod <- run_model(d2)
   # save model in list 
-  modelsBaseline[[i]] <- mod
+  models[[i]] <- mod
   # rename model to be unique for replicate and scenario
-  names(modelsBaseline)[i] <- paste0("model_", rep, "_", d2$mutationProb)
+  names(models)[i] <- paste0("model_", rep, "_", d2$mutationProb)
 }
 Sys.time()
 print(paste0("number of skipped replicates: ", counter))
 
 # save the R data just in case. 
-saveRDS(allDataBaseline, file = paste0("allDataBaseline_", name, ".rds"))
-saveRDS(modelsBaseline, file = paste0("modelsBaseline_", name, ".rds"))
-saveRDS(allDataCompleteBaseline, file = paste0("allDataCompleteBaseline_", name, ".rds"))
+saveRDS(allData, file = paste0("allData_", name, ".rds"))
+saveRDS(models, file = paste0("models_", name, ".rds"))
+saveRDS(allDataComplete, file = paste0("allDataComplete_", name, ".rds"))
 
-allDataBaseline$rep <- factor(allDataBaseline$rep)
+allData$rep <- factor(allData$rep)
 logist <- function(x) 40/(1+exp(-x))
 
-allDataBaseline <- loadRDS(paste0("allDataBaseline_", name, ".rds"))
-modelsBaseline <- loadRDS(paste0("modelsBaseline_", name, ".rds"))
-allDataCompleteBaseline <- loadRDS(paste0("allDataCompleteBaseline_", name, ".rds"))
+allData <- loadRDS(paste0("allData_", name, ".rds"))
+models <- loadRDS(paste0("models_", name, ".rds"))
+allDataComplete <- loadRDS(paste0("allDataComplete_", name, ".rds"))
 
 # to save all data 
 predDataTotal <- c()
 predDataTotalNormalized <- c()
 # go per scenario through the data 
-for (x in levels(allDataBaseline$mutationProb)){
+for (x in levels(allData$mutationProb)){
   # make subset of scenario 
-  sub <- allDataBaseline[allDataBaseline$mutationProb == x,]
+  sub <- allData[allData$mutationProb == x,]
   # refactor the replicates of the subset 
   sub <- sub %>% mutate(rep = factor(rep))
   # make data expansion 
@@ -406,9 +412,9 @@ for (x in levels(allDataBaseline$mutationProb)){
   # loop through the replicates
   for (i in levels(sub$rep)){
     mod <- paste0("model_", i, "_", sub$mutationProb[1])
-    index <- which(names(modelsBaseline) == mod)
+    index <- which(names(models) == mod)
     new_col <- paste("rep", i, sep = "")
-    tmp <- predict(modelsBaseline[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+    tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
     # add to predicted data with adjusting for the intercept. 
     pred_data[[new_col]] <- tmp + attr(tmp, "constant")
   }
@@ -447,8 +453,8 @@ for (x in levels(allDataBaseline$mutationProb)){
 
 saveRDS(predDataTotalNormalized, file = paste0("predDataTotalNormalized_", name, ".rds"))
 
-predDataTotalNormalized_gamete_baseline_no_bias <- predDataTotalNormalized
-predDataTotal_gamete_baseline_no_bias <- predDataTotal
+predDataTotalNormalized_gamete_no_recombination_2<- predDataTotalNormalized
+predDataTotal_gamete_no_recombination_2 <- predDataTotal
 
 # load from saved extra in environment 
 
@@ -470,24 +476,57 @@ predDataTotalNormalized <- predDataTotalNormalized_gamete_small
 predDataTotal <- predDataTotal_gamete_small
 name = "gamete_small_steps"
 
+# gamete without recombination 
+predDataTotalNormalized <- predDataTotalNormalized_gamete_no_recombination
+predDataTotal <- predDataTotal_gamete_no_recombination
+name = "gamete_no_recombination"
+
+# gamete without recombination 
+predDataTotalNormalized <- predDataTotalNormalized_gamete_no_recombination_2
+predDataTotal <- predDataTotal_gamete_no_recombination_2
+name = "gamete_no_recombination_2"
+
+# test: 
+mean(allData[allData$mutationProb == 0.0013,]$ageAtDeath) # 16.6064
+mean(allData[allData$mutationProb == 0.0055,]$ageAtDeath) # 3.349037
+nrow(allData[allData$mutationProb == 0.0013 & allData$maternalAge == 39,]) # 183
+nrow(allData[allData$mutationProb == 0.0055 & allData$maternalAge == 39,]) # 6
+# too high mutation rate results in low number of old parents. The ones that do get to 
+# the older age classes have a good genome. So, we do not see a difference
+# between young and old parents. > should this nt be fixed by looking at it longitdudinal? 
+
+
+mean(allData[allData$mutationProb == 0.0055 & allData$maternalAge < 10,]$ageAtDeath) # 3.386
+mean(allData[allData$mutationProb == 0.0055 & allData$maternalAge > 30,]$ageAtDeath) # 2.3289
+2.3289 / 3.386 # = 0.69; you would still expect to see a decrease. 
+mean(allData[allData$mutationProb == 0.0013 & allData$maternalAge < 10,]$ageAtDeath) # 17.4128
+mean(allData[allData$mutationProb == 0.0013 & allData$maternalAge > 30,]$ageAtDeath) # 13.4559
+13.4559 / 17.4128 # = 0.77; even a less strong decrease. 
+
+quantile(allData[allData$mutationProb == 0.0013,]$maternalAge, probs = 0.95) # 36
+quantile(allData[allData$mutationProb == 0.0055,]$maternalAge, probs = 0.95) # 21
+# quantiles differ a lot. 
+mean(allData[allData$mutationProb == 0.0055 & allData$maternalAge < 10,]$ageAtDeath) # 3.386
+mean(allData[allData$mutationProb == 0.0055 & allData$maternalAge == 21,]$ageAtDeath) # 3.742
+3.742 / 3.386 # = 1.105; even a small increase. 
+
 # load from RDS
 #predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".rds"))
 
-predDataTotalNormalized_tmp <- predDataTotalNormalized[order(as.numeric(predDataTotalNormalized$mutationProb)),]
-
 # plot the normalized data grouped by mutation prob
+# [predDataTotalNormalized$mutationProb %in% c(0.0003, 0.0013, 0.0024, 0.0055),]
 ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                     group=mutationProb, 
-                                    colour = mutationProb, 
+                                    colour = mutationProb,
                                     shape = mutationProb)) +
   geom_line() +
   scale_color_manual(values = met.brewer("Egypt", 14)) +
-  scale_shape_manual(values=1:nlevels(predDataTotalNormalized$mutationProb)) +
+  scale_shape_manual(values=nlevels(predDataTotalNormalized$mutationProb):8) +
   geom_point() +
   labs(title = name,
        x = "Normalized parental age",
        y = "Normalized offspring age at death") +
-  theme_cowplot() 
+  theme_cowplot() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = mutationProb), 
               alpha = 0.2, colour = NA) 
@@ -527,6 +566,14 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   parent_path <- paste0(path, "parental_care/no_bias/") # with mutation bias
   name = "parental_care_no_bias"
   
+  # reading all data and saving both the data as the gam models. 
+  parent_path <- paste0(path, "parental_care/varying_bias/") # with mutation bias
+  name = "parental_care_varying_bias"
+  
+  # reading all data and saving both the data as the gam models. 
+  parent_path <- paste0(path, "gamete_baseline/varying_bias/") # with mutation bias
+  name = "gamete_and_baseline_vary_bias"
+  
   f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
   allData <- c()
   allDataComplete <- c()
@@ -549,13 +596,13 @@ ggplot(predDataTotal, aes(maternalAge, mean,
     local_data$rep <- rep
     #local_data$scenario <- scenario
     # rename ID so it is unique per replicate per parameter setting
-    local_data$ID <- sub("^", local_data$mutationProbAgeSpecificGenes[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$meanMutationBias[1], paste0("_", local_data$ID))
     local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
     # subset parents 
     z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
     ## Add the counter to data
     local_data <- local_data %>% left_join(z,by="ID")
-    local_data <- local_data %>% mutate(mutationProbAgeSpecificGenes = factor(mutationProbAgeSpecificGenes))
+    local_data <- local_data %>% mutate(meanMutationBias = factor(meanMutationBias))
     
     allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
     
@@ -598,7 +645,7 @@ ggplot(predDataTotal, aes(maternalAge, mean,
     # save model in list 
     models[[i]] <- mod
     # rename model to be unique for replicate and scenario
-    names(models)[i] <- paste0("model_", rep, "_", d2$mutationProbAgeSpecificGenes)
+    names(models)[i] <- paste0("model_", rep, "_", d2$meanMutationBias)
   }
   Sys.time()
   print(paste0("number of skipped replicates: ", counter))
@@ -619,19 +666,19 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   predDataTotal <- c()
   predDataTotalNormalized <- c()
   # go per scenario through the data 
-  for (x in levels(allData$mutationProbAgeSpecificGenes)){
+  for (x in levels(allData$meanMutationBias)){
     # make subset of scenario 
-    sub <- allData[allData$mutationProbAgeSpecificGenes == x,]
+    sub <- allData[allData$meanMutationBias == x,]
     # refactor the replicates of the subset 
     sub <- sub %>% mutate(rep = factor(rep))
     # make data expansion 
     pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
                             ID = levels(sub$ID)[1],
-                            mutationProbAgeSpecificGenes = sub$mutationProbAgeSpecificGenes[1]) 
+                            meanMutationBias = sub$meanMutationBias[1]) 
     
     # loop through the replicates
     for (i in levels(sub$rep)){
-      mod <- paste0("model_", i, "_", sub$mutationProbAgeSpecificGenes[1])
+      mod <- paste0("model_", i, "_", sub$meanMutationBias[1])
       index <- which(names(models) == mod)
       new_col <- paste("rep", i, sep = "")
       tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
@@ -673,8 +720,8 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   
   saveRDS(predDataTotalNormalized, file = paste0("predDataTotalNormalized_", name, ".rds"))
   
-  predDataTotalNormalized_parental_care_no_bias <- predDataTotalNormalized
-  predDataTotal_parental_care_no_bias <- predDataTotal
+  predDataTotalNormalized_gamete_baseline_vary_bias <- predDataTotalNormalized
+  predDataTotal_gamete_baseline_vary_bias <- predDataTotal
   
   # load from saved extra in environment 
   predDataTotalNormalized <- predDataTotalNormalized_parental_care_defaults
@@ -685,6 +732,11 @@ ggplot(predDataTotal, aes(maternalAge, mean,
   predDataTotalNormalized <- predDataTotalNormalized_parental_care_no_bias
   predDataTotal <- predDataTotal_parental_care_no_bias
   name = "parental_care_no_bias"
+  
+  # load from saved extra in environment 
+  predDataTotalNormalized <- predDataTotalNormalized_parental_care_vary_bias
+  predDataTotal <- predDataTotal_parental_care_vary_bias
+  name = "parental_care_vary_bias"
   
   # load from RDS
   #predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".rds"))
@@ -721,6 +773,22 @@ ggplot(predDataTotal, aes(maternalAge, mean,
     theme_cowplot() 
   geom_ribbon(data = predDataTotal,
               aes(ymin = min, ymax = max,  fill = mutationProbAgeSpecificGenes), 
+              alpha = 0.2, colour = NA) 
+  
+  ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                      group=meanMutationBias, 
+                                      colour = meanMutationBias, 
+                                      shape = meanMutationBias)) +
+    geom_line() +
+    scale_color_manual(values = met.brewer("Egypt", 14)) +
+    scale_shape_manual(values=1:nlevels(predDataTotalNormalized$meanMutationBias)) +
+    geom_point() +
+    labs(title = name,
+         x = "Normalized parental age",
+         y = "Normalized offspring age at death") +
+    theme_cowplot() 
+  geom_ribbon(data = predDataTotalNormalized,
+              aes(ymin = min, ymax = max,  fill = meanMutationBias), 
               alpha = 0.2, colour = NA) 
   
   ###############################################################################
@@ -935,12 +1003,17 @@ ggplot(predDataTotal, aes(maternalAge, mean,
 path_s <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/ResearchProject1/data/combiningAll/"
 
 parent_path <- paste0(path_s, "combiningAll3/resource/")
+name = "resource"
 parent_path <- paste0(path_s, "combiningAll3/nullResource/")
+name = "nullResource"
 parent_path <- paste0(path_s, "combiningAll3/qualityResource/")
+name = "qualityResource"
+
+# load the corresponding percentiles for the cut-off
+percentiles <- loadRDS("percentiles.RDS")
 
 f <- list.files(path = parent_path, pattern = "outputWithAgeSpecificGenes.txt", recursive = T, all.files = T)
 found <- c()
-found_2 <- c()
 for (x in f) {
   # get path 
   file_name <- paste0(parent_path, x)
@@ -962,12 +1035,6 @@ for (x in f) {
   local_data$ID <- sub("^", local_data$rep[1], local_data$ID)
   
   found <- rbind(found, local_data)
-  
-  # read longitudinal data to determine the 95th percentile. 
-  file_name_2 <- paste0(parent_path, rep, "/outputLifeExpLong.txt")
-  local_data_2 <- read.table(file_name_2, header = F)
-  colnames(local_data_2) <- c("ID", "ageAtDeath", "maternalAge", "paternalAge")
-  found_2 <- rbind(found_2, local_data_2)
 }
 
 # determine the mean per replicate. 
@@ -984,7 +1051,7 @@ repVals <- subset(data_per_rep, select = 2:ncol(data_per_rep))
 data_per_rep$mean <- rowMeans(repVals)
 data_per_rep$min <- apply(repVals, 1, min)
 data_per_rep$max <- apply(repVals, 1, max)
-cut_off <- quantile(found_2$maternalAge, probs = 0.95) # ageAtDeath > maternalAge for nullResource. maternalAge > ageAtDeath for qualityResource. 
+cut_off <- percentiles[percentiles$scenario == name,]$percentile
 data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] # cut off at 95th percentile
 
 ggplot(data_per_rep, aes(age, (1-mean))) + geom_line() +
@@ -995,10 +1062,18 @@ ggplot(data_per_rep, aes(age, (1-mean))) + geom_line() +
   allocated to reproduction") +
   scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
   theme(axis.text = element_text(size=17,face="plain",color="black"), 
-        axis.title = element_text(size = 17)) 
+        axis.title = element_text(size = 17)) +
+  theme(axis.text = element_text(size=15,face="plain",color="black"),
+        axis.title = element_text(size = 16),
+        axis.line = element_line(color="black", linewidth = 1.0),
+        panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
+        text = element_text(size = 13),
+        legend.position = c(0.84, 0.86),
+        legend.text = element_text(size = 15),
+        legend.title = element_text(size = 16)) 
   scale_x_continuous(breaks = seq(0, 9, 3),
                      limits = c(0, 9))
-ggsave("ppResourceNull.pdf", width = 12, height = 8)
+ggsave(paste0(output_path, "figureS5.pdf"), width = 12, height = 8)
 
   
 ###############################################################################
@@ -1087,3 +1162,103 @@ for (x in levels(allDataComplete$scenario)){
     # adjust name to corresponding scenario run
     names(plotsAgeDist)[i] <- paste("p_", scenarios[i], sep = "") 
   }
+  
+  
+  
+no_rc <- read.table(paste0(path, "gamete_damage/check_rc/no_rc/outputLifeExp2.txt"))
+colnames(no_rc) <- c("ID", "ageAtDeath", "maternalAge", "paternalAge")
+mean(no_rc$ageAtDeath)
+
+rc <- read.table(paste0(path, "gamete_damage/check_rc/rc/outputLifeExp2.txt"))
+colnames(rc) <- c("ID", "ageAtDeath", "maternalAge", "paternalAge")
+mean(rc$ageAtDeath)
+
+# resource - old code. 
+# resource-only 
+parent_path <- paste0(path_rema, "resource_eq1/") 
+name = "resource_eq1"
+
+# resource + parental care quality
+parent_path <- paste0(path_rema, "resource_parentalQuality_eq1/") 
+name = "resource_quality_eq1"
+
+f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+allData <- c()
+allDataComplete <- c()
+models <- list()
+counter = 0
+# paste all data together
+Sys.time()
+for (i in 1:length(f)) {
+  x <- f[i]
+  # get path 
+  file_name <- paste0(parent_path, x)
+  # extract replicate from file name 
+  splitted_path <- strsplit(file_name, "/")
+  nRep <- length(splitted_path[[1]]) - 1
+  rep <- splitted_path[[1]][nRep]
+  # read data
+  local_data <- read.table(file_name, header = T)
+  # add replicate as column 
+  local_data$rep <- rep
+  # rename ID so it is unique per replicate per parameter setting
+  local_data$ID <- sub("^", local_data$weightInvestment[1], paste0("_", local_data$ID))
+  local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+  # subset parents 
+  z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+  ## Add the counter to data
+  local_data <- local_data %>% left_join(z,by="ID")
+  local_data <- local_data %>% mutate(weightInvestment = factor(weightInvestment))
+  
+  allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+  
+  # perform gam
+  # filter parents that had offspring at at least 6 different ages 
+  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% mutate(ID = factor(ID)) 
+  
+  # check if enough IDs are present to sample 
+  to_sample <- 100 
+  if (length(unique(local_data$ID)) < to_sample){
+    counter = counter + 1
+    next
+  }
+  # sample 100 parents by their IDs
+  local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
+  # save the data
+  allData <- rbind(allData, local_data)
+  
+  # GAM 
+  d <- local_data
+  # normalize between 0 and 1 
+  d2 <- d %>% mutate(y2 = ageAtDeath/40)
+  ## Work with logits (then (0,1) -> (-inf,+inf))
+  d2 <- d2 %>% mutate(y3 = car::logit(y2))
+  d2 <- d2 %>% mutate(ID = factor(ID)) 
+  d2 <- d2 %>% mutate(rep = factor(rep)) 
+  
+  # for gam > determine number of k
+  k = 10; 
+  if (length(levels(as.factor(d2$maternalAge))) < k) { 
+    k = length(levels(as.factor(d2$maternalAge))) 
+  }
+  z = 4
+  if (length(levels(as.factor(d2$ID))) < z) { 
+    z = length(levels(as.factor(d2$ID))) 
+  }
+  # to keep track of where you are in the run 
+  print(d2$rep[1])
+  # run model 
+  mod <- run_model(d2)
+  # save model in list 
+  models[[i]] <- mod
+  # rename model to be unique for replicate and varying parameter
+  names(models)[i] <- paste0("model_", rep, "_", d2$weightInvestment)
+}
+Sys.time()
+
+# save the R data just in case. 
+saveRDS(allData, file = paste0("allData_", name, ".rds"))
+saveRDS(models, file = paste0("models_", name, ".rds"))
+saveRDS(allDataComplete, file = paste0("allDataComplete_", name, ".rds"))
+
