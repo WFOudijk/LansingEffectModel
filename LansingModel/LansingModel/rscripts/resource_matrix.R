@@ -16,8 +16,9 @@ library(gridExtra)
 library(R.filesets)
 
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/data/"
-output_path_data <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/output_data/"
+output_path_data <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/output_data/new/"
 output_path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/Figures/"
+save_output <- TRUE # set to false if you do not want to save all the data
 
 ###############################################################################
 # Resource distribution matrix. 
@@ -31,7 +32,8 @@ theme_plots <- theme(axis.text = element_text(size=15,face="plain",color="black"
                      axis.line = element_line(color="black", linewidth = 1.0),
                      panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
                      text = element_text(size = 13),
-                     legend.position = "none")
+                     legend.position = "none",
+                     plot.title = element_text(hjust = 0.5))
                      #legend.text = element_text(size = 15),
                      #legend.title = element_text(size = 16))
 
@@ -55,21 +57,25 @@ for (i in 1:nrow(dummy_data)){
 }
 
 p1 <- ggplot(dummy_data, aes(x, y, group = as.factor(c), colour = as.factor(c))) + 
-  geom_line() +
-  scale_colour_manual("c", values = met.brewer("Archambault")[c(1, 4, 7)]) +
+  geom_line(linewidth = 1) +
+  scale_colour_manual(name = "", values = met.brewer("Archambault")[c(1, 4, 7)],
+                      labels = c("c = 0.1", "c = 0.3", "c = 0.7")) +
   theme_minimal() +
+  labs(x = expression(paste("Allocation to reproduction (", italic("x"),")")),
+       y = expression(paste("Effect on individual's survival (", m["4a"], ")"))) +
   theme(axis.text = element_text(size=15,face="plain",color="black"),
         axis.title = element_text(size = 16),
         axis.line = element_line(color="black", linewidth = 1.0),
         panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
         text = element_text(size = 13),
-        legend.position = c(0.1, 0.8),
-        legend.text = element_text(size = 15),
-        legend.title = element_text(size = 16)) +
+        legend.position = "bottom",
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 16),
+        legend.key = element_rect(fill = "white", colour = "black")) +
   scale_x_continuous(breaks = seq(0, 1, 0.2),
                      limits = c(0,1)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), 
-                     limits = c(0, 1))
+                     limits = c(0, 1)) 
 
 p1
 
@@ -78,8 +84,8 @@ eq2 <- function(x, a, d) {
   1 / (1 + exp(-a * x - d))
 }
 
-a <- c(4.5, 3, 10)
-d <- c(0, 2, -4)
+a <- c(1, 3, 10)
+d <- c(2.5, 1, -4)
 dummy_data_eq2 <- data.frame(x = seq(0, 1, 0.1))
 dummy_data_eq2$a <- a[1]
 dummy_data_eq2$d <- d[1]
@@ -97,28 +103,35 @@ for (i in 1:nrow(dummy_data_eq2)){
 }
 
 p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(a))) + 
-  geom_line() +
-  scale_colour_manual("a", values = met.brewer("Archambault")[c(1, 4, 7)]) +
+  geom_line(linewidth = 1) +
+  scale_colour_manual("", values = met.brewer("Archambault")[c(1, 4, 7)],
+                      labels = c("a = 1, d = 2.5", "a = 3, d = 1", "a = 10, d = -4")) +
   theme_minimal() +
+  labs(x = expression(paste("Allocation to reproduction (", italic("x"),")")),
+       y = expression(paste("Effect on individual's survival (", m["4b"], ")"))) +
   theme(axis.text = element_text(size=15,face="plain",color="black"),
         axis.title = element_text(size = 16),
         axis.line = element_line(color="black", linewidth = 1.0),
         panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
         text = element_text(size = 13),
-        legend.position = c(0.1, 0.8),
-        legend.text = element_text(size = 15),
-        legend.title = element_text(size = 16)) +
+        legend.position = "bottom",
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 16),
+        legend.key = element_rect(fill = "white", colour = "black")) +
   scale_x_continuous(breaks = seq(0, 1, 0.2),
                      limits = c(0,1)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), 
-                     limits = c(0, 1))
+                     limits = c(0, 1)) 
 
 p2
 
 # set path to data for the resource matrix. 
 path_rema <- paste0(path, "resource_matrix/")
+logist <- function(x) 40/(1+exp(-x))
 
+######################
 # EQUATION 1
+######################
 
 # the gam model
 run_model <- function(data) {
@@ -126,10 +139,14 @@ run_model <- function(data) {
   return(tmp)
 }
 
+color_eq1 <- scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+fill_eq1 <- scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+scale_y_eq1_lansing <- scale_y_continuous(breaks = seq(0, 2, 1), limits = c(0, 2))
+scale_y_eq1_gene_vals <- scale_y_continuous(breaks = seq(0, 1), limits = c(0, 1))
+scale_x <- scale_x_continuous(breaks = seq(0,1), limits = c(0,1))
+
 # set path 
 path_rema_eq1 <- paste0(path_rema, "eq1/")
-
-####### copy from here #################
 
 # resource-only 
 parent_path <- paste0(path_rema_eq1, "resource_eq1/") 
@@ -168,7 +185,7 @@ for (i in 1:length(f)) {
   
   # perform gam
   # filter parents that had offspring at at least 6 different ages 
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # check if enough IDs are present to sample 
@@ -207,7 +224,7 @@ for (i in 1:length(f)) {
   # save model in list 
   models[[i]] <- mod
   # rename model to be unique for replicate and varying parameter
-  names(models)[i] <- paste0("model_", rep, "_", d2$weightInvestment)
+  names(models)[i] <- paste0("model_", rep)
   
   # COLLECT DATA FOR AGE-SPECIFIC FIGURE
   # get path 
@@ -224,19 +241,15 @@ for (i in 1:length(f)) {
 }
 Sys.time()
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+if (save_output) {
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
-  
   allData$rep <- factor(allData$rep)
-  logist <- function(x) 40/(1+exp(-x))
-  
-  #allData <- loadRDS(paste0("allData_", name, ".rds"))
-  #models <- loadRDS(paste0("models_", name, ".rds"))
-  #allDataComplete <- loadRDS(paste0("allDataComplete_", name, ".rds"))
   
   # to save all data 
   predDataTotal <- c()
@@ -302,14 +315,14 @@ saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
     predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
   }
 
-Sys.time() 
-
-saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
-
+if (save_output){
+  saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
+  
 name = "resource_eq1"
-predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
 
 # plot the normalized data grouped by weight investment
 p3 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
@@ -321,11 +334,13 @@ p3 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)])
-
-  scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_lansing +
+  scale_x +
+  labs(x = NULL,
+       y = NULL,
+       title = "Lansing effect") 
 
 # make age-specific figure 
 
@@ -359,32 +374,37 @@ for (i in levels(as.factor(found$weightInvestment))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes between 0 and 1 
+  # normalize the x-axis
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
 
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
-combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
+
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
 # plot 
 p4 <- ggplot(combine_data, aes(age, mean, 
                          group= weightInvestment, 
                          colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_gene_vals +
+  scale_x +
+  labs(x = NULL,
+       y = NULL,
+       title = "Allocation to reproduction") 
 
 # RESOURCE + BASELINE 
 
@@ -425,7 +445,7 @@ for (i in 1:length(f)) {
   
   # perform gam
   # filter parents that had offspring at at least 6 different ages 
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # check if enough IDs are present to sample 
@@ -481,19 +501,15 @@ for (i in 1:length(f)) {
 }
 Sys.time()
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
-
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
-
-#allData <- loadRDS(paste0("allData_", name, ".rds"))
-#models <- loadRDS(paste0("models_", name, ".rds"))
-#allDataComplete <- loadRDS(paste0("allDataComplete_", name, ".rds"))
 
 # to save all data 
 predDataTotal <- c()
@@ -559,30 +575,31 @@ for (x in levels(allData$weightInvestment)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-Sys.time() 
-
-saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_baseline_eq1"
-predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
 
 # plot the normalized data grouped by weight investment
 p7 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                           group = weightInvestment, 
                                           colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)])
-
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_lansing +
+  scale_x +
+  labs(x = NULL,
+       y = NULL) 
 
 # make age-specific figure 
 
@@ -616,32 +633,36 @@ for (i in levels(as.factor(found$weightInvestment))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes 
+  # normalize the x-axis 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
-combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
+
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
 # plot 
 p8 <- ggplot(combine_data, aes(age, mean, 
                                group= weightInvestment, 
                                colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_gene_vals +
+  scale_x +
+  labs(x = NULL,
+       y = NULL) 
 
 # RESOURCE + GAMETE 
 
@@ -682,7 +703,7 @@ for (i in 1:length(f)) {
   
   # perform gam
   # filter parents that had offspring at at least 6 different ages 
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # check if enough IDs are present to sample 
@@ -736,21 +757,16 @@ for (i in 1:length(f)) {
   local_data_age$ID <- sub("^", local_data_age$weightInvestment[1], local_data_age$ID)
   found <- rbind(found, local_data_age)
 }
-Sys.time()
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
-
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
-
-#allData <- loadRDS(paste0("allData_", name, ".rds"))
-#models <- loadRDS(paste0("models_", name, ".rds"))
-#allDataComplete <- loadRDS(paste0("allDataComplete_", name, ".rds"))
 
 # to save all data 
 predDataTotal <- c()
@@ -816,28 +832,31 @@ for (x in levels(allData$weightInvestment)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_gamete_eq1"
-predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
 
 # plot the normalized data grouped by weight investment
 p11 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                           group = weightInvestment, 
                                           colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
-
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_lansing +
+  scale_x +
+  labs(x = NULL,
+       y = NULL)
 
 # make age-specific figure 
 
@@ -871,32 +890,36 @@ for (i in levels(as.factor(found$weightInvestment))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes 
+  # normalize the x-axis 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
-combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
+
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
 # plot 
 p12 <- ggplot(combine_data, aes(age, mean, 
                                group= weightInvestment, 
                                colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  theme_plots
+  theme_plots +
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_gene_vals +
+  scale_x +
+  labs(x = NULL,
+       y = NULL)
 
 # RESOURCE + QUALITY
 
@@ -937,7 +960,7 @@ for (i in 1:length(f)) {
   
   # perform gam
   # filter parents that had offspring at at least 6 different ages 
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # check if enough IDs are present to sample 
@@ -993,18 +1016,15 @@ for (i in 1:length(f)) {
 }
 Sys.time()
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
-
-#allData <- loadRDS(paste0("allData_", name, ".rds"))
-#models <- loadRDS(paste0("models_", name, ".rds"))
-#allDataComplete <- loadRDS(paste0("allDataComplete_", name, ".rds"))
 
 # to save all data 
 predDataTotal <- c()
@@ -1070,9 +1090,11 @@ for (x in levels(allData$weightInvestment)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_quality_eq1"
 predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
@@ -1082,16 +1104,17 @@ p15 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean,
                                            group = weightInvestment, 
                                            colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
-
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_lansing +
+  scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+  labs(x = NULL,
+       y = NULL) 
 
 # make age-specific figure 
 
@@ -1125,32 +1148,36 @@ for (i in levels(as.factor(found$weightInvestment))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes 
+  # normalize the x-axis 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
 
-combine_data <- loadRDS(paste0("combine_data_", name, ".RDS"))
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
+
+combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
 # plot 
 p16 <- ggplot(combine_data, aes(age, mean, 
                                 group= weightInvestment, 
                                 colour = weightInvestment)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = weightInvestment), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq1 +
+  fill_eq1 +
+  scale_y_eq1_gene_vals +
+  scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+  labs(x = NULL,
+       y = NULL)
 
 ########## EQUATION 2 ##########
 
@@ -1163,11 +1190,22 @@ run_model <- function(data) {
   return(tmp)
 }
 
-####### copy from here #################
+# for the lansing figures (column 3)
+color_eq2_lansing <- scale_color_manual(values = met.brewer("Archambault")[c(7, 4, 1)]) 
+fill_eq2_lansing <- scale_fill_manual(values = met.brewer("Archambault")[c(7, 4, 1)]) 
+# for the gene values figures (column 4)
+color_eq2_gene_vals <- scale_color_manual(values = met.brewer("Archambault")[c(4, 1, 7)]) 
+fill_eq2_gene_vals <- scale_fill_manual(values = met.brewer("Archambault")[c(4, 1, 7)])
+# scale y for Lansing figures (column 3)
+scale_y_eq2_lansing <- scale_y_continuous(breaks = seq(0, 2, 1), limits = c(0, 2))
+# scale y for the gene value figures (column 4)
+scale_y_eq2_gene_vals <- scale_y_continuous(breaks = seq(0, 1), limits = c(0, 1))
 
 # resource-only 
 parent_path <- paste0(path_rema_eq2, "resource_eq2/") 
 name = "resource_eq2"
+parent_path <- paste0(path_rema_eq2, "resource_eq2_to_remove/") 
+name = "resource_eq2_to_remove"
 
 # list the files 
 f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
@@ -1204,7 +1242,7 @@ for (i in 1:length(f)) {
   allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
   
   # perform gam
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # sample 100 parents by their IDs
@@ -1252,14 +1290,15 @@ for (i in 1:length(f)) {
   found <- rbind(found, local_data_age)
 }
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
 
 # to save all data 
 predDataTotal <- c()
@@ -1325,29 +1364,32 @@ for (x in levels(allData$steepnessAllocationToReproduce)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_eq2"
 predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
 
 # plot the normalized data grouped by weight investment
-p5 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+p5 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean,  
                                            group = steepnessAllocationToReproduce, 
                                            colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
-              aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+              aes(ymin = min, ymax = max, fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
-  
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
-
+  color_eq2_lansing +
+  fill_eq2_lansing +
+  scale_y_eq2_lansing +
+  scale_x +
+  labs(x = NULL,
+       y = NULL,
+       title = "Lansing effect") 
 
 # determine the mean per replicate. 
 combine_data <- c()
@@ -1375,17 +1417,17 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes 
+  # normalize the x-axis 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
 
 combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
@@ -1394,13 +1436,18 @@ p6 <- ggplot(combine_data, aes(age, mean,
                                 group= steepnessAllocationToReproduce, 
                                 colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
-              aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+              aes(ymin = min, ymax = max,fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq2_gene_vals +
+  fill_eq2_gene_vals +
+  scale_y_eq2_gene_vals +
+  scale_x +
+  labs(x = NULL,
+       y = NULL,
+       title = "Allocation to reproduction") 
 
 # RESOURCE + BASELINE
 
@@ -1443,7 +1490,7 @@ for (i in 1:length(f)) {
   allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
   
   # perform gam
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # sample 100 parents by their IDs
@@ -1491,14 +1538,15 @@ for (i in 1:length(f)) {
   found <- rbind(found, local_data_age)
 }
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
 
 # to save all data 
 predDataTotal <- c()
@@ -1564,9 +1612,11 @@ for (x in levels(allData$steepnessAllocationToReproduce)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_baseline_eq2"
 predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
@@ -1576,17 +1626,17 @@ p9 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean,
                                           group = steepnessAllocationToReproduce, 
                                           colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
-
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
-
+  color_eq2_lansing +
+  fill_eq2_lansing +
+  scale_y_eq2_lansing +
+  scale_x +
+  labs(x = NULL,
+       y = NULL) 
 
 # determine the mean per replicate. 
 combine_data <- c()
@@ -1614,17 +1664,17 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes 
+  # normalize the x-axis 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
 
 combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
@@ -1633,13 +1683,17 @@ p10 <- ggplot(combine_data, aes(age, mean,
                                group= steepnessAllocationToReproduce, 
                                colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq2_gene_vals +
+  fill_eq2_gene_vals +
+  scale_y_eq2_gene_vals +
+  scale_x +
+  labs(x = NULL,
+       y = NULL) 
 
 
 # RESOURCE + GAMETE
@@ -1683,7 +1737,7 @@ for (i in 1:length(f)) {
   allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
   
   # perform gam
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
   # sample 100 parents by their IDs
@@ -1731,14 +1785,15 @@ for (i in 1:length(f)) {
   found <- rbind(found, local_data_age)
 }
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
 
 # to save all data 
 predDataTotal <- c()
@@ -1804,9 +1859,11 @@ for (x in levels(allData$steepnessAllocationToReproduce)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_gamete_eq2"
 predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
@@ -1816,17 +1873,17 @@ p13 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean,
                                           group = steepnessAllocationToReproduce, 
                                           colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
-
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
-
+  color_eq2_lansing +
+  fill_eq2_lansing +
+  scale_y_eq2_lansing +
+  scale_x +
+  labs(x = NULL,
+       y = NULL)
 
 # determine the mean per replicate. 
 combine_data <- c()
@@ -1854,17 +1911,17 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
   tmp$min <- (1 - tmp$min)
   tmp$max <- (1 - tmp$max)
   
-  # normalize the axes 
+  # normalize the x-axis 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
 
 combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
@@ -1873,13 +1930,17 @@ p14 <- ggplot(combine_data, aes(age, mean,
                                 group= steepnessAllocationToReproduce, 
                                 colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq2_gene_vals +
+  fill_eq2_gene_vals +
+  scale_y_eq2_gene_vals +
+  scale_x +
+  labs(x = NULL,
+       y = NULL) 
 
 # RESOURCE + PARENTAL CARE QUALITY
 
@@ -1923,13 +1984,10 @@ for (i in 1:length(f)) {
   allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
   
   # perform gam
-  na_filter = 6
-  if (max(local_data$na) <= na_filter){
-    na_filter = 3
-  }
-  local_data <- local_data %>% filter(na > 6)
+  local_data <- local_data %>% filter(na >= 5)
   local_data <- local_data %>% mutate(ID = factor(ID)) 
   
+  # check if enough individuals are present to sample 
   to_sample <- 100
   if (length(unique(local_data$ID)) < to_sample){
     counter = counter + 1
@@ -1983,14 +2041,15 @@ for (i in 1:length(f)) {
   found <- rbind(found, local_data_age)
 }
 
-# save the R data just in case. 
-saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
-saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
-saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
-saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+if (save_output){
+  # save the R data just in case. 
+  saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+  saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+  saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+  saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+}
 
 allData$rep <- factor(allData$rep)
-logist <- function(x) 40/(1+exp(-x))
 
 # to save all data 
 predDataTotal <- c()
@@ -2056,30 +2115,34 @@ for (x in levels(allData$steepnessAllocationToReproduce)){
   predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
 }
 
-saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
-saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
-saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+if (save_output){
+  saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+  saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+}
 
 name = "resource_and_parentalQuality_eq2"
 predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+#percentiles <- loadRDS(paste0(output_path_data, "percentiles_", name, ".RDS"))
+#found <- loadRDS(paste0(output_path_data, "found_", name, ".RDS"))
 
 # plot the normalized data grouped by weight investment
 p17 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
                                            group = steepnessAllocationToReproduce, 
                                            colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) +
   theme_minimal() +
   geom_ribbon(data = predDataTotalNormalized,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
   theme_plots +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+  color_eq2_lansing +
+  fill_eq2_lansing +
+  scale_y_eq2_lansing +
+  scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+  labs(x = NULL,
+       y = NULL) 
   
-scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0, 1)) +
-  scale_y_continuous(breaks = seq(0,1.6, 0.2), limits = c(0, 1.6))
-
-
 # determine the mean per replicate. 
 combine_data <- c()
 for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
@@ -2108,15 +2171,15 @@ for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
   
   # normalize the axes 
   tmp$age <- tmp$age / percentile
-  tmp$min <- tmp$min / tmp$mean[1]
-  tmp$max <- tmp$max / tmp$mean[1]
-  tmp$mean <- tmp$mean / tmp$mean[1]
   
   combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
 }
 
 combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
-saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+
+if (save_output){
+  saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+}
 
 combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
 
@@ -2125,13 +2188,17 @@ p18 <- ggplot(combine_data, aes(age, mean,
                                 group= steepnessAllocationToReproduce, 
                                 colour = steepnessAllocationToReproduce)) +
   geom_line() +
-  scale_color_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
   theme_minimal() +
   geom_ribbon(data = combine_data,
               aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
               alpha = 0.2, colour = NA) +
-  scale_fill_manual(values = met.brewer("Archambault")[c(1,4,7)]) +
-  theme_plots
+  theme_plots +
+  color_eq2_gene_vals +
+  fill_eq2_gene_vals +
+  scale_y_eq2_gene_vals +
+  scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+  labs(x = NULL,
+       y = NULL) 
   
 
 ############ make grid ##################
@@ -2141,11 +2208,20 @@ bottom_part <- plot_grid(p3, p4, p5, p6,
                          p7, p8, p9, p10,
                          p11, p12, p13, p14,
                          p15, p16, p17, p18,
-                         ncol = 4)
-bottom_part
-resource_matrix <- plot_grid(top_row, bottom_part, ncol = 1)
-                        # ncol = 4, align = "hv", axis = "brlt", labels = "AUTO", label_x = 0.88, label_y = 0.97)
+                         ncol = 4, labels = "AUTO",
+                         label_x = 0.1, label_y = 0.9, 
+                         align = "hv")
+
+resource_matrix <- plot_grid(top_row, bottom_part, ncol = 1, rel_heights = c(1, 2.5))
 resource_matrix
+
+library(grid)
+library(gridExtra)
+plot_matrix2 <- grid.arrange(arrangeGrob(resource_matrix, bottom = textGrob("Normalized age", gp=gpar(fontsize=15)))) 
+                                         #left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
+
+plot_matrix2
+ggsave(paste0(output_path, "resource_matrix.pdf"), width = 15, height = 20)
 
 ############ until here #################
 
@@ -2718,23 +2794,23 @@ ggplot(combine_data, aes(age, (1-mean),
 parent_path <- paste0(path_rema_eq1, "resource_gamete_eq1/") 
 name = "resource_quality_eq1"
 
-f <- list.files(path = parent_path, pattern = "outputWithAgeSpecificGenes.txt", recursive = T, all.files = T)
+f <- list.files(path = parent_path_s4, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
 # paste all data together
 Sys.time()
 for (i in 1:length(f)) {
   x <- f[i]
   # get path 
-  file_name <- paste0(parent_path, x)
+  file_name <- paste0(parent_path_s4, x)
   # extract replicate from file name 
   splitted_path <- strsplit(file_name, "/")
   nRep <- length(splitted_path[[1]]) - 1
   rep <- splitted_path[[1]][nRep]
   # read data
   local_data <- read.table(file_name, header = T)
-  parameters <- read.table(paste0(parent_path, rep, "/parameters.txt"))
-  nVal <- which(strsplit(as.character(parameters), " ") == "weightInvestment")[1] + 1
-  local_data$weightInvestment <- as.numeric(strsplit(as.character(parameters), " ")[nVal])
-  write.table(local_data, paste0(parent_path, x))
+  parameters <- read.table(paste0(parent_path_s4, rep, "/parameters.txt"))
+  nVal <- which(strsplit(as.character(parameters), " ") == "mutationProbInvestmentGenes")[1] + 1
+  local_data$mutationProbInvestmentGenes <- as.numeric(strsplit(as.character(parameters), " ")[nVal])
+  write.table(local_data, paste0(parent_path_s4, x))
 }
 
 # resource + parental care quality
