@@ -6,28 +6,42 @@
 
 
 ###############################################################################
+# SET PATHS 
 
+# path to the data 
 path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/data/"
+
+# set save_output to TRUE or FALSE. If TRUE; set output_path_data to where the data should be saved
+save_output <- TRUE # set to false if you do not want to save all the data
+output_path_data <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/output_data/new/"
+
+# output path to the figures. 
 output_path <- "/Users/willemijnoudijk/Documents/STUDY/Master Biology/Manuscript/Figures/"
-save_output = TRUE
+
+# libraries 
+library(grid)
+library(gridExtra)
+library(ggpubr)
+library(cowplot)
+library(tidyverse)
+library(mgcv)
+library(MetBrewer)
+library(R.filesets) # remove 
 
 ###############################################################################
-# Figure S2 - the matrix
+# Figure 3 - the matrix
 ###############################################################################
+  # user-defined function to transform the ages at death back 
+  logist <- function(x) 40/(1+exp(-x))
 
 # 1. MAKING GAM MODELS FOR EVERY REPLICATE PER SCENARIO 
 
-  # load the elements - lines TO_FILL to TO_FILL not necessary 
-  allData <- loadRDS("allData.rds")
-  models <- loadRDS("models.rds")
-  
   # the gam model
   run_model <- function(data) {
     tmp <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = 4), data = data, method = "REML")
     return(tmp)
   }
-  
-  
+
   parent_path <- paste(path, "matrix_data/", sep = "")
   f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T)
   allData <- c()
@@ -36,7 +50,7 @@ save_output = TRUE
   # paste all data together
   for (i in 1:length(f)) {
     x <- f[i]
-    # get path 
+    # get path to file 
     file_name <- paste0(parent_path, x)
     # extract scenario from file name 
     splitted_path <- strsplit(file_name, "/")
@@ -60,8 +74,10 @@ save_output = TRUE
     ## Add the counter to data
     local_data <- local_data %>% left_join(z,by="ID")
     
-    allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+    # to gather all data 
+    allDataComplete <- rbind(allDataComplete, local_data) 
     
+    # filter data using na; number of ages a parent gets offspring
     local_data <- local_data %>% filter(na >= 5)
     local_data <- local_data %>% mutate(ID = factor(ID)) 
     
@@ -72,16 +88,17 @@ save_output = TRUE
     
     # Perform GAM on the data
     d <- local_data
-    # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
-    #d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
+    # normalize age at death 
     d2 <- d %>% mutate(y2 = ageAtDeath/40)
     ## Work with logits (then (0,1) -> (-inf,+inf))
     d2 <- d2 %>% mutate(y3 = car::logit(y2))
     d2 <- d2 %>% mutate(scenario = factor(scenario)) 
     d2 <- d2 %>% mutate(ID = factor(ID)) 
     d2 <- d2 %>% mutate(rep = factor(rep)) 
-    print(d2$scenario[1])
-    k = 10; 
+    print(d2$scenario[1]) # to keep track 
+    # set k to 10 
+    k = 10;
+    # if there are less unique maternal ages than k, set to max 
     if (length(levels(as.factor(d2$maternalAge))) < k) { 
       k = length(levels(as.factor(local_data$maternalAge))) 
     }
@@ -95,17 +112,17 @@ save_output = TRUE
   
   if (save_output){
     # save the R data just in case. 
-    saveRDS(allData, file = "allData_matrix.rds")
-    saveRDS(models, file = "models_matrix.rds")
-    saveRDS(allDataComplete, file = "allDataComplete_matrix.rds")
+    saveRDS(allData, file = paste0(output_path_data, "allData_matrix.rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_matrix.rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_matrix.rds"))
   }
   
-  #allData <- loadRDS("allData_matrix.rds")
-  #models <- loadRDS("models_matrix.rds")
+  #allData <- loadRDS(paste0(output_path_data, "allData_matrix.rds"))
+  #models <- loadRDS(paste0(output_path_data, "models_matrix.rds"))
   
 # 2. PREDICTING AND NORMALIZING THE DATA 
 
-  # loop through the scenarios 
+  # make rep and scenario a factor 
   allData$scenario <- factor(allData$scenario)
   allData$rep <- factor(allData$rep)
   
@@ -129,6 +146,7 @@ save_output = TRUE
     
     # loop through the replicates
     for (i in levels(sub$rep)){
+      # find corresponding model 
       mod <- paste("model_", i, "_", x, sep = "")
       index <- which(names(models) == mod)
       new_col <- paste("rep", i, sep = "")
@@ -164,21 +182,18 @@ save_output = TRUE
     pred_data$max <- pred_data$max / pred_data$mean[1]
     pred_data$mean <- pred_data$mean / pred_data$mean[1]
     
-    # save the data 
+    # save the normalized data 
     predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data)
   }
   
   if (save_output){
     # save the percentiles 
-    saveRDS(percentiles, "percentiles_matrix.RDS")
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_matrix.RDS"))
     # save the normalized dataset 
-    saveRDS(predDataTotalNormalized, "predDataTotalNormalized_matrix.RDS")
+    saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_matrix.RDS"))
   }
   
-# 3. PERFORMING CROSS-SECTIONAL GAM ANALYSIS 
-  
-  allDataLat <- loadRDS("allDataLat.rds")
-  modelsLat <- loadRDS("modelsLat.rds")
+# 3. PERFORMING CROSS-SECTIONAL GAM ANALYSIS PER REPLICATE PER SCENARIO 
   
   # the gam model
   run_model_lat <- function(data) {
@@ -186,13 +201,13 @@ save_output = TRUE
     return(tmp)
   }
   
+  parent_path <- paste(path, "matrix_data/", sep = "")
   f <- list.files(path = parent_path, pattern = "outputLifeExp.txt", recursive = T)
   allDataLat <- c()
   modelsLat <- list()
-  # paste all data together
   for (i in 1:length(f)) {
     x <- f[i]
-    # get path 
+    # get path to file 
     file_name <- paste0(parent_path, x)
     # extract scenario from file name 
     splitted_path <- strsplit(file_name, "/")
@@ -218,8 +233,7 @@ save_output = TRUE
     
     # GAM 
     d <- local_data
-    # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
-    #d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
+    # normalize the data 
     d2 <- d %>% mutate(y2 = ageAtDeath/40)
     ## Work with logits (then (0,1) -> (-inf,+inf))
     d2 <- d2 %>% mutate(y3 = car::logit(y2))
@@ -227,7 +241,10 @@ save_output = TRUE
     d2 <- d2 %>% mutate(ID = factor(ID)) 
     d2 <- d2 %>% mutate(rep = factor(rep)) 
     print(d2$scenario[1])
+    
+    # set k to 10 
     k = 10; 
+    # if there are less unique maternal ages than k, set to max
     if (length(levels(as.factor(d2$maternalAge))) < k) { 
       k = length(levels(as.factor(local_data$maternalAge))) 
     }
@@ -241,11 +258,11 @@ save_output = TRUE
   
   if (save_output){
     # save the R data just in case. 
-    saveRDS(allDataLat, file = "allDataLat_matrix.rds")
-    saveRDS(modelsLat, file = "modelsLat_matrix.rds")
+    saveRDS(allDataLat, file = paste0(output_path_data, "allDataLat_matrix.rds"))
+    saveRDS(modelsLat, file = paste0(output_path_data, "modelsLat_matrix.rds"))
   }
   
-  # loop through the scenarios 
+  # make factor 
   allDataLat$scenario <- factor(allDataLat$scenario)
   allDataLat$rep <- factor(allDataLat$rep)
   
@@ -255,6 +272,7 @@ save_output = TRUE
   predDataTotalLat <- c()
   predDataTotalNormalizedLat <- c()
   
+  # loop through the data per scenario 
   for (x in levels(allDataLat$scenario)){
     print(x)
     # make subset of scenario 
@@ -267,9 +285,11 @@ save_output = TRUE
     sub <- sub %>% mutate(rep = factor(rep))
     # loop through the replicates
     for (i in levels(sub$rep)){
+      # find corresponding model 
       mod <- paste("model_", i, "_", x, sep = "")
       index <- which(names(modelsLat) == mod)
       new_col <- paste("rep", i, sep = "")
+      # predict using the corresponding model 
       tmp <- predict(modelsLat[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
       # add to predicted data with adjusting for the intercept. 
       pred_data[[new_col]] <- tmp + attr(tmp, "constant")
@@ -282,19 +302,24 @@ save_output = TRUE
     pred_data$max <- apply(repVals, 1, max)
     
     # transform back 
-    pred_data$mean <- logist(pred_data$mean) # transform back
-    pred_data$min <- logist(pred_data$min) # transform min interval back 
-    pred_data$max <- logist(pred_data$max) # transform max interval back 
+    pred_data$mean <- logist(pred_data$mean)
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
     
+    # save the data 
     predDataTotalLat <- rbind(predDataTotalLat, pred_data)
     
+    # determine percentile and cut the data off at this point 
     percentile <- quantile(sub$maternalAge, probs = 0.95)
     pred_data <- pred_data[pred_data$maternalAge <= percentile,]
-    # normalize the axes between 0 and 1 
+    
+    # normalize the axes 
     pred_data$maternalAge <- pred_data$maternalAge / percentile
     pred_data$min <- pred_data$min / pred_data$mean[1]
     pred_data$max <- pred_data$max / pred_data$mean[1]
     pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    # save the normalized data 
     predDataTotalNormalizedLat <- rbind(predDataTotalNormalizedLat, pred_data)
   }
   
@@ -308,17 +333,9 @@ save_output = TRUE
   
   totalNormalizedData <- totalNormalizedData %>% mutate(scenario = factor(scenario))
   
-  # get the scenarios relevant for the matrix plot
-  scenarios <- c()
-  for (x in levels(totalNormalizedData$scenario)) {
-    if (length(strsplit(x, "(?<=.)(?=[A-Z])", perl = TRUE)[[1]]) <= 2){
-      scenarios <- c(scenarios, x) # get list of single scenarios and doubles. 
-    }
-  }
-  
-  # dynamically generate the plots
+  # dynamically generate the plots per scenario 
   plotsTot <- c()
-  for (i in 1:length(scenarios)){
+  for (i in 1:levels(totalNormalizedData$scenario)){
     p <- ggplot(totalNormalizedData[totalNormalizedData$scenario == scenarios[i],], 
                 aes(maternalAge, mean, group = group, colour = group)) +
       geom_line() +
@@ -327,20 +344,16 @@ save_output = TRUE
       geom_ribbon(data = totalNormalizedData[totalNormalizedData$scenario == scenarios[i],],
                   aes(ymin = min, ymax = max,  fill = group), 
                   alpha = 0.2, colour = NA) +
-      ylim(0, 1.5) + 
       theme_minimal() +
-      theme(#legend.text = element_text(size=10),
-        #legend.key.size = unit(0.2, "cm"),
-        #legend.key.width = unit(0.1,"cm"),
-        legend.position = "none",
-        #legend.title = element_blank(),
+      theme(legend.position = "none",
         axis.text = element_text(size=13,face="plain",color="black"),
         axis.title = element_text(size = 16),
-        #axis.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5),
         axis.line = element_line(color="black", linewidth = 1.0),
         panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7)) +
       scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+      scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits = c(0, 1.5), 
+                         oob = scales::oob_keep)
       scale_colour_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
       scale_fill_manual(values = met.brewer("Egypt", 4)[c(2,4)])
     
@@ -350,92 +363,9 @@ save_output = TRUE
     names(plotsTot)[i] <- paste("p_", scenarios[i], sep = "") 
   }
   
-# 6. MAKING THE PARENTAL AGE DISTRIBUTION PLOTS
- #  
- #  # load the saved complete data 
- #  allDataComplete <- loadRDS("allDataComplete_matrix.rds")
- #  # load the saved percentiles 
- #  percentiles <- loadRDS("percentiles_matrix.RDS")
- #  
- #  allDataComplete <- allDataComplete %>% mutate(scenario = factor(scenario))
- #  
- #  predDataTotalAgeDist <- c()
- #  # loop through the scenarios. 
- #  for (x in levels(allDataComplete$scenario)){
- #    print(x)
- #    # make subset of scenario 
- #    sub <- allDataComplete[allDataComplete$scenario == x,]
- #    # get percentile 
- #    cut_off <- percentiles[percentiles$scenario == x,]$percentile
- #    
- #    # make data expansion 
- #    pred_data = expand.grid(maternalAge =seq(0,cut_off,1),
- #                            scenario = sub$scenario[1]) 
- #    
- #    sub <- sub %>% mutate(rep = factor(rep))
- #    # loop through the replicates
- #    for (i in levels(sub$rep)){
- #      tmp <- sub[sub$rep == i,]
- #      
- #      # use this to count the number of parents per age class 
- #      counts <- c()
- #      for (j in seq(0, max(pred_data$maternalAge), 1)) {
- #        counts <- c(counts, nrow(tmp[tmp$maternalAge == j,]))
- #      }
- #      new_col <- paste("rep", i, sep = "")
- #      # add the counts
- #      pred_data[[new_col]] <- counts
- #    }
- #    
- #    # get means
- #    repVals <- subset(pred_data, select = 3:12)
- #    pred_data$mean <- rowMeans(repVals)
- #    pred_data$min <- apply(repVals, 1, min)
- #    pred_data$max <- apply(repVals, 1, max)
- #    
- #    # combine the data per scenario
- #    predDataTotalAgeDist <- rbind(predDataTotalAgeDist, pred_data)
- #  }
- #  
- #  # plots 
- #  # get the scenarios relevant for the matrix plot
- #  scenarios <- c("baseline_quality", "baseline_resource", "gamete_and_baseline", "gamete_quality",
- #               "gamete_resource", "resource_and_parentalQuality")
- #  
- #  # dynamically generate the plots
- #  plotsAgeDist <- c()
- #  for (i in 1:length(scenarios)){
- #    p <- ggplot(predDataTotalAgeDist[predDataTotalAgeDist$scenario == scenarios[i],], 
- #                aes(maternalAge, mean)) +
- #      geom_line() +
- #      labs(x = NULL,
- #           y = NULL) +
- #      geom_ribbon(aes(ymin = min, ymax = max), alpha = 0.2, linewidth = 0.8) + 
- #      #ylim(0, 2) + 
- #      theme_minimal() +
- #      theme(#legend.text = element_text(size=10),
- #        #legend.key.size = unit(0.2, "cm"),
- #        #legend.key.width = unit(0.1,"cm"),
- #        legend.position = "none",
- #        #legend.title = element_blank(),
- #        axis.text = element_text(size=13,face="plain",color="black"), # size = 11
- #        axis.title = element_text(size = 13),
- #        #axis.text.x = element_blank(),
- #        axis.line = element_line(color="black", linewidth = 1.0),
- #        panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7)) +
- #      scale_x_continuous(breaks = c(0, max(predDataTotalAgeDist[predDataTotalAgeDist$scenario == scenarios[i],]$maternalAge)), 
- #                         limits = c(0, max(predDataTotalAgeDist[predDataTotalAgeDist$scenario == scenarios[i],]$maternalAge)))
- #    
- # #   scale_x_continuous(breaks = seq(0,40,0.2), limits = c(0,1))
- #    
- #    # save plot in list 
- #    plotsAgeDist[[i]] <- p
- #    # adjust name to corresponding scenario run
- #    names(plotsAgeDist)[i] <- paste("p_", scenarios[i], sep = "") 
- #  }
- #  
 # 7. MAKE MATRIX 
   
+  # reset the axis numbering that should not be portrayed 
   plotsTot$p_baseline <- plotsTot$p_baseline + theme(axis.text.x = element_blank())
   plotsTot$p_gamete_and_baseline <- plotsTot$p_gamete_and_baseline + theme(axis.text.x = element_blank())
   plotsTot$p_baseline_quality <- plotsTot$p_baseline_quality + theme(axis.text.x = element_blank())
@@ -486,55 +416,39 @@ save_output = TRUE
           plot.margin = unit(c(0.1, 1, 0.1, 0.1), "cm"),
           plot.title = element_text(size = 16))
   
+  # set the label numbering for the matrix 
   labels <- c("A", NA, NA, NA,
               "B", "C", NA, NA,
               "D", "E", "F", NA,
               "G", "H", "I", "J")
   
+  # make the matrix 
   plot_matrix <- plot_grid(plotsTot$p_baseline, NULL, NULL, NULL,
                            plotsTot$p_gamete_and_baseline, plotsTot$p_gamete_damage, NULL, NULL,
                            plotsTot$p_baseline_quality, plotsTot$p_gamete_quality, plotsTot$p_parental_care_quality, NULL, 
                            plotsTot$p_baseline_resource, plotsTot$p_gamete_resource, plotsTot$p_resource_and_parentalQuality, plotsTot$p_resource_distribution,
                            ncol = 4, align = "hv", axis = "brlt", labels = labels, label_x = 0.82, label_y = 0.9)
   
-  plot_matrix
+  #plot_matrix
   
+  # make legend 
   p_tmp <- plotsTot$p_resource_distribution + theme(legend.position = "bottom",
                                        legend.title = element_blank())
-  
   leg1 <- get_legend(p_tmp) 
-  library(ggpubr)
   legend <- as_ggplot(leg1)
   legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
   blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
   legend_row <- plot_grid(legend, blank, blank, blank, nrows = 1)
   
-  
-  #null <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Baseline") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #damage <- ggplot() + annotate("text", x = 1, y = 0, size = 4, label = "Damage accumulation") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #quality <- ggplot() + annotate("text", x = 1, y = 0, size = 4, label = "Parental care quality") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #resource <- ggplot() + annotate("text", x = 1, y = 0, size = 4, label = "Resource allocation") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #top_labels <- plot_grid(null, damage, quality, resource, rel_widths = c(1, 1, 1, 1), nrow = 1)
-  
-  #null2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Baseline", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #damage2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Damage accumulation", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #quality2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Parental care quality", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #resource2 <- ggplot() + annotate("text", x = 0, y = 0, size = 4, label = "Resource allocation", angle = "270") + theme_void() + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-  #right_labels <- plot_grid(null2, damage2, quality2, resource2, rel_heights = c(1, 1, 1, 1), ncol = 1)
-  
-  
-  library(grid)
-  library(gridExtra)
+  # make x and y labeling 
   plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)), 
                                            left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
   
-  #plot_with_legend <- plot_grid(top_labels, plot_matrix2, legend_row, ncol = 1, rel_heights = c(0.02, 1, 0.01), align = "v", axis = "rl")
-  #plot_with_legend2 <- plot_grid(plot_with_legend, right_labels, nrow = 1, rel_widths = c(1, 0.02), align = "h", axis = "tb")
-  
+  # make figure with legend 
   plot_with_legend <- plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
   plot_with_legend
-  ggsave(paste0(output_path, "Lansing_fig_with_labels.pdf"), width = 15, height = 15)
-
+  # save figure 
+  ggsave(paste0(output_path, "Lansing_fig.pdf"), width = 15, height = 15)
   
 ###############################################################################
 # Supplementary materials: looking at parameter simulations longitudinal. 
@@ -566,16 +480,14 @@ save_output = TRUE
     x <- f[i]
     # get path 
     file_name <- paste0(parent_path_s1, x)
-    # extract scenario from file name 
-    splitted_path <- strsplit(file_name, "/")
     # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
     nRep <- length(splitted_path[[1]]) - 1
     rep <- splitted_path[[1]][nRep]
     # read data
     local_data <- read.table(file_name, header = T)
-    # add replicate and scenario as column 
+    # add replicate as column 
     local_data$rep <- rep
-    #local_data$scenario <- scenario
     # rename ID so it is unique per replicate per parameter setting
     local_data$ID <- sub("^", local_data$mutationProbAgeSpecificGenes[1], paste0("_", local_data$ID))
     local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
@@ -585,18 +497,20 @@ save_output = TRUE
     local_data <- local_data %>% left_join(z,by="ID")
     local_data <- local_data %>% mutate(mutationProbAgeSpecificGenes = factor(mutationProbAgeSpecificGenes))
     
-    allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+    # gather all data 
+    allDataComplete <- rbind(allDataComplete, local_data) 
     
     # perform gam
-    local_data <- local_data %>% filter(na > 6)
+    local_data <- local_data %>% filter(na >= 5)
     local_data <- local_data %>% mutate(ID = factor(ID)) 
     
+    # check if enough parents are present to sample 
     to_sample <- 100 
     if (length(unique(local_data$ID)) < to_sample){
       counter = counter + 1
       next
-      #to_sample <- length(unique(local_data$ID))
     }
+    
     # sample 100 parents by their IDs
     local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
     # save the data
@@ -604,14 +518,11 @@ save_output = TRUE
     
     # GAM 
     d <- local_data
-    # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
-    #d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
     d2 <- d %>% mutate(y2 = ageAtDeath/40)
     ## Work with logits (then (0,1) -> (-inf,+inf))
     d2 <- d2 %>% mutate(y3 = car::logit(y2))
     d2 <- d2 %>% mutate(ID = factor(ID)) 
     d2 <- d2 %>% mutate(rep = factor(rep)) 
-    #d2 <- d2 %>% mutate(scenario = factor(scenario)) 
     k = 10; 
     if (length(levels(as.factor(d2$maternalAge))) < k) { 
       k = length(levels(as.factor(d2$maternalAge))) 
@@ -625,7 +536,7 @@ save_output = TRUE
     mod <- run_model(d2)
     # save model in list 
     models[[i]] <- mod
-    # rename model to be unique for replicate and scenario
+    # rename model to be unique for replicate
     names(models)[i] <- paste0("model_", rep)
   }
   
@@ -644,9 +555,9 @@ save_output = TRUE
   # to save all data 
   predDataTotal <- c()
   predDataTotalNormalized <- c()
-  # go per scenario through the data 
+  # go per mutation rate through the data 
   for (x in levels(allData$mutationProbAgeSpecificGenes)){
-    # make subset of scenario 
+    # make subset of mutation rate  
     sub <- allData[allData$mutationProbAgeSpecificGenes == x,]
     # refactor the replicates of the subset 
     sub <- sub %>% mutate(rep = factor(rep))
@@ -657,6 +568,7 @@ save_output = TRUE
     
     # loop through the replicates
     for (i in levels(sub$rep)){
+      # find corresponding model 
       mod <- paste0("model_", i)
       index <- which(names(models) == mod)
       new_col <- paste("rep", i, sep = "")
@@ -677,13 +589,14 @@ save_output = TRUE
     pred_data$max <- logist(pred_data$max) 
     
     # save by binding to one big dataframe 
-    predDataTotal <- rbind(predDataTotal, pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
 
     # get 95th percentile 
     percentile <- round(quantile(sub$maternalAge, probs = 0.95))
     # cut-off the data at that percentile 
     pred_data <- pred_data[pred_data$maternalAge <= percentile,]
-    # normalize the axes between 0 and 1 
+    # normalize the axes 
     pred_data$maternalAge <- pred_data$maternalAge / percentile
     pred_data$min <- pred_data$min / pred_data$mean[1]
     pred_data$max <- pred_data$max / pred_data$mean[1]
@@ -692,7 +605,7 @@ save_output = TRUE
     pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))]
     pred_data_tmp$nRep <- length(levels(sub$rep))
     
-    # save the data 
+    # save the normalized data 
     predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
   }  
   
@@ -701,8 +614,8 @@ save_output = TRUE
     saveRDS(predDataTotal, file = paste0(output_path_data, "predDataTotal_s1.RDS"))
   }  
   
-  predDataTotalNormalized <- paste0(output_path_data, "predDataTotalNormalized_s1.RDS")
-  predDataTotal <- paste0(output_path_data, "predDataTotal_s1.RDS")
+  #predDataTotalNormalized <- paste0(output_path_data, "predDataTotalNormalized_s1.RDS")
+  #predDataTotal <- paste0(output_path_data, "predDataTotal_s1.RDS")
   
   # figure s1
   ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
@@ -723,6 +636,9 @@ save_output = TRUE
     scale_x_continuous(breaks = seq(0, 1, 0.2),
                        limits = c(0,1))
   
+  # save image. 
+  ggsave(paste0(output_path, "figure_s1.pdf"), width = 12, height = 8)
+  
   # figure s1 - without normalization 
   ggplot(predDataTotal, aes(maternalAge, mean, 
                             group=mutationProbAgeSpecificGenes, 
@@ -737,9 +653,6 @@ save_output = TRUE
     scale_colour_manual("Mutation rate", values = met.brewer("Egypt")[1:5]) +
     scale_fill_manual("Mutation rate", values = met.brewer("Egypt")[1:5]) +
     theme_plots_s
-  
-  # save image. 
-  ggsave(paste0(output_path, "figure_s1.pdf"), width = 12, height = 8)
 
 # GAMETE DAMAGE ACCUMULATION - S2
   
@@ -754,16 +667,14 @@ save_output = TRUE
     x <- f[i]
     # get path 
     file_name <- paste0(parent_path_s2, x)
-    # extract scenario from file name 
-    splitted_path <- strsplit(file_name, "/")
     # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
     nRep <- length(splitted_path[[1]]) - 1
     rep <- splitted_path[[1]][nRep]
     # read data
     local_data <- read.table(file_name, header = T)
-    # add replicate and scenario as column 
+    # add replicate as column 
     local_data$rep <- rep
-    #local_data$scenario <- scenario
     # rename ID so it is unique per replicate per parameter setting
     local_data$ID <- sub("^", local_data$mutationProb[1], paste0("_", local_data$ID))
     local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
@@ -773,12 +684,14 @@ save_output = TRUE
     local_data <- local_data %>% left_join(z,by="ID")
     local_data <- local_data %>% mutate(mutationProb = factor(mutationProb))
     
-    allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+    # gather all data
+    allDataComplete <- rbind(allDataComplete, local_data)  
     
     # perform gam
-    local_data <- local_data %>% filter(na > 6)
+    local_data <- local_data %>% filter(na >= 5)
     local_data <- local_data %>% mutate(ID = factor(ID)) 
     
+    # check if enough parents are present to sample
     to_sample <- 100 
     if (length(unique(local_data$ID)) < to_sample){
       counter = counter + 1
@@ -796,7 +709,6 @@ save_output = TRUE
     d2 <- d2 %>% mutate(y3 = car::logit(y2))
     d2 <- d2 %>% mutate(ID = factor(ID)) 
     d2 <- d2 %>% mutate(rep = factor(rep)) 
-    #d2 <- d2 %>% mutate(scenario = factor(scenario)) 
     k = 10; 
     if (length(levels(as.factor(d2$maternalAge))) < k) { 
       k = length(levels(as.factor(d2$maternalAge))) 
@@ -810,7 +722,7 @@ save_output = TRUE
     mod <- run_model(d2)
     # save model in list 
     models[[i]] <- mod
-    # rename model to be unique for replicate and scenario
+    # rename model to be unique for replicate
     names(models)[i] <- paste0("model_", rep)
   }
   
@@ -827,7 +739,7 @@ save_output = TRUE
   # to save all data 
   predDataTotal <- c()
   predDataTotalNormalized <- c()
-  # go per scenario through the data 
+  # go per mutation rate through the data 
   for (x in levels(allData$mutationProb)){
     # make subset of scenario 
     sub <- allData[allData$mutationProb == x,]
@@ -875,7 +787,7 @@ save_output = TRUE
     pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))]
     pred_data_tmp$nRep <- length(levels(sub$rep))
     
-    # save the data 
+    # save the normalized data 
     predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
   }
   
@@ -884,8 +796,8 @@ save_output = TRUE
     saveRDS(predDataTotal, file = paste0(output_path_data, "predDataTotal_s2.RDS"))
   }
   
-  predDataTotalNormalized <- paste0(output_path_data, "predDataTotalNormalized_s2.RDS")
-  predDataTotal <- paste0(output_path_data, "predDataTotal_s2.RDS")
+  #predDataTotalNormalized <- paste0(output_path_data, "predDataTotalNormalized_s2.RDS")
+  #predDataTotal <- paste0(output_path_data, "predDataTotal_s2.RDS")
   
   # plot the normalized data grouped by mutation prob
   ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
@@ -937,9 +849,8 @@ save_output = TRUE
     x <- f[i]
     # get path 
     file_name <- paste0(parent_path_s3, x)
-    # extract scenario from file name 
-    splitted_path <- strsplit(file_name, "/")
     # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
     nRep <- length(splitted_path[[1]]) - 1
     rep <- splitted_path[[1]][nRep]
     # read data
@@ -955,12 +866,14 @@ save_output = TRUE
     local_data <- local_data %>% left_join(z,by="ID")
     local_data <- local_data %>% mutate(mutationProbAgeSpecificGenes = factor(mutationProbAgeSpecificGenes))
     
-    allDataComplete <- rbind(allDataComplete, local_data) # for the maternal age distribution plot 
+    # tp gather all data
+    allDataComplete <- rbind(allDataComplete, local_data)  
     
     # perform gam
-    local_data <- local_data %>% filter(na > 6)
+    local_data <- local_data %>% filter(na >= 5)
     local_data <- local_data %>% mutate(ID = factor(ID)) 
     
+    # check if enough parents are present to sample from 
     to_sample <- 100 
     if (length(unique(local_data$ID)) < to_sample){
       counter = counter + 1
@@ -973,14 +886,11 @@ save_output = TRUE
     
     # GAM 
     d <- local_data
-    # compares 40 to the expected age at death. If ageAtDeath is lower > that will be y1; else it becomes 40 
-    #d2 <- d %>% mutate(y1 = pmin(40,ageAtDeath)) 
     d2 <- d %>% mutate(y2 = ageAtDeath/40)
     ## Work with logits (then (0,1) -> (-inf,+inf))
     d2 <- d2 %>% mutate(y3 = car::logit(y2))
     d2 <- d2 %>% mutate(ID = factor(ID)) 
     d2 <- d2 %>% mutate(rep = factor(rep)) 
-    #d2 <- d2 %>% mutate(scenario = factor(scenario)) 
     k = 10; 
     if (length(levels(as.factor(d2$maternalAge))) < k) { 
       k = length(levels(as.factor(d2$maternalAge))) 
@@ -994,7 +904,7 @@ save_output = TRUE
     mod <- run_model(d2)
     # save model in list 
     models[[i]] <- mod
-    # rename model to be unique for replicate and scenario
+    # rename model to be unique for replicate
     names(models)[i] <- paste0("model_", rep)
   }
 
@@ -1044,7 +954,8 @@ save_output = TRUE
     pred_data$max <- logist(pred_data$max) 
     
     # save by binding to one big dataframe 
-    predDataTotal <- rbind(predDataTotal, pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
 
     # get 95th percentile 
     percentile <- round(quantile(sub$maternalAge, probs = 0.95))
@@ -1059,7 +970,7 @@ save_output = TRUE
     pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))]
     pred_data_tmp$nRep <- length(levels(sub$rep))
     
-    # save the data 
+    # save the normalized data 
     predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
   }
   
@@ -1120,14 +1031,13 @@ save_output = TRUE
     x <- f[i]
     # get path 
     file_name <- paste0(parent_path_s4, x)
-    # extract scenario from file name 
-    splitted_path <- strsplit(file_name, "/")
     # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
     nRep <- length(splitted_path[[1]]) - 1
     rep <- splitted_path[[1]][nRep]
     # read data
-    local_data <- read.table(file_name, header = T)
-    # add replicate and scenario as column 
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
     local_data$rep <- rep
     # rename ID so it is unique per replicate per parameter setting
     local_data$ID <- sub("^", local_data$mutationProbInvestmentGenes[1], paste0("_", local_data$ID))
@@ -1138,12 +1048,14 @@ save_output = TRUE
     local_data <- local_data %>% left_join(z,by="ID")
     local_data <- local_data %>% mutate(mutationProbInvestmentGenes = factor(mutationProbInvestmentGenes))
     
+    # to gather all data 
     allDataComplete <- rbind(allDataComplete, local_data) 
     
     # perform gam
-    local_data <- local_data %>% filter(na > 6)
+    local_data <- local_data %>% filter(na >= 5)
     local_data <- local_data %>% mutate(ID = factor(ID)) 
     
+    # check if enough parents are present to sample from 
     to_sample <- 100
     if (length(unique(local_data$ID)) < to_sample){
       counter = counter + 1
@@ -1174,15 +1086,15 @@ save_output = TRUE
     mod <- run_model(d2)
     # save model in list 
     models[[i]] <- mod
-    # rename model to be unique for replicate and scenario
+    # rename model to be unique for replicate
     names(models)[i] <- paste0("model_", rep)
   }
   
   if (save_output){
     # save the R data just in case. 
-    saveRDS(allData, file = paste0("allData_s4.RDS"))
-    saveRDS(models, file = paste0("models_s4.RDS"))
-    saveRDS(allDataComplete, file = paste0("allDataComplete_s4.RDS"))
+    saveRDS(allData, file = paste0(output_path_data, "allData_s4.RDS"))
+    saveRDS(models, file = paste0(output_path_data, "models_s4.RDS"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_s4.RDS"))
   }
   
   allData$rep <- factor(allData$rep)
@@ -1191,9 +1103,9 @@ save_output = TRUE
   # to save all data 
   predDataTotal <- c()
   predDataTotalNormalized <- c()
-  # go per scenario through the data 
+  # go per mutation rate through the data 
   for (x in levels(allData$mutationProbInvestmentGenes)){
-    # make subset of scenario 
+    # make subset of mutation rate  
     sub <- allData[allData$mutationProbInvestmentGenes == x,]
     # refactor the replicates of the subset 
     sub <- sub %>% mutate(rep = factor(rep))
@@ -1224,13 +1136,14 @@ save_output = TRUE
     pred_data$max <- logist(pred_data$max) 
     
     # save by binding to one big dataframe 
-    predDataTotal <- rbind(predDataTotal, pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
 
     # get 95th percentile 
     percentile <- round(quantile(sub$maternalAge, probs = 0.95))
     # cut-off the data at that percentile 
     pred_data <- pred_data[pred_data$maternalAge <= percentile,]
-    # normalize the axes between 0 and 1 
+    # normalize the axes
     pred_data$maternalAge <- pred_data$maternalAge / percentile
     pred_data$min <- pred_data$min / pred_data$mean[1]
     pred_data$max <- pred_data$max / pred_data$mean[1]
@@ -1239,7 +1152,7 @@ save_output = TRUE
     pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))]
     pred_data_tmp$nRep <- length(levels(sub$rep))
     
-    # save the data 
+    # save the normalized data 
     predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
   }
   
@@ -1322,7 +1235,7 @@ save_output = TRUE
     found <- rbind(found, local_data)
   }
   
-  # determine the mean per replicate. 
+  # determine the mean per replicate for every age.  
   age <- c(0:max(found$age))
   data_per_rep <- data.frame(age)
   for (i in levels(as.factor(found$rep))){
@@ -1331,14 +1244,17 @@ save_output = TRUE
     data_per_rep[[new_col]] <- tapply(sub$investmentGeneVal, sub$age, mean)
   }
   
-  # get means
+  # get means over all replicates 
   repVals <- subset(data_per_rep, select = 2:ncol(data_per_rep))
   data_per_rep$mean <- rowMeans(repVals)
   data_per_rep$min <- apply(repVals, 1, min)
   data_per_rep$max <- apply(repVals, 1, max)
-  cut_off <- percentiles[percentiles$scenario == found$scenario[1],]$percentile
-  data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] # cut off at 95th percentile
   
+  # cut off at 95th percentile
+  cut_off <- percentiles[percentiles$scenario == found$scenario[1],]$percentile
+  data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] 
+  
+  # make plot 
   ggplot(data_per_rep, aes(age, (1-mean))) + geom_line() +
     geom_ribbon(aes(ymin =(1-min), ymax = (1-max)), alpha = 0.2) +
     theme_minimal() +
@@ -1392,7 +1308,7 @@ save_output = TRUE
     found <- rbind(found, local_data)
   }
   
-  # determine the mean per replicate. 
+  # determine the mean per replicate per age 
   age <- c(0:max(found$age))
   data_per_rep <- data.frame(age)
   for (i in levels(as.factor(found$rep))){
@@ -1401,14 +1317,17 @@ save_output = TRUE
     data_per_rep[[new_col]] <- tapply(sub$investmentGeneVal, sub$age, mean)
   }
   
-  # get means
+  # get means over all replicates 
   repVals <- subset(data_per_rep, select = 2:ncol(data_per_rep))
   data_per_rep$mean <- rowMeans(repVals)
   data_per_rep$min <- apply(repVals, 1, min)
   data_per_rep$max <- apply(repVals, 1, max)
-  cut_off <- percentiles[percentiles$scenario == found$scenario[1],]$percentile
-  data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] # cut off at 95th percentile
   
+  # cut off at 95th percentile
+  cut_off <- percentiles[percentiles$scenario == found$scenario[1],]$percentile
+  data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] 
+  
+  # make plot 
   ggplot(data_per_rep, aes(age, (1-mean))) + geom_line() +
     geom_ribbon(aes(ymin =(1-min), ymax = (1-max)), alpha = 0.2) +
     theme_minimal() +
@@ -1426,9 +1345,6 @@ save_output = TRUE
           legend.position = c(0.84, 0.86),
           legend.text = element_text(size = 15),
           legend.title = element_text(size = 16)) 
-  
-  scale_x_continuous(breaks = seq(0, 9, 3),
-                     limits = c(0, 9))
   
   ggsave(paste0(output_path, "figure_s6.pdf"), width = 12, height = 8)
   
@@ -1462,7 +1378,7 @@ save_output = TRUE
     found <- rbind(found, local_data)
   }
   
-  # determine the mean per replicate. 
+  # determine the mean per replicate per age 
   age <- c(0:max(found$age))
   data_per_rep <- data.frame(age)
   for (i in levels(as.factor(found$rep))){
@@ -1471,14 +1387,17 @@ save_output = TRUE
     data_per_rep[[new_col]] <- tapply(sub$survivalGeneVal, sub$age, mean)
   }
   
-  # get means
+  # get means over all replicates 
   repVals <- subset(data_per_rep, select = 2:ncol(data_per_rep))
   data_per_rep$mean <- rowMeans(repVals)
   data_per_rep$min <- apply(repVals, 1, min)
   data_per_rep$max <- apply(repVals, 1, max)
-  cut_off <- percentiles[percentiles$scenario == found$scenario[1],]$percentile
-  data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] # cut off at 95th percentile
   
+  # cut off at 95th percentile
+  cut_off <- percentiles[percentiles$scenario == found$scenario[1],]$percentile
+  data_per_rep <- data_per_rep[data_per_rep$age <= cut_off,] 
+  
+  # make plot 
   ggplot(data_per_rep, aes(age, (1-mean))) + geom_line() +
     geom_ribbon(aes(ymin =(1-min), ymax = (1-max)), alpha = 0.2) +
     theme_minimal() +
@@ -1499,22 +1418,2267 @@ save_output = TRUE
   
   ggsave(paste0(output_path, "figure_s8.pdf"), width = 12, height = 8)
   
-  # to remove: to check the survival genes
-  ggplot(data_per_rep, aes(age, mean)) + geom_line() +
-    geom_ribbon(aes(ymin =min, ymax = max), alpha = 0.2) +
+###############################################################################
+# Supplementary materials.
+# for figure S8
+###############################################################################
+  
+  # set axes 
+  plotsTot$p_baseline_gamete_quality <- plotsTot$p_baseline_gamete_quality + theme(axis.text.x = element_blank())
+  plotsTot$p_baseline_gamete_resource <- plotsTot$p_baseline_gamete_resource + 
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank())
+  plotsTot$p_baseline_quality_resource <- plotsTot$p_baseline_quality_resource + theme(axis.text.y = element_blank())
+  
+  # make matrix
+  plot_matrix <- plot_grid(plotsTot$p_baseline_gamete_quality,
+                           plotsTot$p_baseline_gamete_resource,
+                           plotsTot$p_gamete_quality_resource,
+                           plotsTot$p_baseline_quality_resource,
+                           align = "hv", axis = "brlt", labels = "AUTO", label_x = 0.90, label_y = 0.97)
+  
+  # make legend 
+  p_tmp <- plotsTot$p_baseline_quality_resource + theme(legend.position = "bottom",
+                                                         legend.title = element_blank(),
+                                                         legend.text = element_text(size=13))
+  leg1 <- get_legend(p_tmp) 
+  legend <- as_ggplot(leg1)
+  legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+  blank <- ggplot() + theme_void() + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
+  legend_row <- plot_grid(legend, blank, blank, blank, nrows = 1)
+  
+  # make matrix with axes labeling
+  plot_matrix2 <- grid.arrange(arrangeGrob(plot_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)), 
+                                           left = textGrob("Normalized offspring lifespan", gp=gpar(fontsize=15), rot = 90)))
+  
+  # make matrix with axes and legend 
+  plot_with_legend <- plot_grid(plot_matrix2, legend_row, ncol = 1, rel_heights = c(1, 0.01))
+  plot_with_legend
+  
+  # save figure
+  ggsave(paste0(output_path, "Figure_S8.pdf"), width = 12, height = 10)
+  
+###############################################################################
+# Supplementary materials.
+# for figure S9
+###############################################################################
+  
+  plotsTot$p_baseline_gamete_quality_resource
+  ggsave(paste0(output_path, "Figure_S9.pdf"), width = 12, height = 10)
+  
+###############################################################################
+# Resource distribution matrix 
+###############################################################################
+  # define equation 1
+  eq1 <- function(x, c) {
+    1 - c * x^2
+  }
+  
+  # make dummy data
+  c <- c(0.1, 0.3, 0.7)
+  dummy_data <- data.frame(x = seq(0, 1, 0.1))
+  dummy_data$c <- c[1]
+  dummy_data_2 <- data.frame(x = seq(0, 1, 0.1))
+  dummy_data_2$c <- c[2]
+  dummy_data_3 <- data.frame(x = seq(0, 1, 0.1))
+  dummy_data_3$c <- c[3]
+  
+  dummy_data <- rbind(dummy_data, dummy_data_2, dummy_data_3)
+  
+  for (i in 1:nrow(dummy_data)){
+    dummy_data[i,"y"] <- eq1(dummy_data[i,]$x, dummy_data[i,]$c)
+  }
+  
+p1 <- ggplot(dummy_data, aes(x, y, group = as.factor(c), colour = as.factor(c))) + 
+  geom_line(linewidth = 1) +
+  scale_colour_manual(name = "", values = met.brewer("Archambault")[c(1, 4, 7)],
+                      labels = c("c = 0.1", "c = 0.3", "c = 0.7")) +
+  theme_minimal() +
+  labs(x = expression(paste("Allocation to reproduction (", italic("x"),")")),
+       y = expression(paste("Effect on individual's survival (", m["4a"], ")"))) +
+  theme(axis.text = element_text(size=15,face="plain",color="black"),
+        axis.title = element_text(size = 16),
+        axis.line = element_line(color="black", linewidth = 1.0),
+        panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
+        text = element_text(size = 13),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 16),
+        legend.key = element_rect(fill = "white", colour = "black")) +
+  scale_x_continuous(breaks = seq(0, 1, 0.2),
+                     limits = c(0,1)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), 
+                     limits = c(0, 1)) 
+  
+  # define equation 2
+  eq2 <- function(x, a, d) {
+    1 / (1 + exp(-a * x - d))
+  }
+  
+  # make dummy data 
+  a <- c(1, 3, 10)
+  d <- c(2.5, 1, -4)
+  dummy_data_eq2 <- data.frame(x = seq(0, 1, 0.1))
+  dummy_data_eq2$a <- a[1]
+  dummy_data_eq2$d <- d[1]
+  dummy_data__eq22 <- data.frame(x = seq(0, 1, 0.1))
+  dummy_data__eq22$a <- a[2]
+  dummy_data__eq22$d <- d[2]
+  dummy_data__eq23 <- data.frame(x = seq(0, 1, 0.1))
+  dummy_data__eq23$a <- a[3]
+  dummy_data__eq23$d <- d[3]
+  
+  dummy_data_eq2 <- rbind(dummy_data_eq2, dummy_data__eq22, dummy_data__eq23)
+  
+  for (i in 1:nrow(dummy_data_eq2)){
+    dummy_data_eq2[i,"y"] <- eq2(dummy_data_eq2[i,]$x, dummy_data_eq2[i,]$a, dummy_data_eq2[i,]$d)
+  }
+  
+p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(a))) + 
+  geom_line(linewidth = 1) +
+  scale_colour_manual("", values = met.brewer("Archambault")[c(1, 4, 7)],
+                      labels = c("a = 1, d = 2.5", "a = 3, d = 1", "a = 10, d = -4")) +
+  theme_minimal() +
+  labs(x = expression(paste("Allocation to reproduction (", italic("x"),")")),
+       y = expression(paste("Effect on individual's survival (", m["4b"], ")"))) +
+  theme(axis.text = element_text(size=15,face="plain",color="black"),
+        axis.title = element_text(size = 16),
+        axis.line = element_line(color="black", linewidth = 1.0),
+        panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
+        text = element_text(size = 13),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 16),
+        legend.key = element_rect(fill = "white", colour = "black")) +
+  scale_x_continuous(breaks = seq(0, 1, 0.2),
+                     limits = c(0,1)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), 
+                     limits = c(0, 1)) 
+  
+################################################################################
+# EQUATION 1
+################################################################################
+  # general theme 
+  theme_plots <- theme(axis.text = element_text(size=15,face="plain",color="black"),
+                       axis.title = element_text(size = 16),
+                       axis.line = element_line(color="black", linewidth = 1.0),
+                       panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
+                       text = element_text(size = 13),
+                       legend.position = "none",
+                       plot.title = element_text(hjust = 0.5))
+
+  # set path to data for the resource matrix. 
+  path_rema <- paste0(path, "resource_matrix/")
+  
+  # the gam model
+  run_model <- function(data) {
+    tmp <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = z), data = data, method = "REML")
+    return(tmp)
+  }
+  
+  # general ggplot format 
+  color_eq1 <- scale_color_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+  fill_eq1 <- scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
+  scale_y_eq1_lansing <- scale_y_continuous(breaks = seq(0, 2, 1), limits = c(0, 2))
+  scale_y_eq1_gene_vals <- scale_y_continuous(breaks = seq(0, 1), limits = c(0, 1))
+  scale_x <- scale_x_continuous(breaks = seq(0,1), limits = c(0,1))
+  
+  # set path to eq1 
+  path_rema_eq1 <- paste0(path_rema, "eq1/")
+  
+# RESOURCE-ONLY
+  parent_path <- paste0(path_rema_eq1, "resource_eq1/") 
+  name = "resource_eq1"
+  
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  counter = 0
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # read data
+    local_data <- read.table(file_name, header = T)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$weightInvestment[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(weightInvestment = factor(weightInvestment))
+    
+    # to gather all data
+    allDataComplete <- rbind(allDataComplete, local_data) 
+    
+    # perform gam
+    # filter parents that had offspring at at least 5 different ages 
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    # normalize between 0 and 1 
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # for gam > determine number of k
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    # to keep track of where you are in the run 
+    print(d2$rep[1])
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate
+    names(models)[i] <- paste0("model_", rep)
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = T)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$weightInvestment[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+
+  if (save_output) {
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$weightInvestment))
+  colnames(percentiles) <- c("weightInvestment")
+  percentiles$percentile <- 0
+  
+  # go per parameter value through the data 
+  for (x in levels(allData$weightInvestment)){
+    # make subset of parameter
+    sub <- allData[allData$weightInvestment == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            weightInvestment = sub$weightInvestment[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      # get the name for the model 
+      mod <- paste0("model_", i)
+      # get index of model 
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      # predict using the corresponding model 
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 4:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save the percentile for this subset 
+    percentiles[percentiles$weightInvestment == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    # save the normalized data 
+    pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))] # select only relevant info 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_eq1"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  
+  # plot the normalized data grouped by weight investment
+  p3 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                            group = weightInvestment, 
+                                            colour = weightInvestment)) +
+    geom_line() +
     theme_minimal() +
-    labs(x = "Age") +
-    #y = "Averaged proportion of resources 
-    #allocated to reproduction") +
-    scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
-    theme(axis.text = element_text(size=17,face="plain",color="black"), 
-          axis.title = element_text(size = 17)) +
-    theme(axis.text = element_text(size=15,face="plain",color="black"),
-          axis.title = element_text(size = 16),
-          axis.line = element_line(color="black", linewidth = 1.0),
-          panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
-          text = element_text(size = 13),
-          legend.position = c(0.84, 0.86),
-          legend.text = element_text(size = 15),
-          legend.title = element_text(size = 16)) 
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_lansing +
+    scale_x +
+    labs(x = NULL,
+         y = NULL,
+         title = "Normalized offspring lifespan") 
+  
+  # make age-specific figure 
+  
+  # loop through every parameter value  
+  combine_data <- c()
+  for (i in levels(as.factor(found$weightInvestment))){
+    sub <- found[found$weightInvestment == i,]
+    # get the 95th percentile. 
+    percentile <- percentiles[percentiles$weightInvestment == i,]$percentile
+    # expand data from age 0 to percentile age 
+    tmp <- expand.grid(age = c(0:percentile),
+                       weightInvestment = sub$weightInvestment[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # loop through every replicate 
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p4 <- ggplot(combine_data, aes(age, mean, 
+                                 group= weightInvestment, 
+                                 colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_gene_vals +
+    scale_x +
+    labs(x = NULL,
+         y = NULL,
+         title = "Allocation to reproduction") 
+  
+# RESOURCE + BASELINE 
+  
+  # resource-only 
+  parent_path <- paste0(path_rema_eq1, "resource_baseline_eq1/") 
+  name = "resource_baseline_eq1"
+  
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  counter = 0
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # read data
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$weightInvestment[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(weightInvestment = factor(weightInvestment))
+    
+    # to gather all data 
+    allDataComplete <- rbind(allDataComplete, local_data) 
+    
+    # perform gam
+    # filter parents that had offspring at at least 5 different ages 
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    # normalize between 0 and 1 
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # for gam > determine number of k
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    # to keep track of where you are in the run 
+    print(d2$rep[1])
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and varying parameter
+    names(models)[i] <- paste0("model_", rep)
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$weightInvestment[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$weightInvestment))
+  colnames(percentiles) <- c("weightInvestment")
+  percentiles$percentile <- 0
+  
+  # go per parameter value through the data 
+  for (x in levels(allData$weightInvestment)){
+    # make subset of parameter
+    sub <- allData[allData$weightInvestment == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            weightInvestment = sub$weightInvestment[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      # get the name for the model 
+      mod <- paste0("model_", i)
+      # get index of model 
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      # predict using the corresponding model 
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 4:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save the percentile for this subset 
+    percentiles[percentiles$weightInvestment == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    # save the normalized data 
+    pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))] # select only relevant info 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_baseline_eq1"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  
+  # plot the normalized data grouped by weight investment
+  p7 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                            group = weightInvestment, 
+                                            colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_lansing +
+    scale_x +
+    labs(x = NULL,
+         y = NULL) 
+  
+  # make age-specific figure 
+  
+  # determine the mean per replicate per parameter value. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$weightInvestment))){
+    sub <- found[found$weightInvestment == i,]
+    # get percentile for cut-off
+    percentile <- percentiles[percentiles$weightInvestment == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       weightInvestment = sub$weightInvestment[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through every replicate and determine mean gene value per age
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p8 <- ggplot(combine_data, aes(age, mean, 
+                                 group= weightInvestment, 
+                                 colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_gene_vals +
+    scale_x +
+    labs(x = NULL,
+         y = NULL) 
+  
+# RESOURCE + GAMETE 
+  
+  # resource-only 
+  parent_path <- paste0(path_rema_eq1, "resource_gamete_eq1/") 
+  name = "resource_gamete_eq1"
+  
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  counter = 0
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # read data
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$weightInvestment[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(weightInvestment = factor(weightInvestment))
+    
+    # to gather all data
+    allDataComplete <- rbind(allDataComplete, local_data)  
+    
+    # perform gam
+    # filter parents that had offspring at at least 5 different ages 
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    # normalize between 0 and 1 
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # for gam > determine number of k
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    # to keep track of where you are in the run 
+    print(d2$rep[1])
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and varying parameter
+    names(models)[i] <- paste0("model_", rep)
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$weightInvestment[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+  
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$weightInvestment))
+  colnames(percentiles) <- c("weightInvestment")
+  percentiles$percentile <- 0
+  
+  # go per parameter value through the data 
+  for (x in levels(allData$weightInvestment)){
+    # make subset of parameter
+    sub <- allData[allData$weightInvestment == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            weightInvestment = sub$weightInvestment[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      # get the name for the model 
+      mod <- paste0("model_", i)
+      # get index of model 
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      # predict using the corresponding model 
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 4:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save the percentile for this subset 
+    percentiles[percentiles$weightInvestment == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    # save the data 
+    pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))] # select only relevant info 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_gamete_eq1"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  
+  # plot the normalized data grouped by weight investment
+  p11 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                             group = weightInvestment, 
+                                             colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_lansing +
+    scale_x +
+    labs(x = NULL,
+         y = NULL)
+  
+  # make age-specific figure 
+  
+  # determine the mean per replicate. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$weightInvestment))){
+    sub <- found[found$weightInvestment == i,]
+    # get percentile for cut-off
+    percentile <- percentiles[percentiles$weightInvestment == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       weightInvestment = sub$weightInvestment[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through every replicate and determine mean per age
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p12 <- ggplot(combine_data, aes(age, mean, 
+                                  group= weightInvestment, 
+                                  colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_gene_vals +
+    scale_x +
+    labs(x = NULL,
+         y = NULL)
+  
+# RESOURCE + QUALITY
+  
+  # resource-only 
+  parent_path <- paste0(path_rema_eq1, "resource_parentalQuality_eq1/") 
+  name = "resource_quality_eq1"
+  
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  counter = 0
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # read data
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$weightInvestment[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(weightInvestment = factor(weightInvestment))
+    
+    # to gather all data 
+    allDataComplete <- rbind(allDataComplete, local_data) 
+    
+    # perform gam
+    # filter parents that had offspring at at least 5 different ages 
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), to_sample, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    # normalize between 0 and 1 
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # for gam > determine number of k
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    # to keep track of where you are in the run 
+    print(d2$rep[1])
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and varying parameter
+    names(models)[i] <- paste0("model_", rep)
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    # TODO: remove this row if data is complete. 
+    local_data_age$weightInvestment <- local_data$weightInvestment[1]
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$weightInvestment[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$weightInvestment))
+  colnames(percentiles) <- c("weightInvestment")
+  percentiles$percentile <- 0
+  
+  # go per parameter value through the data 
+  for (x in levels(allData$weightInvestment)){
+    # make subset of parameter
+    sub <- allData[allData$weightInvestment == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            weightInvestment = sub$weightInvestment[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      # get the name for the model 
+      mod <- paste0("model_", i)
+      # get index of model 
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      # predict using the corresponding model 
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 4:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, pred_data[c(1:3,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+    
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save the percentile for this subset 
+    percentiles[percentiles$weightInvestment == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes between 0 and 1 
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    # save the data 
+    pred_data_tmp <- pred_data[c(1:3, ((ncol(pred_data)-2):ncol(pred_data)))] # select only relevant info 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_quality_eq1"
+  #predDataTotalNormalized <- loadRDS(paste0("predDataTotalNormalized_", name, ".RDS"))
+  
+  # plot the normalized data grouped by weight investment
+  p15 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                             group = weightInvestment, 
+                                             colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_lansing +
+    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+    labs(x = NULL,
+         y = NULL) 
+  
+  # make age-specific figure 
+  
+  # determine the mean per replicate. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$weightInvestment))){
+    sub <- found[found$weightInvestment == i,]
+    # get percentile as cut-off
+    percentile <- percentiles[percentiles$weightInvestment == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       weightInvestment = sub$weightInvestment[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through every replicate 
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(weightInvestment = factor(weightInvestment))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p16 <- ggplot(combine_data, aes(age, mean, 
+                                  group= weightInvestment, 
+                                  colour = weightInvestment)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = weightInvestment), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq1 +
+    fill_eq1 +
+    scale_y_eq1_gene_vals +
+    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+    labs(x = NULL,
+         y = NULL)
+  
+################################################################################
+# EQUATION 2 
+################################################################################
+  
+  # set path 
+  path_rema_eq2 <- paste0(path_rema, "eq2/")
+  
+  # the gam model
+  run_model <- function(data) {
+    tmp <- bam(y3 ~ s(maternalAge, k = k) + s(maternalAge, ID, bs = "fs", k = z), data = data, method = "REML")
+    return(tmp)
+  }
+  
+  # for the lansing figures (column 3)
+  color_eq2_lansing <- scale_color_manual(values = met.brewer("Archambault")[c(7, 4, 1)]) 
+  fill_eq2_lansing <- scale_fill_manual(values = met.brewer("Archambault")[c(7, 4, 1)]) 
+  # for the gene values figures (column 4)
+  color_eq2_gene_vals <- scale_color_manual(values = met.brewer("Archambault")[c(4, 1, 7)]) 
+  fill_eq2_gene_vals <- scale_fill_manual(values = met.brewer("Archambault")[c(4, 1, 7)])
+  # scale y for Lansing figures (column 3)
+  scale_y_eq2_lansing <- scale_y_continuous(breaks = seq(0, 2, 1), limits = c(0, 2))
+  # scale y for the gene value figures (column 4)
+  scale_y_eq2_gene_vals <- scale_y_continuous(breaks = seq(0, 1), limits = c(0, 1))
+  
+# resource-only 
+  parent_path <- paste0(path_rema_eq2, "resource_eq2/") 
+  name = "resource_eq2"
+  
+  # list the files 
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  # to save the data
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  # for every listed file 
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # extract which setting folder the file is in 
+    nVal <- length(splitted_path[[1]]) - 2
+    val <- splitted_path[[1]][nVal]
+    # read data
+    local_data <- read.table(file_name, header = T)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$steepnessAllocationToReproduce[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(scalingStrengthOfAllocationToReproduce = factor(scalingStrengthOfAllocationToReproduce))
+    local_data <- local_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+    
+    # to gather all data
+    allDataComplete <- rbind(allDataComplete, local_data) 
+    
+    # perform gam
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 100, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # set k for the gam model 
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    
+    # to keep track 
+    print(d2$rep[1])
+    
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and parameter setting 
+    names(models)[i] <- paste0("model_", rep, "_", d2$steepnessAllocationToReproduce[1])
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, val, "/", rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = T)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$steepnessAllocationToReproduce[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+  
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$steepnessAllocationToReproduce))
+  colnames(percentiles) <- c("steepnessAllocationToReproduce")
+  percentiles$percentile <- 0
+  
+  # go per parameter setting through the data 
+  for (x in levels(allData$steepnessAllocationToReproduce)){
+    # make subset of parameter setting 
+    sub <- allData[allData$steepnessAllocationToReproduce == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1],
+                            scalingStrengthOfAllocationToReproduce = sub$scalingStrengthOfAllocationToReproduce[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      mod <- paste0("model_", i, "_", sub$steepnessAllocationToReproduce[1])
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 5:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:4,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save the percentile value 
+    percentiles[percentiles$steepnessAllocationToReproduce == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes 
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    pred_data_tmp <- pred_data[c(1:4, ((ncol(pred_data)-2):ncol(pred_data)))]
+    pred_data_tmp$nRep <- length(levels(sub$rep))
+    
+    # save the normalized data 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_eq2"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  
+  # plot the normalized data grouped by weight investment
+  p5 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean,  
+                                            group = steepnessAllocationToReproduce, 
+                                            colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max, fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_lansing +
+    fill_eq2_lansing +
+    scale_y_eq2_lansing +
+    scale_x +
+    labs(x = NULL,
+         y = NULL,
+         title = "Lansing effect") 
+  
+  # determine the mean per replicate per parameter setting. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
+    sub <- found[found$steepnessAllocationToReproduce == i,]
+    # get the corresponding percentile to use as cut-off
+    percentile <- percentiles[percentiles$steepnessAllocationToReproduce == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through every replicate and determine mean per age 
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p6 <- ggplot(combine_data, aes(age, mean, 
+                                 group= steepnessAllocationToReproduce, 
+                                 colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_gene_vals +
+    fill_eq2_gene_vals +
+    scale_y_eq2_gene_vals +
+    scale_x +
+    labs(x = NULL,
+         y = NULL,
+         title = "Allocation to reproduction") 
+  
+# RESOURCE + BASELINE
+  
+  # resource-only 
+  parent_path <- paste0(path_rema_eq2, "resource_baseline_eq2/") 
+  name = "resource_baseline_eq2"
+  
+  # list the files 
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  # to save the data
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  # for every listed file 
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # get the parameter folder setting 
+    nVal <- length(splitted_path[[1]]) - 2
+    val <- splitted_path[[1]][nVal]
+    # read data
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$steepnessAllocationToReproduce[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(scalingStrengthOfAllocationToReproduce = factor(scalingStrengthOfAllocationToReproduce))
+    local_data <- local_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+    
+    # to gather all data
+    allDataComplete <- rbind(allDataComplete, local_data)  
+    
+    # perform gam
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 100, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # set k for the gam model 
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    
+    # to keep track 
+    print(d2$rep[1])
+    
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and parameter setting 
+    names(models)[i] <- paste0("model_", rep, "_", d2$steepnessAllocationToReproduce[1])
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, val, "/", rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = T)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$steepnessAllocationToReproduce[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+  
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$steepnessAllocationToReproduce))
+  colnames(percentiles) <- c("steepnessAllocationToReproduce")
+  percentiles$percentile <- 0
+  
+  # go per parameter setting through the data 
+  for (x in levels(allData$steepnessAllocationToReproduce)){
+    # make subset of data with this parameter setting  
+    sub <- allData[allData$steepnessAllocationToReproduce == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1],
+                            scalingStrengthOfAllocationToReproduce = sub$scalingStrengthOfAllocationToReproduce[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      mod <- paste0("model_", i, "_", sub$steepnessAllocationToReproduce[1])
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 5:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:4,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save the percentile value 
+    percentiles[percentiles$steepnessAllocationToReproduce == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes between 0 and 1 
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    pred_data_tmp <- pred_data[c(1:4, ((ncol(pred_data)-2):ncol(pred_data)))]
+    pred_data_tmp$nRep <- length(levels(sub$rep))
+    
+    # save the normalized data 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_baseline_eq2"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  
+  # plot the normalized data grouped by weight investment
+  p9 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                            group = steepnessAllocationToReproduce, 
+                                            colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_lansing +
+    fill_eq2_lansing +
+    scale_y_eq2_lansing +
+    scale_x +
+    labs(x = NULL,
+         y = NULL) 
+  
+  # determine the mean per replicate per parameter setting. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
+    sub <- found[found$steepnessAllocationToReproduce == i,]
+    # get the percentile to use as cut-off 
+    percentile <- percentiles[percentiles$steepnessAllocationToReproduce == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through the data per replicate 
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p10 <- ggplot(combine_data, aes(age, mean, 
+                                  group= steepnessAllocationToReproduce, 
+                                  colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_gene_vals +
+    fill_eq2_gene_vals +
+    scale_y_eq2_gene_vals +
+    scale_x +
+    labs(x = NULL,
+         y = NULL) 
+  
+  
+# RESOURCE + GAMETE
+  
+  # resource-only 
+  parent_path <- paste0(path_rema_eq2, "resource_gamete_eq2/") 
+  name = "resource_gamete_eq2"
+  
+  # list the files 
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  # to save the data
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  # for every listed file 
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # extract the parameter setting folder 
+    nVal <- length(splitted_path[[1]]) - 2
+    val <- splitted_path[[1]][nVal]
+    # read data
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$steepnessAllocationToReproduce[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(scalingStrengthOfAllocationToReproduce = factor(scalingStrengthOfAllocationToReproduce))
+    local_data <- local_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+    
+    # to gather all data 
+    allDataComplete <- rbind(allDataComplete, local_data) 
+    
+    # perform gam
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough IDs are present to sample 
+    to_sample <- 100 
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 100, replace = FALSE),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # set k for the gam model 
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    
+    # to keep track 
+    print(d2$rep[1])
+    
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and parameter setting 
+    names(models)[i] <- paste0("model_", rep, "_", d2$steepnessAllocationToReproduce[1])
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, val, "/", rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$steepnessAllocationToReproduce[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+  
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$steepnessAllocationToReproduce))
+  colnames(percentiles) <- c("steepnessAllocationToReproduce")
+  percentiles$percentile <- 0
+  
+  # go per parameter setting through the data 
+  for (x in levels(allData$steepnessAllocationToReproduce)){
+    # make subset of scenario 
+    sub <- allData[allData$steepnessAllocationToReproduce == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1],
+                            scalingStrengthOfAllocationToReproduce = sub$scalingStrengthOfAllocationToReproduce[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      mod <- paste0("model_", i, "_", sub$steepnessAllocationToReproduce[1])
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 5:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:4,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save percentile 
+    percentiles[percentiles$steepnessAllocationToReproduce == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes between 0 and 1 
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    pred_data_tmp <- pred_data[c(1:4, ((ncol(pred_data)-2):ncol(pred_data)))]
+    pred_data_tmp$nRep <- length(levels(sub$rep))
+    
+    # save the data 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_gamete_eq2"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  
+  # plot the normalized data grouped by weight investment
+  p13 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                             group = steepnessAllocationToReproduce, 
+                                             colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_lansing +
+    fill_eq2_lansing +
+    scale_y_eq2_lansing +
+    scale_x +
+    labs(x = NULL,
+         y = NULL)
+  
+  # determine the mean per replicate per parameter setting. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
+    sub <- found[found$steepnessAllocationToReproduce == i,]
+    # get corresponding percentile to use as cut-off
+    percentile <- percentiles[percentiles$steepnessAllocationToReproduce == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through the data per replicate 
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the x-axis 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p14 <- ggplot(combine_data, aes(age, mean, 
+                                  group= steepnessAllocationToReproduce, 
+                                  colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_gene_vals +
+    fill_eq2_gene_vals +
+    scale_y_eq2_gene_vals +
+    scale_x +
+    labs(x = NULL,
+         y = NULL) 
+  
+# RESOURCE + PARENTAL CARE QUALITY
+  
+  parent_path <- paste0(path_rema_eq2, "resource_and_parentalQuality_eq2/") 
+  name = "resource_and_parentalQuality_eq2"
+  
+  # list the files 
+  f <- list.files(path = parent_path, pattern = "outputLifeExpLong.txt", recursive = T, all.files = T)
+  # to save the data
+  allData <- c()
+  allDataComplete <- c()
+  models <- list()
+  found <- c()
+  counter <- 0
+  # for every listed file 
+  for (i in 1:length(f)) {
+    x <- f[i]
+    # get path 
+    file_name <- paste0(parent_path, x)
+    # extract replicate from file name 
+    splitted_path <- strsplit(file_name, "/")
+    nRep <- length(splitted_path[[1]]) - 1
+    rep <- splitted_path[[1]][nRep]
+    # extract the parameter setting folder 
+    nVal <- length(splitted_path[[1]]) - 2
+    val <- splitted_path[[1]][nVal]
+    # read data
+    local_data <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data$rep <- rep
+    # rename ID so it is unique per replicate per parameter setting
+    local_data$ID <- sub("^", local_data$steepnessAllocationToReproduce[1], paste0("_", local_data$ID))
+    local_data$ID <- sub("^", local_data$rep[1], paste("_", local_data$ID, sep = ""))
+    # subset parents 
+    z <- local_data %>% dplyr::group_by(ID) %>% dplyr::summarize(na = length(unique(maternalAge))) 
+    ## Add the counter to data
+    local_data <- local_data %>% left_join(z,by="ID")
+    local_data <- local_data %>% mutate(scalingStrengthOfAllocationToReproduce = factor(scalingStrengthOfAllocationToReproduce))
+    local_data <- local_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+    
+    # to gather all data 
+    allDataComplete <- rbind(allDataComplete, local_data) 
+    
+    # perform gam
+    local_data <- local_data %>% filter(na >= 5)
+    local_data <- local_data %>% mutate(ID = factor(ID)) 
+    
+    # check if enough individuals are present to sample 
+    to_sample <- 100
+    if (length(unique(local_data$ID)) < to_sample){
+      counter = counter + 1
+      next
+    }
+    
+    # sample 100 parents by their IDs
+    local_data <- local_data[local_data$ID %in% sample(unique(local_data$ID), 100, replace = F),]
+    # save the data
+    allData <- rbind(allData, local_data)
+    
+    # GAM 
+    d <- local_data
+    d2 <- d %>% mutate(y2 = ageAtDeath/40)
+    ## Work with logits (then (0,1) -> (-inf,+inf))
+    d2 <- d2 %>% mutate(y3 = car::logit(y2))
+    d2 <- d2 %>% mutate(ID = factor(ID)) 
+    d2 <- d2 %>% mutate(rep = factor(rep)) 
+    
+    # set k for the gam model 
+    k = 10; 
+    if (length(levels(as.factor(d2$maternalAge))) < k) { 
+      k = length(levels(as.factor(d2$maternalAge))) 
+    }
+    z = 4
+    if (length(levels(as.factor(d2$ID))) < z) { 
+      z = length(levels(as.factor(d2$ID))) 
+    }
+    # to keep track 
+    print(d2$rep[1])
+    
+    # run model 
+    mod <- run_model(d2)
+    # save model in list 
+    models[[i]] <- mod
+    # rename model to be unique for replicate and parameter setting 
+    names(models)[i] <- paste0("model_", rep, "_", d2$steepnessAllocationToReproduce[1])
+    
+    # COLLECT DATA FOR AGE-SPECIFIC FIGURE
+    # get path 
+    file_name <- paste0(parent_path, val, "/", rep, "/outputWithAgeSpecificGenes.txt")
+    # read data
+    local_data_age <- read.table(file_name, header = TRUE)
+    # add replicate as column 
+    local_data_age$rep <- rep
+    local_data_age$ID <- sub("^", local_data_age$rep[1], local_data_age$ID)
+    local_data_age$ID <- sub("^", local_data_age$steepnessAllocationToReproduce[1], local_data_age$ID)
+    found <- rbind(found, local_data_age)
+  }
+  
+  if (save_output){
+    # save the R data just in case. 
+    saveRDS(allData, file = paste0(output_path_data, "allData_", name, ".rds"))
+    saveRDS(models, file = paste0(output_path_data, "models_", name, ".rds"))
+    saveRDS(allDataComplete, file = paste0(output_path_data, "allDataComplete_", name, ".rds"))
+    saveRDS(found, file = paste0(output_path_data, "found_", name, ".rds"))
+  }
+  
+  allData$rep <- factor(allData$rep)
+  
+  # to save all data 
+  predDataTotal <- c()
+  predDataTotalNormalized <- c()
+  
+  # to save the percentiles where the data is cut-off per scenario
+  percentiles <- data.frame(levels(allData$steepnessAllocationToReproduce))
+  colnames(percentiles) <- c("steepnessAllocationToReproduce")
+  percentiles$percentile <- 0
+  
+  # go per parameter setting through the data 
+  for (x in levels(allData$steepnessAllocationToReproduce)){
+    # make subset of scenario 
+    sub <- allData[allData$steepnessAllocationToReproduce == x,]
+    # refactor the replicates of the subset 
+    sub <- sub %>% mutate(rep = factor(rep))
+    # make data expansion 
+    pred_data = expand.grid(maternalAge =seq(0,max(sub$maternalAge),1),
+                            ID = levels(sub$ID)[1],
+                            steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1],
+                            scalingStrengthOfAllocationToReproduce = sub$scalingStrengthOfAllocationToReproduce[1]) 
+    
+    # loop through the replicates
+    for (i in levels(sub$rep)){
+      mod <- paste0("model_", i, "_", sub$steepnessAllocationToReproduce[1])
+      index <- which(names(models) == mod)
+      new_col <- paste("rep", i, sep = "")
+      tmp <- predict(models[[index]], newdata = pred_data, type="terms",terms = c("s(maternalAge)"))
+      # add to predicted data with adjusting for the intercept. 
+      pred_data[[new_col]] <- tmp + attr(tmp, "constant")
+    }
+    
+    # get means, minimum and maximum values 
+    repVals <- subset(pred_data, select = 5:ncol(pred_data))
+    pred_data$mean <- rowMeans(repVals)
+    pred_data$min <- apply(repVals, 1, min)
+    pred_data$max <- apply(repVals, 1, max)
+    
+    # transform back 
+    pred_data$mean <- logist(pred_data$mean) 
+    pred_data$min <- logist(pred_data$min) 
+    pred_data$max <- logist(pred_data$max) 
+    
+    # save by binding to one big dataframe 
+    predDataTotal <- rbind(predDataTotal, 
+                           pred_data[c(1:4,(ncol(pred_data)-2):ncol(pred_data))]) # select only columns with the relevant information 
+
+    # get 95th percentile 
+    percentile <- quantile(sub$maternalAge, probs = 0.95)
+    # save percentile 
+    percentiles[percentiles$steepnessAllocationToReproduce == x,]$percentile <- percentile
+    # cut-off the data at that percentile 
+    pred_data <- pred_data[pred_data$maternalAge <= percentile,]
+    # normalize the axes between 0 and 1 
+    pred_data$maternalAge <- pred_data$maternalAge / percentile
+    pred_data$min <- pred_data$min / pred_data$mean[1]
+    pred_data$max <- pred_data$max / pred_data$mean[1]
+    pred_data$mean <- pred_data$mean / pred_data$mean[1]
+    
+    pred_data_tmp <- pred_data[c(1:4, ((ncol(pred_data)-2):ncol(pred_data)))]
+    pred_data_tmp$nRep <- length(levels(sub$rep))
+    
+    # save the data 
+    predDataTotalNormalized <- rbind(predDataTotalNormalized, pred_data_tmp)
+  }
+  
+  if (save_output){
+    saveRDS(predDataTotalNormalized, file = paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+    saveRDS(predDataTotal, paste0(output_path_data, "predDataTotal_", name, ".RDS"))
+    saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
+  }
+  
+  #name = "resource_and_parentalQuality_eq2"
+  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  
+  # plot the normalized data grouped by weight investment
+  p17 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
+                                             group = steepnessAllocationToReproduce, 
+                                             colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = predDataTotalNormalized,
+                aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_lansing +
+    fill_eq2_lansing +
+    scale_y_eq2_lansing +
+    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+    labs(x = NULL,
+         y = NULL) 
+  
+  # determine the mean per replicate. 
+  combine_data <- c()
+  for (i in levels(as.factor(found$steepnessAllocationToReproduce))){
+    sub <- found[found$steepnessAllocationToReproduce == i,]
+    # get the percentile to use as cut-off 
+    percentile <- percentiles[percentiles$steepnessAllocationToReproduce == i,]$percentile
+    tmp <- expand.grid(age = c(0:percentile),
+                       steepnessAllocationToReproduce = sub$steepnessAllocationToReproduce[1])
+    sub <- sub[sub$age <= percentile,]
+    
+    # go through the data per replicate 
+    for (x in levels(as.factor(sub$rep))){
+      sub_2 <- sub[sub$rep == x,]
+      new_col <- paste0("rep", x)
+      tmp[[new_col]] <- tapply(sub_2$investmentGeneVal, sub_2$age, mean)
+    }
+    
+    # get means
+    repVals <- subset(tmp, select = 3:ncol(tmp))
+    tmp$mean <- rowMeans(repVals)
+    tmp$min <- apply(repVals, 1, min)
+    tmp$max <- apply(repVals, 1, max)
+    
+    # recalculate to make it investment in reproduction instead of repair. 
+    tmp$mean <- (1 - tmp$mean)
+    tmp$min <- (1 - tmp$min)
+    tmp$max <- (1 - tmp$max)
+    
+    # normalize the axes 
+    tmp$age <- tmp$age / percentile
+    
+    combine_data <- rbind(combine_data, tmp[c(1:2,(ncol(tmp)-2):ncol(tmp))])
+  }
+  
+  combine_data <- combine_data %>% mutate(steepnessAllocationToReproduce = factor(steepnessAllocationToReproduce))
+  
+  if (save_output){
+    saveRDS(combine_data, paste0(output_path_data, "combine_data_", name, ".RDS"))
+  }
+  
+  #combine_data <- loadRDS(paste0(output_path_data, "combine_data_", name, ".RDS"))
+  
+  # plot 
+  p18 <- ggplot(combine_data, aes(age, mean, 
+                                  group= steepnessAllocationToReproduce, 
+                                  colour = steepnessAllocationToReproduce)) +
+    geom_line() +
+    theme_minimal() +
+    geom_ribbon(data = combine_data,
+                aes(ymin = min, ymax = max,  fill = steepnessAllocationToReproduce), 
+                alpha = 0.2, colour = NA) +
+    theme_plots +
+    color_eq2_gene_vals +
+    fill_eq2_gene_vals +
+    scale_y_eq2_gene_vals +
+    scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
+    labs(x = NULL,
+         y = NULL) 
+  
+  
+  ############ make grid ##################
+  
+  top_row <- plot_grid(p1, p2, ncol = 2, labels = "AUTO")
+  labels <- c("C", "D", "E", "F",
+              "G", "H", "I", "J",
+              "K", "L", "M", "N",
+              "O", "P", "Q", "R")
+  bottom_part <- plot_grid(p3, p4, p5, p6,
+                           p7, p8, p9, p10,
+                           p11, p12, p13, p14,
+                           p15, p16, p17, p18,
+                           ncol = 4, labels = labels, 
+                           align = "hv") #,
+                          # label_x = 0.1, label_y = 0.9, 
+                          # align = "hv")
+  
+  resource_matrix <- plot_grid(top_row, bottom_part, ncol = 1, rel_heights = c(1, 2.5))
+  resource_matrix
+  
+  library(grid)
+  library(gridExtra)
+  plot_matrix2 <- grid.arrange(arrangeGrob(resource_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)))) 
+
+  plot_matrix2
+  ggsave(paste0(output_path, "resource_matrix.pdf"), width = 15, height = 20)
   
