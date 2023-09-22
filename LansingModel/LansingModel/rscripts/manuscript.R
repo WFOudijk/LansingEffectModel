@@ -332,10 +332,11 @@ library(R.filesets) # remove
   totalNormalizedData <- rbind(predDataTotalNormalized, predDataTotalNormalizedLat)
   
   totalNormalizedData <- totalNormalizedData %>% mutate(scenario = factor(scenario))
+  totalNormalizedData <- totalNormalizedData %>% mutate(group = factor(group))
   
   # dynamically generate the plots per scenario 
   plotsTot <- c()
-  for (i in 1:levels(totalNormalizedData$scenario)){
+  for (i in 1:length(levels(totalNormalizedData$scenario))){
     p <- ggplot(totalNormalizedData[totalNormalizedData$scenario == scenarios[i],], 
                 aes(maternalAge, mean, group = group, colour = group)) +
       geom_line() +
@@ -353,7 +354,7 @@ library(R.filesets) # remove
         panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7)) +
       scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
       scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits = c(0, 1.5), 
-                         oob = scales::oob_keep)
+                         oob = scales::oob_keep) +
       scale_colour_manual(values = met.brewer("Egypt", 4)[c(2,4)]) +
       scale_fill_manual(values = met.brewer("Egypt", 4)[c(2,4)])
     
@@ -433,7 +434,8 @@ library(R.filesets) # remove
   
   # make legend 
   p_tmp <- plotsTot$p_resource_distribution + theme(legend.position = "bottom",
-                                       legend.title = element_blank())
+                                       legend.title = element_blank(),
+                                       legend.text = element_text(size = 17))
   leg1 <- get_legend(p_tmp) 
   legend <- as_ggplot(leg1)
   legend <- legend + theme(plot.margin = unit(c(0, 0, 1, 0), "cm"))
@@ -1495,7 +1497,7 @@ p1 <- ggplot(dummy_data, aes(x, y, group = as.factor(c), colour = as.factor(c)))
                       labels = c("c = 0.1", "c = 0.3", "c = 0.7")) +
   theme_minimal() +
   labs(x = expression(paste("Allocation to reproduction (", italic("x"),")")),
-       y = expression(paste("Effect on individual's survival (", m["4a"], ")"))) +
+       y = expression(paste("Effect on parental survival (", m["4a"], ")"))) +
   theme(axis.text = element_text(size=15,face="plain",color="black"),
         axis.title = element_text(size = 16),
         axis.line = element_line(color="black", linewidth = 1.0),
@@ -1504,7 +1506,8 @@ p1 <- ggplot(dummy_data, aes(x, y, group = as.factor(c), colour = as.factor(c)))
         legend.position = "bottom",
         legend.text = element_text(size = 13),
         legend.title = element_text(size = 16),
-        legend.key = element_rect(fill = "white", colour = "black")) +
+        legend.key = element_rect(fill = "white", colour = "black"),
+        legend.key.width = unit(1, "cm")) +
   scale_x_continuous(breaks = seq(0, 1, 0.2),
                      limits = c(0,1)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), 
@@ -1540,7 +1543,7 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
                       labels = c("a = 1, d = 2.5", "a = 3, d = 1", "a = 10, d = -4")) +
   theme_minimal() +
   labs(x = expression(paste("Allocation to reproduction (", italic("x"),")")),
-       y = expression(paste("Effect on individual's survival (", m["4b"], ")"))) +
+       y = expression(paste("Effect on offspring's survival (", m["4b"], ")"))) +
   theme(axis.text = element_text(size=15,face="plain",color="black"),
         axis.title = element_text(size = 16),
         axis.line = element_line(color="black", linewidth = 1.0),
@@ -1549,7 +1552,8 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
         legend.position = "bottom",
         legend.text = element_text(size = 13),
         legend.title = element_text(size = 16),
-        legend.key = element_rect(fill = "white", colour = "black")) +
+        legend.key = element_rect(fill = "white", colour = "black"),
+        legend.key.width = unit(1, "cm")) +
   scale_x_continuous(breaks = seq(0, 1, 0.2),
                      limits = c(0,1)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2), 
@@ -1560,6 +1564,7 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
 ################################################################################
   # general theme 
   theme_plots <- theme(axis.text = element_text(size=15,face="plain",color="black"),
+                       axis.text.x = element_blank(),
                        axis.title = element_text(size = 16),
                        axis.line = element_line(color="black", linewidth = 1.0),
                        panel.border = element_rect(colour = "darkgray", fill=NA, linewidth=0.7),
@@ -1581,7 +1586,7 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
   fill_eq1 <- scale_fill_manual(values = met.brewer("Archambault")[c(1, 4, 7)]) 
   scale_y_eq1_lansing <- scale_y_continuous(breaks = seq(0, 2, 1), limits = c(0, 2))
   scale_y_eq1_gene_vals <- scale_y_continuous(breaks = seq(0, 1), limits = c(0, 1))
-  scale_x <- scale_x_continuous(breaks = seq(0,1), limits = c(0,1))
+  scale_x <- scale_x_continuous(breaks = seq(0,1, 0.2), limits = c(0,1))
   
   # set path to eq1 
   path_rema_eq1 <- paste0(path_rema, "eq1/")
@@ -1756,8 +1761,8 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
     saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
   }
   
-  #name = "resource_eq1"
-  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
+  name = "resource_eq1"
+  predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".RDS"))
   
   # plot the normalized data grouped by weight investment
   p3 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
@@ -2536,7 +2541,9 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
     scale_y_eq1_lansing +
     scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
     labs(x = NULL,
-         y = NULL) 
+         y = NULL) +
+    theme(axis.text.x = element_text(colour = "black", size =16))
+  
   
   # make age-specific figure 
   
@@ -2597,7 +2604,9 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
     scale_y_eq1_gene_vals +
     scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
     labs(x = NULL,
-         y = NULL)
+         y = NULL) +
+    theme(axis.text.x = element_text(colour = "black", size =16))
+  
   
 ################################################################################
 # EQUATION 2 
@@ -3576,8 +3585,8 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
     saveRDS(percentiles, paste0(output_path_data, "percentiles_", name, ".RDS"))
   }
   
-  #name = "resource_and_parentalQuality_eq2"
-  #predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
+  name = "resource_and_parentalQuality_eq2"
+  predDataTotalNormalized <- loadRDS(paste0(output_path_data, "predDataTotalNormalized_", name, ".rds"))
   
   # plot the normalized data grouped by weight investment
   p17 <- ggplot(predDataTotalNormalized, aes(maternalAge, mean, 
@@ -3594,7 +3603,8 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
     scale_y_eq2_lansing +
     scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
     labs(x = NULL,
-         y = NULL) 
+         y = NULL) +
+    theme(axis.text.x = element_text(colour = "black", size =16))
   
   # determine the mean per replicate. 
   combine_data <- c()
@@ -3653,8 +3663,9 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
     scale_y_eq2_gene_vals +
     scale_x_continuous(breaks = seq(0,1,0.2), limits = c(0,1)) +
     labs(x = NULL,
-         y = NULL) 
-  
+         y = NULL) +
+    theme(axis.text.x = element_text(colour = "black", size =16))
+
   
   ############ make grid ##################
   
@@ -3675,8 +3686,6 @@ p2 <- ggplot(dummy_data_eq2, aes(x, y, group = as.factor(a), colour = as.factor(
   resource_matrix <- plot_grid(top_row, bottom_part, ncol = 1, rel_heights = c(1, 2.5))
   resource_matrix
   
-  library(grid)
-  library(gridExtra)
   plot_matrix2 <- grid.arrange(arrangeGrob(resource_matrix, bottom = textGrob("Normalized parental age", gp=gpar(fontsize=15)))) 
 
   plot_matrix2
